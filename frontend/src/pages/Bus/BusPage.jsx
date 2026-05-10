@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { logEvent } from "../../api/client";
-import { getUser } from "../../api/auth";
 
 const DUMMY_STOPS = [
   { id: 1, name: "청산주차장", dist: "150m", next: 7, fav: true },
@@ -18,18 +17,18 @@ const FILTERS = [
 
 export default function BusPage() {
   const navigate = useNavigate();
-  const user = getUser();
   const [filter, setFilter] = useState("near");
   const [stops, setStops] = useState(DUMMY_STOPS);
   const [apiStops, setApiStops] = useState([]);
+  const redirected = useRef(false);
 
   useEffect(() => {
     logEvent("bus_tab_open");
-    const done = localStorage.getItem("busOnboardingDone");
-    if (!done) {
+    if (!redirected.current && !localStorage.getItem("busOnboardingDone")) {
+      redirected.current = true;
       navigate("/bus/onboarding", { replace: true });
     }
-  }, [navigate]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     api.get("/bus/stops")
