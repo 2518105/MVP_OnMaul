@@ -129,7 +129,7 @@ export default function BoardPage() {
 
       {/* 플로팅 버튼 */}
       <button
-        onClick={() => navigate("/board/new")}
+        onClick={() => user ? navigate("/board/new") : navigate("/login")}
         className="fixed bottom-20 right-4 w-14 h-14 bg-maul rounded-full shadow-lg text-2xl flex items-center justify-center hover:bg-maul-dark transition-colors z-20"
       >
         ✏️
