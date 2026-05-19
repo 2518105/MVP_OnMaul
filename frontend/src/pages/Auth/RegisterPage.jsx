@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { register } from "../../api/auth";
 
 const USER_TYPES = [
@@ -9,6 +9,8 @@ const USER_TYPES = [
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const next = params.get("next") || "";
   const [form, setForm] = useState({ username: "", nickname: "", password: "", userType: "이주민" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,7 +21,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await register(form.username, form.nickname, form.password, form.userType);
-      navigate("/board");
+      navigate(next || "/board");
     } catch (err) {
       setError(err.response?.data?.detail || "회원가입 실패");
     } finally {

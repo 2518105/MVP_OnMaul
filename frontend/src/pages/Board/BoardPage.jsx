@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api, { logEvent } from "../../api/client";
 import { getUser } from "../../api/auth";
+import LoginPromptSheet from "../../components/LoginPromptSheet";
 
 const CATEGORIES = [
   { value: "", label: "전체" },
@@ -76,6 +77,7 @@ export default function BoardPage() {
   const user = getUser();
   const [category, setCategory] = useState("");
   const [apiPosts, setApiPosts] = useState([]);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   useEffect(() => {
     logEvent("tab_view", { tab_name: "board" });
@@ -129,11 +131,13 @@ export default function BoardPage() {
 
       {/* 플로팅 버튼 */}
       <button
-        onClick={() => user ? navigate("/board/new") : navigate("/login")}
+        onClick={() => user ? navigate("/board/new") : setShowLoginPrompt(true)}
         className="fixed bottom-20 right-4 w-14 h-14 bg-maul rounded-full shadow-lg text-2xl flex items-center justify-center hover:bg-maul-dark transition-colors z-20"
       >
         ✏️
       </button>
+
+      {showLoginPrompt && <LoginPromptSheet onClose={() => setShowLoginPrompt(false)} />}
     </div>
   );
 }

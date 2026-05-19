@@ -1,0 +1,70 @@
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import api from "../../api/client";
+import { getUser } from "../../api/auth";
+import { QUESTIONS } from "../../constants/questions";
+import AnswerCard from "../../components/AnswerCard";
+import LoginPromptSheet from "../../components/LoginPromptSheet";
+
+export default function HanMadiListPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const questionIndex = parseInt(searchParams.get("q") ?? "0", 10);
+  const question = QUESTIONS[questionIndex] ?? QUESTIONS[0];
+  const user = getUser();
+
+  const [answers, setAnswers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  useEffect(() => {
+    api.get(`/hanmadi/answers?question_index=${questionIndex}`)
+      .then(r => setAnswers(Array.isArray(r.data) ? r.data : []))
+      .catch(() => setAnswers([]))
+      .finally(() => setLoading(false));
+  }, [questionIndex]);
+
+  async function handleLike(answerId) {
+    if (!user) { setShowLoginPrompt(true); return; }
+    try {
+      const r = await api.post(`/hanmadi/answers/${answerId}/like`);
+      setAnswers(prev =>
+        prev.map(a => a.id === answerId
+          ? { ...a, is_liked: r.data.liked, like_count: r.data.like_count }
+          : a
+        )
+      );
+    } catch {}
+  }
+
+  return (
+    <div className="min-h-screen bg-cream">
+      {showLoginPrompt && <LoginPromptSheet onClose={() => setShowLoginPrompt(false)} />}
+
+      <header className="px-5 pt-14 pb-3 bg-cream sticky top-0 z-10 flex items-center gap-3">
+        <button onClick={() => navigate(-1)} className="text-ink text-xl font-light">←</button>
+        <h1 className="text-base font-bold text-ink">이웃 답변 모음</h1>
+      </header>
+
+      <div className="px-4 pb-8">
+        {/* 질문 배너 */}
+        <div className="bg-maul rounded-2xl p-4 mb-5 fade-in">
+          <p className="text-xs text-ink/60 mb-1">이 질문의 답변 모음</p>
+          <p className="text-base font-bold text-ink">{question.text}</p>
+        </div>
+
+        {loading ? (
+          <p className="text-center py-10 text-sub text-sm">불러오는 중…</p>
+        ) : answers.length === 0 ? (
+          <p className="text-center py-10 text-sub text-sm">아직 답변이 없어요</p>
+        ) : (
+          <div className="flex flex-col gap-3 fade-in-1">
+            {answers.map(a => (
+              <AnswerCard key={a.id} answer={a} onLike={() => handleLike(a.id)} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

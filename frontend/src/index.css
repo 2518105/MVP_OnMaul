@@ -62,3 +62,23 @@
 .fade-in-2 { animation: fade-in 0.4s ease-out 0.2s both; }
 .fade-in-3 { animation: fade-in 0.4s ease-out 0.3s both; }
 .fade-in-4 { animation: fade-in 0.4s ease-out 0.4s both; }
+
+/* 큰 글씨 모드 */
+#root.large-text .text-xs   { font-size: 0.938rem !important; line-height: 1.5; }
+#root.large-text .text-sm   { font-size: 1.063rem !important; line-height: 1.6; }
+#root.large-text .text-base { font-size: 1.25rem  !important; line-height: 1.6; }
+#root.large-text .text-lg   { font-size: 1.438rem !important; }
+#root.large-text .text-xl   { font-size: 1.625rem !important; }
+#root.large-text .text-2xl  { font-size: 1.875rem !important; }
+#root.large-text .text-3xl  { font-size: 2.375rem !important; }
+#root.large-text .text-5xl  { font-size: 3.75rem  !important; }
+#root.large-text .btn-maul    { padding-top: 1.1rem  !important; padding-bottom: 1.1rem  !important; font-size: 1.125rem !important; }
+#root.large-text .btn-outline { padding-top: 1.1rem  !important; padding-bottom: 1.1rem  !important; font-size: 1.125rem !important; }
+#root.large-text .input { font-size: 1.063rem !important; padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+
+@keyframes slide-up {
+  from { transform: translate(-50%, 100%); }
+  to { transform: translate(-50%, 0); }
+}
+
+.slide-up { animation: slide-up 0.28s ease-out both; }

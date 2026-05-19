@@ -1,144 +1,136 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import api, { logEvent } from "../../api/client";
+import { BUS_ROUTES } from "../../constants/busData";
+import { logEvent } from "../../api/client";
 
-const DUMMY_STOPS = [
-  { id: 1, name: "청산주차장", dist: "150m", next: 7, fav: true },
-  { id: 2, name: "청산초등학교", dist: "320m", next: 22, fav: false },
-  { id: 3, name: "면사무소 앞", dist: "480m", next: 35, fav: false },
-  { id: 4, name: "궁촌 마을회관", dist: "1.2km", next: null, fav: false },
-];
-
-const FILTERS = [
-  { value: "near", label: "📍 가까운 순" },
-  { value: "fav", label: "⭐ 즐겨찾기" },
-  { value: "alpha", label: "가나다순" },
-];
+const FAV_KEY = "bus_favorites";
+function getFavs() {
+  try { return JSON.parse(localStorage.getItem(FAV_KEY)) || []; }
+  catch { return []; }
+}
 
 export default function BusPage() {
   const navigate = useNavigate();
-  const [filter, setFilter] = useState("near");
-  const [stops, setStops] = useState(DUMMY_STOPS);
-  const [apiStops, setApiStops] = useState([]);
-  const redirected = useRef(false);
+  const [tab, setTab] = useState("all");
+  const [search, setSearch] = useState("");
+  const [favs, setFavs] = useState(getFavs);
 
-  useEffect(() => {
-    logEvent("bus_tab_open");
-    if (!redirected.current && !localStorage.getItem("busOnboardingDone")) {
-      redirected.current = true;
-      navigate("/bus/onboarding", { replace: true });
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { logEvent("bus_tab_open"); }, []);
 
-  useEffect(() => {
-    api.get("/bus/stops")
-      .then(r => setApiStops(Array.isArray(r.data) ? r.data : []))
-      .catch(() => {});
-  }, []);
-
-  function toggleFav(id) {
-    setStops(prev => prev.map(s => s.id === id ? { ...s, fav: !s.fav } : s));
+  function toggleFav(id, e) {
+    e.stopPropagation();
+    setFavs(prev => {
+      const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
+      localStorage.setItem(FAV_KEY, JSON.stringify(next));
+      return next;
+    });
   }
 
-  const displayed = [...stops].filter(s => filter === "fav" ? s.fav : true)
-    .sort((a, b) => {
-      if (filter === "alpha") return a.name.localeCompare(b.name, "ko");
-      return 0;
-    });
+  const filtered = BUS_ROUTES.filter(r => {
+    if (tab === "fav" && !favs.includes(r.id)) return false;
+    if (search.trim()) {
+      const q = search.trim();
+      return (
+        r.id.includes(q) ||
+        r.origin.includes(q) ||
+        r.destination.includes(q)
+      );
+    }
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-cream">
-      {/* 헤더 */}
-      <header className="px-5 pt-14 pb-3 flex items-center justify-between sticky top-0 bg-cream z-10">
-        <h1 className="text-xl font-bold text-ink">버스</h1>
-        <button
-          onClick={() => navigate("/bus/route")}
-          className="text-ink text-xl"
-        >
-          🗺
-        </button>
+      <header className="px-5 pt-14 pb-3 sticky top-0 bg-cream z-10">
+        <h1 className="text-xl font-bold text-ink mb-3">버스</h1>
+        <div className="flex items-center bg-white rounded-xl px-3 py-2.5 border border-gray-200">
+          <span className="text-sub mr-2 text-sm">🔍</span>
+          <input
+            className="flex-1 text-sm text-ink bg-transparent outline-none placeholder-sub"
+            placeholder="노선번호, 지역명으로 검색"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          {search && (
+            <button onClick={() => setSearch("")} className="text-sub text-xs ml-1">✕</button>
+          )}
+        </div>
       </header>
 
-      {/* 필터 칩 */}
-      <div className="px-4 pb-3 overflow-x-auto">
-        <div className="flex gap-2 w-max">
-          {FILTERS.map(f => (
-            <button
-              key={f.value}
-              onClick={() => setFilter(f.value)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-colors ${
-                filter === f.value
-                  ? "bg-maul border-maul text-ink font-bold"
-                  : "border-gray-300 text-sub bg-white"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* 정류장 리스트 */}
-      <div className="bg-white rounded-2xl mx-4 shadow-sm overflow-hidden fade-in">
-        {displayed.length === 0 ? (
-          <p className="text-center py-10 text-sub text-sm">즐겨찾기한 정류장이 없어요</p>
-        ) : (
-          displayed.map((stop, i) => (
-            <div
-              key={stop.id}
-              className={`flex items-center px-5 py-4 ${i > 0 ? "border-t border-gray-100" : ""}`}
-            >
-              <button
-                className="flex-1 flex items-center gap-4 text-left"
-                onClick={() => {
-                  logEvent("stop_viewed", { stop_id: stop.id });
-                  navigate(`/bus/${stop.id}`);
-                }}
-              >
-                <div className="w-10 h-10 rounded-full bg-cream flex items-center justify-center text-lg">
-                  🚏
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-bold text-ink">{stop.name}</p>
-                  <p className="text-xs text-sub mt-0.5">📍 {stop.dist}</p>
-                </div>
-                <div className="flex items-center gap-2 mr-2">
-                  {stop.next !== null ? (
-                    <span className="bg-maul text-ink text-xs font-bold px-2.5 py-1 rounded-full">
-                      {stop.next}분
-                    </span>
-                  ) : (
-                    <span className="text-xs text-sub">—</span>
-                  )}
-                </div>
-              </button>
-              <button
-                onClick={() => toggleFav(stop.id)}
-                className="text-xl ml-1 leading-none"
-              >
-                {stop.fav ? "⭐" : "☆"}
-              </button>
-            </div>
-          ))
-        )}
-        {/* API 정류장 */}
-        {(Array.isArray(apiStops) ? apiStops : []).map((s, i) => (
-          <div
-            key={`api-${s.id}`}
-            className="flex items-center px-5 py-4 border-t border-gray-100 cursor-pointer hover:bg-gray-50"
-            onClick={() => navigate(`/bus/${s.id}`)}
+      <div className="flex gap-4 px-5 mb-3 border-b border-gray-200">
+        {[["all", "전체 버스"], ["fav", "즐겨찾기"]].map(([v, l]) => (
+          <button
+            key={v}
+            onClick={() => setTab(v)}
+            className={`pb-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              tab === v ? "border-maul-dark text-ink font-bold" : "border-transparent text-sub"
+            }`}
           >
-            <div className="w-10 h-10 rounded-full bg-cream flex items-center justify-center text-lg mr-4">
-              🚏
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-ink">{s.name}</p>
-              {s.is_main && <p className="text-xs text-sub">주요 정류장</p>}
-            </div>
-            <span className="text-sub">›</span>
-          </div>
+            {l}
+          </button>
         ))}
       </div>
+
+      <div className="px-4 pb-24 space-y-2">
+        {filtered.length === 0 ? (
+          <p className="text-center py-12 text-sub text-sm">
+            {tab === "fav" ? "즐겨찾기한 노선이 없어요" : "검색 결과가 없어요"}
+          </p>
+        ) : (
+          filtered.map(route => (
+            <RouteCard
+              key={route.id}
+              route={route}
+              isFav={favs.includes(route.id)}
+              onFav={toggleFav}
+              onClick={() => {
+                logEvent("bus_route_viewed", { route_id: route.id });
+                navigate(`/bus/${route.id}`);
+              }}
+            />
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BadgePill({ badge }) {
+  if (!badge) return null;
+  const cls = badge === "급행"
+    ? "bg-red-500 text-white"
+    : "bg-orange-400 text-white";
+  return (
+    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cls}`}>{badge}</span>
+  );
+}
+
+function RouteCard({ route, isFav, onFav, onClick }) {
+  return (
+    <div
+      className="bg-white rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-sm cursor-pointer active:scale-[0.98] transition-transform"
+      onClick={onClick}
+    >
+      <div className="w-14 h-14 rounded-full bg-maul flex items-center justify-center flex-shrink-0">
+        <span className="text-lg font-extrabold text-ink leading-none">{route.id}</span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <span className="text-base font-bold text-ink">{route.id}번</span>
+          <BadgePill badge={route.badge} />
+        </div>
+        <p className="text-xs text-sub truncate">
+          {route.origin} → {route.destination}
+        </p>
+        <p className="text-xs text-sub mt-0.5">{route.tripsPerDay}</p>
+      </div>
+      <button
+        onClick={e => onFav(route.id, e)}
+        className="text-xl leading-none flex-shrink-0 pl-2"
+        aria-label={isFav ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+      >
+        {isFav ? "⭐" : "☆"}
+      </button>
     </div>
   );
 }

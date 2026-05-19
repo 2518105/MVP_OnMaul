@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api, { logEvent } from "../../api/client";
 import { getUser } from "../../api/auth";
+import LoginPromptSheet from "../../components/LoginPromptSheet";
 
 const DUMMY_POST = {
   id: 1,
@@ -41,6 +42,7 @@ export default function PostDetailPage() {
   const [likeCount, setLikeCount] = useState(8);
   const [comments, setComments] = useState(DUMMY_POST.comments);
   const [toast, setToast] = useState("");
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   useEffect(() => {
     api.get(`/posts/${id}`)
@@ -65,7 +67,7 @@ export default function PostDetailPage() {
   }
 
   async function handleLike() {
-    if (!user) return navigate("/login");
+    if (!user) { setShowLoginPrompt(true); return; }
     try {
       await api.post(`/posts/${id}/like`);
       setLiked(v => !v);
@@ -78,7 +80,7 @@ export default function PostDetailPage() {
 
   async function handleComment(e) {
     e.preventDefault();
-    if (!user) return navigate("/login");
+    if (!user) { setShowLoginPrompt(true); return; }
     if (!comment.trim()) return;
     setSubmitting(true);
     try {
@@ -204,6 +206,8 @@ export default function PostDetailPage() {
           ))}
         </div>
       </div>
+
+      {showLoginPrompt && <LoginPromptSheet onClose={() => setShowLoginPrompt(false)} />}
 
       {/* 댓글 입력 (fixed 하단) */}
       <div className="fixed bottom-16 left-1/2 -translate-x-1/2 w-full max-w-[390px] bg-white border-t border-gray-100 px-4 py-3 flex gap-2">
