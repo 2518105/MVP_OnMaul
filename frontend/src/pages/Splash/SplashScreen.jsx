@@ -5,7 +5,7 @@ export default function SplashScreen() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const timer = setTimeout(() => navigate("/login"), 1800);
+    const timer = setTimeout(() => navigate("/home"), 1800);
     return () => clearTimeout(timer);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

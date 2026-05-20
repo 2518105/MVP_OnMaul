@@ -1,9 +1,10 @@
-import { BrowserRouter, Routes, Route, NavLink, useLocation } from "react-router-dom";
+import { createContext, useContext, useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, NavLink, useLocation, Outlet } from "react-router-dom";
 import BoardPage from "./pages/Board/BoardPage";
 import PostDetailPage from "./pages/Board/PostDetailPage";
 import PostCreatePage from "./pages/Board/PostCreatePage";
 import BusPage from "./pages/Bus/BusPage";
-import BusStopPage from "./pages/Bus/BusStopPage";
+import BusDetailPage from "./pages/Bus/BusDetailPage";
 import BusOnboarding from "./pages/Bus/BusOnboarding";
 import AdminPage from "./pages/Admin/AdminPage";
 import NoticePage from "./pages/Admin/NoticePage";
@@ -14,11 +15,13 @@ import SplashScreen from "./pages/Splash/SplashScreen";
 import OnboardingScreen from "./pages/Onboarding/OnboardingScreen";
 import HomePage from "./pages/Home/HomePage";
 import HanMadiPage from "./pages/Board/HanMadiPage";
-import BusRoutePage from "./pages/Bus/BusRoutePage";
-import BusAlarmPage from "./pages/Bus/BusAlarmPage";
+import HanMadiListPage from "./pages/Board/HanMadiListPage";
+
+const FontSizeCtx = createContext({ large: false, toggle: () => {} });
 
 function BottomNav() {
   const { pathname } = useLocation();
+  const { large, toggle } = useContext(FontSizeCtx);
   const tabs = [
     { to: "/home",  icon: "⌂",  label: "홈" },
     { to: "/board", icon: "☷",  label: "게시판" },
@@ -45,68 +48,67 @@ function BottomNav() {
           </NavLink>
         );
       })}
+      <button
+        onClick={toggle}
+        className={`flex flex-col items-center justify-center py-2.5 px-3 text-xs border-l border-gray-100 transition-colors min-w-[52px] ${
+          large ? "text-maul-dark font-bold" : "text-sub"
+        }`}
+      >
+        <span className="font-bold leading-none" style={{ fontSize: large ? "1.1rem" : "1rem" }}>
+          {large ? "가−" : "가+"}
+        </span>
+        <span className="mt-0.5">글자</span>
+      </button>
     </nav>
   );
 }
 
-function Layout({ children }) {
+function AppLayout() {
   return (
     <div className="pb-16 min-h-screen bg-cream">
-      {children}
+      <Outlet />
       <BottomNav />
     </div>
   );
 }
 
 export default function App() {
+  const [large, setLarge] = useState(() => localStorage.getItem("largeText") === "1");
+
+  useEffect(() => {
+    const root = document.getElementById("root");
+    if (large) root.classList.add("large-text");
+    else root.classList.remove("large-text");
+    localStorage.setItem("largeText", large ? "1" : "0");
+  }, [large]);
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<SplashScreen />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/onboarding" element={<OnboardingScreen />} />
-        <Route path="/bus/onboarding" element={<BusOnboarding />} />
-        <Route path="/bus/route" element={<Layout><BusRoutePage /></Layout>} />
-        <Route path="/bus/alarm/:stopId" element={<Layout><BusAlarmPage /></Layout>} />
-        <Route path="/hanmadi" element={<HanMadiPage />} />
-        <Route
-          path="/home"
-          element={<Layout><HomePage /></Layout>}
-        />
-        <Route
-          path="/board"
-          element={<Layout><BoardPage /></Layout>}
-        />
-        <Route
-          path="/board/:id"
-          element={<Layout><PostDetailPage /></Layout>}
-        />
-        <Route
-          path="/board/new"
-          element={<Layout><PostCreatePage /></Layout>}
-        />
-        <Route
-          path="/bus"
-          element={<Layout><BusPage /></Layout>}
-        />
-        <Route
-          path="/bus/:stopId"
-          element={<Layout><BusStopPage /></Layout>}
-        />
-        <Route
-          path="/admin"
-          element={<Layout><AdminPage /></Layout>}
-        />
-        <Route
-          path="/admin/notices"
-          element={<Layout><NoticePage /></Layout>}
-        />
-        <Route
-          path="/admin/detail/:id"
-          element={<Layout><AdminDetailPage /></Layout>}
-        />
-      </Routes>
-    </BrowserRouter>
+    <FontSizeCtx.Provider value={{ large, toggle: () => setLarge(v => !v) }}>
+      <BrowserRouter>
+        <Routes>
+          {/* 바텀 네비 없는 페이지 */}
+          <Route path="/" element={<SplashScreen />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/onboarding" element={<OnboardingScreen />} />
+          <Route path="/bus/onboarding" element={<BusOnboarding />} />
+
+          {/* 바텀 네비 항상 표시 */}
+          <Route element={<AppLayout />}>
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/board" element={<BoardPage />} />
+            <Route path="/board/:id" element={<PostDetailPage />} />
+            <Route path="/board/new" element={<PostCreatePage />} />
+            <Route path="/hanmadi" element={<HanMadiPage />} />
+            <Route path="/hanmadi/list" element={<HanMadiListPage />} />
+            <Route path="/bus" element={<BusPage />} />
+            <Route path="/bus/:routeId" element={<BusDetailPage />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/admin/notices" element={<NoticePage />} />
+            <Route path="/admin/detail/:id" element={<AdminDetailPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </FontSizeCtx.Provider>
   );
 }

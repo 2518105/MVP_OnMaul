@@ -29,6 +29,7 @@ class User(Base):
     posts = relationship("Post", back_populates="author")
     comments = relationship("Comment", back_populates="author")
     bus_votes = relationship("BusVote", back_populates="user")
+    daily_answers = relationship("DailyAnswer", back_populates="user")
 
 
 class PostCategory(str, enum.Enum):
@@ -175,6 +176,35 @@ class CalendarEvent(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     author = relationship("User")
+
+
+class DailyAnswer(Base):
+    __tablename__ = "daily_answers"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    question_index = Column(Integer, nullable=False, index=True)
+    content = Column(Text, nullable=True)
+    media_url = Column(String(500), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    help_count = Column(Integer, default=0)
+
+    user = relationship("User", back_populates="daily_answers")
+    reactions = relationship("AnswerReaction", back_populates="answer", cascade="all, delete-orphan")
+
+
+class AnswerReaction(Base):
+    __tablename__ = "answer_reactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    answer_id = Column(Integer, ForeignKey("daily_answers.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    type = Column(String(10), nullable=False)  # "like" | "comment"
+    content = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    answer = relationship("DailyAnswer", back_populates="reactions")
+    user = relationship("User")
 
 
 class EventLog(Base):

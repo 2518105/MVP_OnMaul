@@ -5,7 +5,7 @@ import os
 
 from app.database import engine
 from app.models.models import Base
-from app.routers import auth, posts, bus, admin, events
+from app.routers import auth, posts, bus, admin, events, hanmadi
 from app.seed import seed
 from app.database import SessionLocal
 
@@ -33,6 +33,7 @@ app.include_router(posts.router, prefix="/api")
 app.include_router(bus.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 app.include_router(events.router, prefix="/api")
+app.include_router(hanmadi.router, prefix="/api")
 
 
 @app.on_event("startup")

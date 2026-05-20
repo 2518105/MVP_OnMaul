@@ -28,7 +28,7 @@ export default function PostCreatePage() {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState("");
 
-  if (!user) { navigate("/login"); return null; }
+  if (!user) { navigate("/login?next=/board/new"); return null; }
 
   function showToast(msg) {
     setToast(msg);

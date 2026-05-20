@@ -1,7 +1,9 @@
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const next = params.get("next") || "";
 
   return (
     <div className="min-h-screen bg-cream flex flex-col px-6 pt-16 pb-10">
@@ -16,7 +18,7 @@ export default function LoginPage() {
       {/* CTA 버튼 영역 */}
       <div className="flex flex-col gap-3 fade-in-1">
         <button
-          onClick={() => navigate("/register")}
+          onClick={() => navigate(`/register${next ? `?next=${encodeURIComponent(next)}` : ""}`)}
           className="btn-maul flex items-center justify-center gap-2"
         >
           <span>🏠</span>
@@ -34,7 +36,7 @@ export default function LoginPage() {
       {/* 먼저 둘러볼게요 */}
       <div className="mt-6 text-center fade-in-2">
         <button
-          onClick={() => navigate("/home")}
+          onClick={() => next ? navigate(-1) : navigate("/home")}
           className="text-sm text-sub underline underline-offset-2"
         >
           먼저 둘러볼게요
