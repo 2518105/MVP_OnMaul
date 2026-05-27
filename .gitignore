@@ -8,6 +8,9 @@ __pycache__/
 .venv/
 venv/
 
+# 환경변수 (시크릿 키 포함)
+backend/.env
+
 # SQLite DB (로컬 데이터)
 backend/*.db
 

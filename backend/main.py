@@ -1,11 +1,11 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
-from dotenv import load_dotenv
 import os
-
-load_dotenv()  # backend/.env 파일 자동 로드
 
 from app.database import engine
 from app.models.models import Base
