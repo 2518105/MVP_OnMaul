@@ -7,10 +7,11 @@ from typing import Optional, List
 import aiofiles
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from pydantic import BaseModel
+from sqlalchemy.orm import Session, joinedload
 
 from app.auth import get_current_user, require_user
-from app.models.models import User
-from app.supabase_client import get_supabase
+from app.database import get_db
+from app.models.models import User, DailyAnswer, AnswerReaction
 
 router = APIRouter(prefix="/hanmadi", tags=["한마디"])
 
@@ -55,7 +56,7 @@ QUESTIONS = [
 
 
 def today_index() -> int:
-    return int(time.time() / 86400) % 30
+    return int(time.time() / 86400) % len(QUESTIONS)
 
 
 # ---------- Schemas ----------
@@ -72,6 +73,9 @@ class AnswerOut(BaseModel):
     comment_count: int
     is_liked: bool = False
 
+    class Config:
+        from_attributes = True
+
 
 class TodayOut(BaseModel):
     question_id: int
@@ -86,55 +90,51 @@ class CommentReq(BaseModel):
 
 # ---------- Helpers ----------
 
-def _build_answers(rows: list, current_user: Optional[User]) -> List[AnswerOut]:
-    out = []
-    for row in rows:
-        reactions = row.get("answer_reactions") or []
-        likes = [r for r in reactions if r["type"] == "like"]
-        comments = [r for r in reactions if r["type"] == "comment"]
-        is_liked = (
-            current_user is not None
-            and any(r["user_id"] == current_user.id for r in likes)
-        )
-        out.append(AnswerOut(
-            id=row["id"],
-            question_id=row["question_id"],
-            author_nickname=row["author_nickname"],
-            author_type=row["author_type"],
-            content=row.get("content"),
-            media_url=row.get("media_url"),
-            created_at=row["created_at"],
-            like_count=len(likes),
-            comment_count=len(comments),
-            is_liked=is_liked,
-        ))
-    return out
+def _build_answer_out(answer: DailyAnswer, current_user: Optional[User]) -> AnswerOut:
+    likes = [r for r in answer.reactions if r.type == "like"]
+    comments = [r for r in answer.reactions if r.type == "comment"]
+    is_liked = (
+        current_user is not None
+        and any(r.user_id == current_user.id for r in likes)
+    )
+    return AnswerOut(
+        id=answer.id,
+        question_id=answer.question_index,
+        author_nickname=answer.user.nickname,
+        author_type=answer.user.user_type.value,
+        content=answer.content,
+        media_url=answer.media_url,
+        created_at=answer.created_at,
+        like_count=len(likes),
+        comment_count=len(comments),
+        is_liked=is_liked,
+    )
 
 
 # ---------- Endpoints ----------
 
 @router.get("/today", response_model=TodayOut, summary="오늘의 질문 + 최근 답변 3개")
 def get_today(
+    db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user),
 ):
-    idx = today_index()
-    q = QUESTIONS[idx]
-    sb = get_supabase()
+    q_index = today_index()
+    q = QUESTIONS[q_index]
 
-    rows = (
-        sb.table("daily_answers")
-        .select("*, answer_reactions(*)")
-        .eq("question_id", idx)
-        .order("created_at", desc=True)
+    answers = (
+        db.query(DailyAnswer)
+        .options(joinedload(DailyAnswer.reactions), joinedload(DailyAnswer.user))
+        .filter(DailyAnswer.question_index == q_index)
+        .order_by(DailyAnswer.created_at.desc())
         .limit(3)
-        .execute()
-    ).data
+        .all()
+    )
 
     return TodayOut(
-        question_id=idx,
+        question_id=q_index,
         question_text=q["text"],
         answer_type=q["type"],
-        answers=_build_answers(rows, current_user),
+        answers=[_build_answer_out(a, current_user) for a in answers],
     )
 
 
@@ -143,18 +143,19 @@ def list_answers(
     question_id: int = Query(...),
     skip: int = 0,
     limit: int = 20,
+    db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user),
 ):
-    sb = get_supabase()
-    rows = (
-        sb.table("daily_answers")
-        .select("*, answer_reactions(*)")
-        .eq("question_id", question_id)
-        .order("created_at", desc=True)
-        .range(skip, skip + limit - 1)
-        .execute()
-    ).data
-    return _build_answers(rows, current_user)
+    answers = (
+        db.query(DailyAnswer)
+        .options(joinedload(DailyAnswer.reactions), joinedload(DailyAnswer.user))
+        .filter(DailyAnswer.question_index == question_id)
+        .order_by(DailyAnswer.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+    return [_build_answer_out(a, current_user) for a in answers]
 
 
 @router.post("/answers", response_model=AnswerOut, summary="답변 등록")
@@ -162,6 +163,7 @@ async def create_answer(
     question_id: int = Form(...),
     content: Optional[str] = Form(None),
     media: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db),
     current_user: User = Depends(require_user),
 ):
     media_url = None
@@ -173,28 +175,24 @@ async def create_answer(
             await f.write(await media.read())
         media_url = f"/uploads/{filename}"
 
-    sb = get_supabase()
-    inserted = (
-        sb.table("daily_answers")
-        .insert({
-            "question_id": question_id,
-            "user_id": current_user.id,
-            "author_nickname": current_user.nickname,
-            "author_type": current_user.user_type.value,
-            "content": content or None,
-            "media_url": media_url,
-        })
-        .execute()
-    ).data[0]
+    answer = DailyAnswer(
+        user_id=current_user.id,
+        question_index=question_id,
+        content=content or None,
+        media_url=media_url,
+    )
+    db.add(answer)
+    db.commit()
+    db.refresh(answer)
 
     return AnswerOut(
-        id=inserted["id"],
-        question_id=inserted["question_id"],
-        author_nickname=inserted["author_nickname"],
-        author_type=inserted["author_type"],
-        content=inserted.get("content"),
-        media_url=inserted.get("media_url"),
-        created_at=inserted["created_at"],
+        id=answer.id,
+        question_id=answer.question_index,
+        author_nickname=current_user.nickname,
+        author_type=current_user.user_type.value,
+        content=answer.content,
+        media_url=answer.media_url,
+        created_at=answer.created_at,
         like_count=0,
         comment_count=0,
         is_liked=False,
@@ -204,76 +202,69 @@ async def create_answer(
 @router.post("/answers/{answer_id}/like", summary="좋아요 토글")
 def toggle_like(
     answer_id: int,
+    db: Session = Depends(get_db),
     current_user: User = Depends(require_user),
 ):
-    sb = get_supabase()
-
-    answer = (
-        sb.table("daily_answers").select("id").eq("id", answer_id).limit(1).execute()
-    ).data
+    answer = db.query(DailyAnswer).filter(DailyAnswer.id == answer_id).first()
     if not answer:
         raise HTTPException(status_code=404, detail="답변을 찾을 수 없습니다")
 
     existing = (
-        sb.table("answer_reactions")
-        .select("id")
-        .eq("answer_id", answer_id)
-        .eq("user_id", current_user.id)
-        .eq("type", "like")
-        .limit(1)
-        .execute()
-    ).data
+        db.query(AnswerReaction)
+        .filter(
+            AnswerReaction.answer_id == answer_id,
+            AnswerReaction.user_id == current_user.id,
+            AnswerReaction.type == "like",
+        )
+        .first()
+    )
 
     if existing:
-        sb.table("answer_reactions").delete().eq("id", existing[0]["id"]).execute()
+        db.delete(existing)
+        db.commit()
         liked = False
     else:
-        sb.table("answer_reactions").insert({
-            "answer_id": answer_id,
-            "user_id": current_user.id,
-            "type": "like",
-        }).execute()
+        db.add(AnswerReaction(
+            answer_id=answer_id,
+            user_id=current_user.id,
+            type="like",
+        ))
+        db.commit()
         liked = True
 
     like_count = (
-        sb.table("answer_reactions")
-        .select("id", count="exact")
-        .eq("answer_id", answer_id)
-        .eq("type", "like")
-        .execute()
-    ).count
+        db.query(AnswerReaction)
+        .filter(AnswerReaction.answer_id == answer_id, AnswerReaction.type == "like")
+        .count()
+    )
 
-    return {"liked": liked, "like_count": like_count or 0}
+    return {"liked": liked, "like_count": like_count}
 
 
 @router.post("/answers/{answer_id}/comments", summary="댓글 달기")
 def add_comment(
     answer_id: int,
     req: CommentReq,
+    db: Session = Depends(get_db),
     current_user: User = Depends(require_user),
 ):
-    sb = get_supabase()
-
-    answer = (
-        sb.table("daily_answers").select("id").eq("id", answer_id).limit(1).execute()
-    ).data
+    answer = db.query(DailyAnswer).filter(DailyAnswer.id == answer_id).first()
     if not answer:
         raise HTTPException(status_code=404, detail="답변을 찾을 수 없습니다")
 
-    reaction = (
-        sb.table("answer_reactions")
-        .insert({
-            "answer_id": answer_id,
-            "user_id": current_user.id,
-            "type": "comment",
-            "content": req.content,
-        })
-        .execute()
-    ).data[0]
+    reaction = AnswerReaction(
+        answer_id=answer_id,
+        user_id=current_user.id,
+        type="comment",
+        content=req.content,
+    )
+    db.add(reaction)
+    db.commit()
+    db.refresh(reaction)
 
     return {
-        "id": reaction["id"],
+        "id": reaction.id,
         "author_nickname": current_user.nickname,
-        "content": reaction["content"],
-        "created_at": reaction["created_at"],
+        "content": reaction.content,
+        "created_at": reaction.created_at,
     }

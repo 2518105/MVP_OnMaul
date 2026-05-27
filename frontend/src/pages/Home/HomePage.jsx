@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../../api/client";
 import { getUser } from "../../api/auth";
 import { getTodayQuestion } from "../../constants/questions";
+import LoginPromptSheet from "../../components/LoginPromptSheet";
 
 const DUMMY = {
   nickname: "단풍나무",
@@ -22,6 +23,8 @@ const DUMMY = {
 export default function HomePage() {
   const navigate = useNavigate();
   const [todayQuestion] = useState(() => getTodayQuestion());
+  const [apiQuestionId, setApiQuestionId] = useState(null);
+  const [showLoginSheet, setShowLoginSheet] = useState(false);
   const [recentAnswers, setRecentAnswers] = useState([
     { id: 1, author_nickname: "이장 김씨", content: "오늘 안개 끼더니 점심엔 쨍쨍하네요 😄" },
     { id: 2, author_nickname: "단풍나무", content: "밭에 나가기 딱 좋은 날씨예요 🌿" },
@@ -33,7 +36,10 @@ export default function HomePage() {
 
   useEffect(() => {
     api.get("/hanmadi/today")
-      .then(r => { if (r.data.answers?.length > 0) setRecentAnswers(r.data.answers); })
+      .then(r => {
+        if (r.data.answers?.length > 0) setRecentAnswers(r.data.answers);
+        setApiQuestionId(r.data.question_id);
+      })
       .catch(() => {});
   }, []);
 
@@ -45,12 +51,12 @@ export default function HomePage() {
   async function handleSubmit(e) {
     e.stopPropagation();
     const user = getUser();
-    if (!user) { navigate("/login"); return; }
+    if (!user) { setShowLoginSheet(true); return; }
     if (!answerText.trim() || submitting) return;
     setSubmitting(true);
     try {
       const fd = new FormData();
-      fd.append("question_index", todayQuestion.index);
+      fd.append("question_id", apiQuestionId ?? todayQuestion.index);
       fd.append("content", answerText.trim());
       const r = await api.post("/hanmadi/answers", fd, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -67,6 +73,9 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen pb-24">
+      {showLoginSheet && (
+        <LoginPromptSheet onClose={() => setShowLoginSheet(false)} />
+      )}
       {toast && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-ink text-white text-sm px-4 py-2.5 rounded-full shadow-lg z-50 fade-in">
           {toast}

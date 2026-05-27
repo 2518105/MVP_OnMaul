@@ -72,12 +72,12 @@ export default function HanMadiPage() {
     const q = getTodayQuestion();
     api.get("/hanmadi/today")
       .then(r => {
-        setQuestion({ question_index: r.data.question_index, text: r.data.question_text, type: r.data.answer_type });
+        setQuestion({ question_id: r.data.question_id, text: r.data.question_text, type: r.data.answer_type });
         const apiAnswers = r.data.answers || [];
         setAnswers(apiAnswers.length > 0 ? apiAnswers : DUMMY_ANSWERS);
       })
       .catch(() => {
-        setQuestion({ question_index: q.index, text: q.text, type: q.type });
+        setQuestion({ question_id: q.index, text: q.text, type: q.type });
         setAnswers(DUMMY_ANSWERS);
       });
   }, []);
@@ -110,7 +110,7 @@ export default function HanMadiPage() {
     setSubmitting(true);
     try {
       const fd = new FormData();
-      fd.append("question_index", question.question_index);
+      fd.append("question_id", question.question_id);
       if (text.trim()) fd.append("content", text);
       if (mediaFile) fd.append("media", mediaFile);
       const r = await api.post("/hanmadi/answers", fd, {
@@ -225,7 +225,7 @@ export default function HanMadiPage() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-bold text-ink">이웃들의 답변</h2>
             <button
-              onClick={() => navigate(`/hanmadi/list?q=${question.question_index}`)}
+              onClick={() => navigate(`/hanmadi/list?q=${question.question_id}`)}
               className="text-xs text-sub underline underline-offset-2"
             >
               더보기

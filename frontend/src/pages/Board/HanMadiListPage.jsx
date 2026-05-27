@@ -2,27 +2,30 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../api/client";
 import { getUser } from "../../api/auth";
-import { QUESTIONS } from "../../constants/questions";
 import AnswerCard from "../../components/AnswerCard";
 import LoginPromptSheet from "../../components/LoginPromptSheet";
 
 export default function HanMadiListPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const questionIndex = parseInt(searchParams.get("q") ?? "0", 10);
-  const question = QUESTIONS[questionIndex] ?? QUESTIONS[0];
+  const questionId = parseInt(searchParams.get("q") ?? "0", 10);
   const user = getUser();
 
+  const [questionText, setQuestionText] = useState(null);
   const [answers, setAnswers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   useEffect(() => {
-    api.get(`/hanmadi/answers?question_index=${questionIndex}`)
+    api.get("/hanmadi/today")
+      .then(r => setQuestionText(r.data.question_text))
+      .catch(() => {});
+
+    api.get(`/hanmadi/answers?question_id=${questionId}`)
       .then(r => setAnswers(Array.isArray(r.data) ? r.data : []))
       .catch(() => setAnswers([]))
       .finally(() => setLoading(false));
-  }, [questionIndex]);
+  }, [questionId]);
 
   async function handleLike(answerId) {
     if (!user) { setShowLoginPrompt(true); return; }
@@ -50,7 +53,7 @@ export default function HanMadiListPage() {
         {/* 질문 배너 */}
         <div className="bg-maul rounded-2xl p-4 mb-5 fade-in">
           <p className="text-xs text-ink/60 mb-1">이 질문의 답변 모음</p>
-          <p className="text-base font-bold text-ink">{question.text}</p>
+          <p className="text-base font-bold text-ink">{questionText ?? "불러오는 중…"}</p>
         </div>
 
         {loading ? (
