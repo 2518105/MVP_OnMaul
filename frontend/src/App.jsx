@@ -10,7 +10,7 @@ import AdminPage from "./pages/Admin/AdminPage";
 import NoticePage from "./pages/Admin/NoticePage";
 import AdminDetailPage from "./pages/Admin/AdminDetailPage";
 import LoginPage from "./pages/Auth/LoginPage";
-import RegisterPage from "./pages/Auth/RegisterPage";
+import KakaoCallback from "./pages/Auth/KakaoCallback";
 import SplashScreen from "./pages/Splash/SplashScreen";
 import OnboardingScreen from "./pages/Onboarding/OnboardingScreen";
 import HomePage from "./pages/Home/HomePage";
@@ -102,7 +102,7 @@ export default function App() {
           {/* 바텀 네비 없는 페이지 */}
           <Route path="/" element={<SplashScreen />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
           <Route path="/onboarding" element={<OnboardingScreen />} />
           <Route path="/bus/onboarding" element={<BusOnboarding />} />
 

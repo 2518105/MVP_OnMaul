@@ -1,7 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
+from dotenv import load_dotenv
 import os
+
+load_dotenv()  # backend/.env 파일 자동 로드
 
 from app.database import engine
 from app.models.models import Base
@@ -43,6 +47,14 @@ app.include_router(hanmadi.router, prefix="/api")
 
 @app.on_event("startup")
 def on_startup():
+    # kakao_id 컬럼이 없는 기존 DB 자동 마이그레이션
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE users ADD COLUMN kakao_id VARCHAR(50)"))
+            conn.commit()
+        except Exception:
+            pass  # 컬럼이 이미 존재하면 무시
+
     db = SessionLocal()
     try:
         seed(db)
