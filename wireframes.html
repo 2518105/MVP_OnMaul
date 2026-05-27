@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>온마을 MVP — 와이어프레임</title>
+<meta name="viewport" content="width=1400" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Nanum+Pen+Script&family=Nanum+Gothic+Coding&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#1a1a1a;
+    --ink-2:#3a3a3a;
+    --paper:#f4efe6;
+    --paper-2:#ebe3d2;
+    --line:#1a1a1a;
+    --muted:#7a7468;
+    --accent:#c44a3a;   /* faded red marker */
+    --accent-2:#3a6ea5; /* faded blue marker */
+    --accent-3:#d9a441; /* highlighter yellow */
+    --accent-4:#5a8a4a; /* sage green */
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:'Gaegu',ui-sans-serif,system-ui,sans-serif}
+  body{
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(0,0,0,.025), transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(0,0,0,.03), transparent 40%);
+    min-height:100vh;
+  }
+  /* Top bar */
+  .topbar{
+    position:sticky;top:0;z-index:50;
+    background:var(--paper);
+    border-bottom:2px solid var(--ink);
+    padding:14px 24px;
+    display:flex;align-items:center;justify-content:space-between;gap:24px;
+  }
+  .brand{display:flex;align-items:baseline;gap:14px}
+  .brand h1{
+    font-family:'Nanum Pen Script',cursive;
+    font-size:38px;line-height:1;margin:0;letter-spacing:.5px;
+  }
+  .brand .sub{font-size:18px;color:var(--muted)}
+  .tabs{display:flex;gap:8px}
+  .tab{
+    font-family:'Gaegu';font-weight:700;font-size:18px;
+    background:transparent;border:2px solid var(--ink);
+    padding:8px 16px;cursor:pointer;color:var(--ink);
+    border-radius:14px 4px 18px 6px / 6px 18px 4px 14px;
+  }
+  .tab.active{background:var(--ink);color:var(--paper)}
+  .stamp{
+    font-family:'Nanum Pen Script';color:var(--accent);
+    border:2px solid var(--accent);padding:2px 10px;
+    transform:rotate(-3deg);font-size:18px;border-radius:6px;
+  }
+
+  /* Layout */
+  main{padding:24px 28px 80px;max-width:1400px;margin:0 auto}
+  section[hidden]{display:none}
+
+  /* Section header sketchy underline */
+  .section-h{
+    display:flex;align-items:end;justify-content:space-between;gap:16px;
+    margin:28px 0 12px;
+  }
+  .section-h h2{
+    font-family:'Nanum Pen Script';font-size:36px;margin:0;line-height:1;
+    position:relative;display:inline-block;padding-bottom:6px;
+  }
+  .section-h h2::after{
+    content:"";position:absolute;left:-4px;right:-8px;bottom:-2px;height:8px;
+    background:var(--accent-3);opacity:.55;z-index:-1;border-radius:50%;
+    transform:rotate(-1deg);
+  }
+  .section-h .meta{font-size:18px;color:var(--muted)}
+
+  /* Screen grid */
+  .screens{
+    display:grid;gap:28px 22px;
+    grid-template-columns:repeat(auto-fill, minmax(290px, 1fr));
+    align-items:start;
+  }
+  .screen{
+    display:flex;flex-direction:column;gap:8px;
+  }
+  .screen-label{
+    display:flex;align-items:baseline;gap:8px;
+    font-family:'Gaegu';font-weight:700;font-size:18px;
+  }
+  .screen-label .id{
+    font-family:'Nanum Gothic Coding',monospace;font-size:13px;
+    background:var(--ink);color:var(--paper);
+    padding:2px 6px;border-radius:3px;
+  }
+  .screen-note{font-size:14px;color:var(--muted);min-height:1.2em}
+
+  /* Phone frame — sketchy */
+  .phone{
+    width:290px;height:580px;
+    border:2.5px solid var(--ink);
+    border-radius:36px;
+    background:#fbf8f0;
+    padding:14px 10px;
+    position:relative;
+    box-shadow:3px 4px 0 rgba(0,0,0,.12);
+  }
+  .phone::before{
+    /* notch */
+    content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);
+    width:80px;height:14px;background:var(--ink);border-radius:0 0 10px 10px;
+  }
+  .phone .status{
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:'Nanum Gothic Coding',monospace;font-size:11px;color:var(--ink-2);
+    padding:0 8px;height:18px;
+  }
+  .screenbody{
+    border:1.5px dashed var(--ink);
+    border-radius:18px;
+    height:calc(100% - 28px);
+    padding:10px 10px 8px;
+    overflow:hidden;
+    position:relative;
+    background:#fffdf6;
+  }
+
+  /* Common UI primitives — all sketchy */
+  .row{display:flex;gap:6px;align-items:center}
+  .between{display:flex;gap:6px;align-items:center;justify-content:space-between}
+  .stack{display:flex;flex-direction:column;gap:6px}
+  .h-title{font-family:'Nanum Pen Script';font-size:22px;line-height:1.05;margin:2px 0}
+  .h-sub{font-size:13px;color:var(--muted);line-height:1.1}
+  .pill{
+    border:1.5px solid var(--ink);border-radius:999px;padding:2px 9px;
+    font-size:12px;background:#fff;display:inline-flex;align-items:center;gap:4px;
+  }
+  .pill.fill{background:var(--ink);color:var(--paper)}
+  .pill.red{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .pill.blue{background:var(--accent-2);color:#fff;border-color:var(--accent-2)}
+  .pill.green{background:var(--accent-4);color:#fff;border-color:var(--accent-4)}
+  .pill.yellow{background:var(--accent-3);color:#222;border-color:#a8801a}
+  .box{
+    border:1.5px solid var(--ink);border-radius:10px 4px 12px 6px / 6px 12px 4px 10px;
+    padding:6px 8px;background:#fff;
+  }
+  .box.dash{border-style:dashed}
+  .box.shadow{box-shadow:2px 2px 0 rgba(0,0,0,.12)}
+  .ph{ /* image placeholder with hatch */
+    border:1.3px solid var(--ink);
+    background:
+      repeating-linear-gradient(45deg, rgba(0,0,0,.07) 0 4px, transparent 4px 8px),
+      #f7f1de;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Nanum Gothic Coding';font-size:10px;color:var(--ink-2);
+    border-radius:6px;
+  }
+  .scribble{
+    height:6px;border-radius:6px;background:rgba(0,0,0,.18);position:relative;
+  }
+  .scribble.long{height:6px}
+  .scribble.short{width:55%}
+  .scribble.shorter{width:35%}
+  .btn{
+    border:1.8px solid var(--ink);border-radius:8px;padding:5px 8px;
+    font-family:'Gaegu';font-weight:700;font-size:13px;background:#fff;
+    display:inline-flex;align-items:center;gap:4px;
+  }
+  .btn.primary{background:var(--ink);color:var(--paper)}
+  .btn.danger{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.full{display:flex;justify-content:center;width:100%}
+
+  /* Bottom tab bar inside phone */
+  .tabbar{
+    position:absolute;left:8px;right:8px;bottom:6px;
+    border-top:1.5px solid var(--ink);
+    display:grid;grid-template-columns:repeat(4,1fr);
+    padding-top:5px;background:#fffdf6;
+  }
+  .tabbar .t{
+    text-align:center;font-size:11px;color:var(--ink-2);
+    padding:2px 0;
+  }
+  .tabbar .t.active{color:var(--accent);font-weight:700}
+  .tabbar .ic{
+    display:block;width:18px;height:18px;border:1.4px solid currentColor;
+    margin:0 auto 2px;border-radius:5px;
+  }
+
+  /* App header inside phone */
+  .appbar{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:0 2px 6px;border-bottom:1.5px solid var(--ink);
+  }
+  .appbar .title{font-family:'Nanum Pen Script';font-size:24px;line-height:1}
+  .back{
+    width:22px;height:22px;border:1.5px solid var(--ink);border-radius:6px;
+    display:inline-flex;align-items:center;justify-content:center;font-size:14px;
+  }
+
+  /* Variation tab toggle within a screen */
+  .vartabs{
+    display:flex;gap:4px;
+  }
+  .vartabs button{
+    font-family:'Gaegu';font-weight:700;font-size:13px;
+    border:1.5px solid var(--ink);background:#fff;padding:2px 8px;cursor:pointer;
+    border-radius:8px 3px 10px 4px / 4px 10px 3px 8px;
+  }
+  .vartabs button.on{background:var(--ink);color:var(--paper)}
+
+  /* Deployment tab */
+  .road{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:18px;
+  }
+  .road .col{
+    border:2px solid var(--ink);border-radius:14px 6px 16px 8px / 8px 16px 6px 14px;
+    background:#fffdf6;padding:14px 14px 16px;
+    box-shadow:3px 3px 0 rgba(0,0,0,.1);
+    position:relative;
+  }
+  .road .col h3{
+    font-family:'Nanum Pen Script';margin:0 0 4px;font-size:26px;line-height:1;
+  }
+  .road .col .when{
+    display:inline-block;background:var(--accent-3);
+    padding:2px 8px;border:1.5px solid #a8801a;border-radius:999px;
+    font-size:13px;margin-bottom:10px;
+  }
+  .road ul{margin:6px 0 0;padding-left:20px}
+  .road li{margin-bottom:6px;font-size:15px;line-height:1.25}
+  .road .col .tag{
+    position:absolute;top:-12px;right:14px;
+    background:var(--ink);color:var(--paper);
+    font-family:'Nanum Gothic Coding';font-size:11px;
+    padding:2px 8px;border-radius:6px;
+  }
+
+  .deploy-grid{
+    display:grid;grid-template-columns:1.2fr 1fr;gap:24px;margin-top:24px;
+  }
+  .panel{
+    border:2px solid var(--ink);border-radius:14px 6px 18px 8px / 8px 18px 6px 14px;
+    background:#fffdf6;padding:18px 20px;
+    box-shadow:3px 3px 0 rgba(0,0,0,.1);
+  }
+  .panel h3{
+    font-family:'Nanum Pen Script';font-size:30px;margin:0 0 10px;
+    border-bottom:2px dashed var(--ink);padding-bottom:6px;
+  }
+  .panel h4{
+    font-family:'Gaegu';font-weight:700;margin:14px 0 4px;font-size:18px;
+  }
+  .panel p, .panel li{font-size:15px;line-height:1.45}
+  .panel ul{padding-left:20px;margin:6px 0}
+  .panel .kv{display:grid;grid-template-columns:140px 1fr;gap:6px 12px;font-size:15px}
+  .panel .kv b{font-weight:700}
+
+  .legend{
+    display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:14px;color:var(--muted);
+  }
+  .legend .sw{display:inline-block;width:14px;height:14px;border:1.4px solid var(--ink);vertical-align:middle;margin-right:4px;border-radius:3px}
+
+  /* Print-ish margin */
+  .footer{
+    margin-top:40px;padding-top:14px;border-top:2px dashed var(--ink);
+    color:var(--muted);font-size:14px;display:flex;justify-content:space-between;
+  }
+
+  /* small helpers */
+  .grow{flex:1}
+  .center{display:flex;align-items:center;justify-content:center}
+  .mt4{margin-top:4px}.mt6{margin-top:6px}.mt8{margin-top:8px}.mt10{margin-top:10px}
+  .gap2{gap:2px}.gap4{gap:4px}.gap6{gap:6px}.gap8{gap:8px}
+  .tiny{font-size:11px;color:var(--muted)}
+  .mono{font-family:'Nanum Gothic Coding',monospace}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <h1>온마을 MVP</h1>
+    <div class="sub">와이어프레임 + 배포 로드맵 · v0.1</div>
+    <div class="stamp">DRAFT</div>
+  </div>
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="wires">📐 와이어프레임 (12 화면)</button>
+    <button class="tab" data-tab="deploy">🚀 실제 배포까지</button>
+  </div>
+</div>
+
+<main>
+  <section id="wires">
+    <div class="legend">
+      <span><span class="sw" style="background:#fff"></span>저충실도 와이어 — 손그림 톤</span>
+      <span><span class="sw" style="background:var(--accent-3);opacity:.6"></span>강조/하이라이트</span>
+      <span><span class="sw" style="background:var(--accent)"></span>붉은 마커 = 핵심 검증 포인트</span>
+      <span><span class="sw" style="background:var(--accent-2)"></span>파란 마커 = 차별화 / 신규</span>
+      <span class="mono">B-* 게시판  ·  T-* 버스  ·  C-* 행정</span>
+    </div>
+
+    <!-- Sections injected by JS -->
+    <div id="board-section"></div>
+    <div id="bus-section"></div>
+    <div id="cal-section"></div>
+  </section>
+
+  <section id="deploy" hidden>
+    <div id="deploy-content"></div>
+  </section>
+
+  <div class="footer">
+    <div>온마을 (ON-Maul) · 옥천군 청산면 이주민 커뮤니티 · MVP UX Spec v0.1 기반</div>
+    <div class="mono">12 screens · 3 sections · 2 weeks pilot</div>
+  </div>
+</main>
+
+<script src="wireframes.js"></script>
+<script src="wireframes-board.js"></script>
+<script src="wireframes-bus.js"></script>
+<script src="wireframes-cal.js"></script>
+<script src="wireframes-deploy.js"></script>
+</body>
+</html>

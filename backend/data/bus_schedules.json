@@ -1,0 +1,71 @@
+{
+  "stops": [
+    {
+      "name": "청산주차장",
+      "code": "STOP-001",
+      "is_main": true,
+      "latitude": "36.2291",
+      "longitude": "127.6453",
+      "schedules": [
+        {"route_number": "541", "route_name": "청산-옥천 급행", "direction": "옥천버스터미널", "color": "#2E75B6",
+         "times": ["06:30","09:00","13:00","17:30"]},
+        {"route_number": "503", "route_name": "청산-옥천 (동이면 경유)", "direction": "옥천버스터미널", "color": "#5BA4CF",
+         "times": ["07:20","12:10","16:40"]},
+        {"route_number": "610", "route_name": "청산-보은", "direction": "보은터미널", "color": "#70AD47",
+         "times": ["06:50","09:30","12:30","15:10","18:00"]}
+      ]
+    },
+    {
+      "name": "청산면사무소",
+      "code": "STOP-002",
+      "is_main": true,
+      "latitude": "36.2305",
+      "longitude": "127.6461",
+      "schedules": [
+        {"route_number": "541", "route_name": "청산-옥천 급행", "direction": "옥천버스터미널", "color": "#2E75B6",
+         "times": ["06:33","09:03","13:03","17:33"]},
+        {"route_number": "503", "route_name": "청산-옥천 (동이면 경유)", "direction": "옥천버스터미널", "color": "#5BA4CF",
+         "times": ["07:23","12:13","16:43"]},
+        {"route_number": "610", "route_name": "청산-보은", "direction": "보은터미널", "color": "#70AD47",
+         "times": ["06:53","09:33","12:33","15:13","18:03"]}
+      ]
+    },
+    {
+      "name": "청성농협",
+      "code": "STOP-003",
+      "is_main": false,
+      "latitude": "36.2280",
+      "longitude": "127.6440",
+      "schedules": [
+        {"route_number": "541", "route_name": "청산-옥천 급행", "direction": "옥천버스터미널", "color": "#2E75B6",
+         "times": ["06:35","09:05","13:05","17:35"]},
+        {"route_number": "503", "route_name": "청산-옥천 (동이면 경유)", "direction": "옥천버스터미널", "color": "#5BA4CF",
+         "times": ["07:25","12:15","16:45"]}
+      ]
+    },
+    {
+      "name": "옥천버스터미널",
+      "code": "STOP-010",
+      "is_main": false,
+      "latitude": "36.3044",
+      "longitude": "127.5709",
+      "schedules": [
+        {"route_number": "541", "route_name": "청산-옥천 급행", "direction": "청산주차장", "color": "#2E75B6",
+         "times": ["07:30","11:00","15:00","19:00"]},
+        {"route_number": "503", "route_name": "청산-옥천 (동이면 경유)", "direction": "청산주차장", "color": "#5BA4CF",
+         "times": ["09:00","14:00","18:20"]}
+      ]
+    },
+    {
+      "name": "보은터미널",
+      "code": "STOP-020",
+      "is_main": false,
+      "latitude": "36.4896",
+      "longitude": "127.7299",
+      "schedules": [
+        {"route_number": "610", "route_name": "청산-보은", "direction": "청산주차장", "color": "#70AD47",
+         "times": ["07:50","10:30","13:30","16:10","19:00"]}
+      ]
+    }
+  ]
+}
