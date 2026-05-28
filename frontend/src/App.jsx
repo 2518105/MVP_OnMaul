@@ -16,6 +16,8 @@ import OnboardingScreen from "./pages/Onboarding/OnboardingScreen";
 import HomePage from "./pages/Home/HomePage";
 import HanMadiPage from "./pages/Board/HanMadiPage";
 import HanMadiListPage from "./pages/Board/HanMadiListPage";
+import MyPage from "./pages/MyPage/MyPage";
+import RegisterPage from "./pages/Auth/RegisterPage";
 
 const FontSizeCtx = createContext({ large: false, toggle: () => {} });
 
@@ -28,10 +30,11 @@ function ScrollToTop() {
 function BottomNav() {
   const { pathname } = useLocation();
   const tabs = [
-    { to: "/home",  icon: "⌂",  label: "홈" },
-    { to: "/board", icon: "☷",  label: "게시판" },
-    { to: "/bus",   icon: "◷",  label: "버스" },
-    { to: "/admin", icon: "▤",  label: "행정" },
+    { to: "/home",   icon: "⌂", label: "홈" },
+    { to: "/board",  icon: "☷", label: "게시판" },
+    { to: "/bus",    icon: "◷", label: "버스" },
+    { to: "/admin",  icon: "▤", label: "행정" },
+    { to: "/mypage", icon: "👤", label: "내정보" },
   ];
 
   return (
@@ -102,6 +105,7 @@ export default function App() {
           {/* 바텀 네비 없는 페이지 */}
           <Route path="/" element={<SplashScreen />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
           <Route path="/onboarding" element={<OnboardingScreen />} />
           <Route path="/bus/onboarding" element={<BusOnboarding />} />
@@ -119,6 +123,7 @@ export default function App() {
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/admin/notices" element={<NoticePage />} />
             <Route path="/admin/detail/:id" element={<AdminDetailPage />} />
+            <Route path="/mypage" element={<MyPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

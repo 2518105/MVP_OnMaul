@@ -1,12 +1,13 @@
 import os
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.models import User, UserType
-from app.auth import create_access_token
+from app.auth import create_access_token, hash_password, verify_password
 
 KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY", "")
 KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET", "")
@@ -23,9 +24,62 @@ class TokenResponse(BaseModel):
     is_new_user: bool = False
 
 
+class RegisterRequest(BaseModel):
+    username: str
+    nickname: str
+    password: str
+    user_type: str = "이주민"
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
 class KakaoLoginRequest(BaseModel):
     code: str
     redirect_uri: str
+
+
+@router.post("/register", response_model=TokenResponse, summary="이메일 회원가입")
+def register(req: RegisterRequest, db: Session = Depends(get_db)):
+    if db.query(User).filter(User.username == req.username).first():
+        raise HTTPException(status_code=400, detail="이미 사용 중인 아이디입니다")
+    try:
+        user_type = UserType(req.user_type)
+    except ValueError:
+        user_type = UserType.immigrant
+    user = User(
+        username=req.username,
+        nickname=req.nickname,
+        hashed_password=hash_password(req.password),
+        user_type=user_type,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    token = create_access_token({"sub": str(user.id)})
+    return TokenResponse(
+        access_token=token,
+        user_type=user.user_type.value,
+        nickname=user.nickname,
+        user_id=user.id,
+        is_new_user=True,
+    )
+
+
+@router.post("/login", response_model=TokenResponse, summary="이메일 로그인")
+def login(req: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == req.username).first()
+    if not user or not verify_password(req.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="아이디 또는 비밀번호가 틀렸습니다")
+    token = create_access_token({"sub": str(user.id)})
+    return TokenResponse(
+        access_token=token,
+        user_type=user.user_type.value,
+        nickname=user.nickname,
+        user_id=user.id,
+    )
 
 
 @router.post("/kakao", response_model=TokenResponse, summary="카카오 로그인")

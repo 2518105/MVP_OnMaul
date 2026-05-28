@@ -11,52 +11,20 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.auth import get_current_user, require_user
 from app.database import get_db
-from app.models.models import User, DailyAnswer, AnswerReaction
+from app.models.models import User, DailyAnswer, AnswerReaction, HanMadiQuestion
 
 router = APIRouter(prefix="/hanmadi", tags=["한마디"])
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-QUESTIONS = [
-    # text 전용 (0-14)
-    {"text": "오늘 청산면 날씨는 어때요?",                          "type": "text"},
-    {"text": "청산면에서 가장 좋아하는 계절은?",                     "type": "text"},
-    {"text": "청산면 살면서 제일 좋은 점은?",                        "type": "text"},
-    {"text": "청산면에서 불편한 점이 있다면?",                       "type": "text"},
-    {"text": "청산면에 새로 생겼으면 하는 시설은?",                  "type": "text"},
-    {"text": "청산면에 이사 온 지 얼마나 됐어요?",                   "type": "text"},
-    {"text": "요즘 가장 자주 가는 곳은 어디예요?",                   "type": "text"},
-    {"text": "청산면에서 새로 시작하고 싶은 일이 있나요?",           "type": "text"},
-    {"text": "일하면서 가장 보람 있는 순간은?",                      "type": "text"},
-    {"text": "청산면에 새로 이사 온 분께 한마디 해준다면?",          "type": "text"},
-    {"text": "청산면을 방문한 관광객에게 꼭 추천하고 싶은 것은?",   "type": "text"},
-    {"text": "오늘 이웃과 나눈 이야기가 있나요?",                    "type": "text"},
-    {"text": "요즘 즐겨 듣는 노래는?",                              "type": "text"},
-    {"text": "쉬는 날 청산면에서 뭐 하세요?",                       "type": "text"},
-    {"text": "오늘 청산면 이웃에게 전하고 싶은 말은?",              "type": "text"},
-    # media 전용 (15-22)
-    {"text": "오늘 청산면에서 찍은 사진 한 장 올려주세요!",         "type": "media"},
-    {"text": "요즘 청산면에서 제일 예쁜 곳 찍어주세요",             "type": "media"},
-    {"text": "오늘 밥상 사진 올려주세요",                           "type": "media"},
-    {"text": "내가 좋아하는 청산면 풍경은?",                        "type": "media"},
-    {"text": "요즘 농사 현장 사진 올려주세요",                      "type": "media"},
-    {"text": "청산면 숨은 명소 사진 올려주세요",                    "type": "media"},
-    {"text": "오늘 수확한 것 자랑해주세요!",                        "type": "media"},
-    {"text": "청산면 봄/여름/가을/겨울 사진 한 장",                 "type": "media"},
-    # both 가능 (23-29)
-    {"text": "청산면에서 제일 맛있는 집은 어디예요?",               "type": "both"},
-    {"text": "요즘 밥상에 자주 오르는 제철 재료는?",                "type": "both"},
-    {"text": "직접 키우거나 만드는 음식이 있나요?",                 "type": "both"},
-    {"text": "청산면 하면 떠오르는 것은?",                          "type": "both"},
-    {"text": "청산면에 생겼으면 하는 음식점은?",                    "type": "both"},
-    {"text": "청산면에서 꼭 가봐야 할 곳은?",                       "type": "both"},
-    {"text": "오늘 어떤 일을 하셨나요?",                            "type": "both"},
-]
 
-
-def today_index() -> int:
-    return int(time.time() / 86400) % len(QUESTIONS)
+def get_today_question(db) -> HanMadiQuestion:
+    questions = db.query(HanMadiQuestion).filter(HanMadiQuestion.is_active == True).order_by(HanMadiQuestion.order_index).all()
+    if not questions:
+        return None
+    idx = int(time.time() / 86400) % len(questions)
+    return questions[idx]
 
 
 # ---------- Schemas ----------
@@ -118,22 +86,23 @@ def get_today(
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user),
 ):
-    q_index = today_index()
-    q = QUESTIONS[q_index]
+    q = get_today_question(db)
+    if not q:
+        raise HTTPException(status_code=404, detail="질문이 없습니다")
 
     answers = (
         db.query(DailyAnswer)
         .options(joinedload(DailyAnswer.reactions), joinedload(DailyAnswer.user))
-        .filter(DailyAnswer.question_index == q_index)
+        .filter(DailyAnswer.question_index == q.id)
         .order_by(DailyAnswer.created_at.desc())
         .limit(3)
         .all()
     )
 
     return TodayOut(
-        question_id=q_index,
-        question_text=q["text"],
-        answer_type=q["type"],
+        question_id=q.id,
+        question_text=q.text,
+        answer_type=q.answer_type,
         answers=[_build_answer_out(a, current_user) for a in answers],
     )
 

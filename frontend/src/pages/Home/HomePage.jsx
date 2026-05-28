@@ -22,13 +22,11 @@ const DUMMY = {
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const currentUser = getUser();
   const [todayQuestion] = useState(() => getTodayQuestion());
   const [apiQuestionId, setApiQuestionId] = useState(null);
   const [showLoginSheet, setShowLoginSheet] = useState(false);
-  const [recentAnswers, setRecentAnswers] = useState([
-    { id: 1, author_nickname: "이장 김씨", content: "오늘 안개 끼더니 점심엔 쨍쨍하네요 😄" },
-    { id: 2, author_nickname: "단풍나무", content: "밭에 나가기 딱 좋은 날씨예요 🌿" },
-  ]);
+  const [recentAnswers, setRecentAnswers] = useState([]);
   const [answerText, setAnswerText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState("");
@@ -85,10 +83,10 @@ export default function HomePage() {
       <div className="px-5 pt-14 pb-4 fade-in">
         <p className="text-base text-sub">안녕하세요,</p>
         <h1 className="text-2xl font-bold text-ink mt-0.5">
-          {DUMMY.nickname} 님 🌿
+          {currentUser?.nickname ?? "이웃"} 님 🌿
         </h1>
         <p className="text-xs text-sub mt-1">
-          청산면 {DUMMY.type}
+          청산면 {currentUser?.userType ?? "주민"}
         </p>
       </div>
 

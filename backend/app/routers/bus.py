@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.models import BusStop, BusSchedule, BusVote, User
+from app.models.models import BusStop, BusSchedule, BusVote, BusRoute, User
 from app.auth import get_current_user, require_user
 
 router = APIRouter(prefix="/bus", tags=["버스"])
@@ -137,19 +137,19 @@ def vote(
     }
 
 
-@router.get("/routes", summary="노선 목록 (정적)")
-def get_routes():
+@router.get("/routes", summary="노선 목록")
+def get_routes(db: Session = Depends(get_db)):
+    import json
+    routes = db.query(BusRoute).all()
     return [
-        {"number": "541", "name": "청산-옥천 급행", "color": "#2E75B6",
-         "stops": ["청산주차장", "청산면사무소", "청성농협", "옥천버스터미널"],
-         "duration": "약 40분", "daily_count": 4},
-        {"number": "503", "name": "청산-옥천 (동이면 경유)", "color": "#5BA4CF",
-         "stops": ["청산주차장", "청성농협", "동이면", "옥천버스터미널"],
-         "duration": "약 60분", "daily_count": 3},
-        {"number": "610", "name": "청산-보은", "color": "#70AD47",
-         "stops": ["청산주차장", "청산면사무소", "보은터미널"],
-         "duration": "약 50분", "daily_count": 5},
-        {"number": "607", "name": "대전-옥천 (비래동)", "color": "#ED7D31",
-         "stops": ["비래동", "옥천버스터미널"],
-         "duration": "약 40분", "daily_count": None},
+        {
+            "id": r.id,
+            "number": r.number,
+            "name": r.name,
+            "color": r.color,
+            "stops": json.loads(r.stops) if r.stops else [],
+            "duration": r.duration,
+            "daily_count": r.daily_count,
+        }
+        for r in routes
     ]

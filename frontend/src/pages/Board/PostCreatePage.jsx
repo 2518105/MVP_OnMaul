@@ -4,11 +4,9 @@ import api, { logEvent } from "../../api/client";
 import { getUser } from "../../api/auth";
 
 const CATEGORIES = [
-  { value: "농사·약", label: "농사·약" },
-  { value: "동네정보", label: "동네정보" },
-  { value: "한마디", label: "한마디" },
-  { value: "나눔/거래", label: "나눔/거래" },
-  { value: "마을소식", label: "마을소식" },
+  { value: "구인 공고", label: "구인 공고" },
+  { value: "질문", label: "질문" },
+  { value: "면 정보", label: "면 정보" },
 ];
 
 function Toast({ msg }) {

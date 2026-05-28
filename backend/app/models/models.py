@@ -34,12 +34,9 @@ class User(Base):
 
 
 class PostCategory(str, enum.Enum):
-    farming = "농사정보"
-    culture = "지역용어관습"
-    daily = "오늘내이야기"
-    qna = "질문과답변"
-    photo = "마을사진"
-    news = "마을소식"
+    job = "구인 공고"
+    question = "질문"
+    info = "면 정보"
 
 
 class Post(Base):
@@ -206,6 +203,28 @@ class AnswerReaction(Base):
 
     answer = relationship("DailyAnswer", back_populates="reactions")
     user = relationship("User")
+
+
+class BusRoute(Base):
+    __tablename__ = "bus_routes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    number = Column(String(20), nullable=False)
+    name = Column(String(100), nullable=False)
+    color = Column(String(10), default="#2E75B6")
+    stops = Column(Text, nullable=True)  # JSON array string
+    duration = Column(String(50), nullable=True)
+    daily_count = Column(Integer, nullable=True)
+
+
+class HanMadiQuestion(Base):
+    __tablename__ = "hanmadi_questions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    text = Column(String(200), nullable=False)
+    answer_type = Column(String(10), default="text")  # text | media | both
+    is_active = Column(Boolean, default=True)
+    order_index = Column(Integer, default=0)
 
 
 class EventLog(Base):
