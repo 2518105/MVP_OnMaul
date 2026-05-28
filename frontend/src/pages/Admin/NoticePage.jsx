@@ -10,27 +10,20 @@ const SOURCE_STYLE = {
   이장:     { bg: "bg-[#E8F4E8]", badge: "bg-[#E8F4E8] text-[#2E7D32]" },
 };
 
-const DUMMY_NOTICES = [
-  { id: 1, source: "자치회",   daysAgo: "어제",    title: "5월 마을회의 안건 안내", read: false, attachments: 0, type: "notice" },
-  { id: 2, source: "면사무소", daysAgo: "2일 전",  title: "농약 안전교육 신청",     read: false, attachments: 0, type: "notice" },
-  { id: 3, source: "이장",     daysAgo: "5일 전",  title: "4월 마을 운영비 정산",   read: true,  attachments: 0, type: "minutes" },
-  { id: 4, source: "면사무소", daysAgo: "10일 전", title: "대청호 모기 방역 일정",  read: true,  attachments: 1, type: "notice" },
-];
-
 export default function NoticePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const viewType = searchParams.get("type") === "minutes" ? "minutes" : "notice";
   const [filter, setFilter] = useState("전체");
-  const [notices, setNotices] = useState(DUMMY_NOTICES);
-  const [readIds, setReadIds] = useState(new Set(DUMMY_NOTICES.filter(n => n.read).map(n => n.id)));
+  const [notices, setNotices] = useState([]);
+  const [readIds, setReadIds] = useState(new Set());
 
   useEffect(() => {
-    api.get("/admin/notices", { params: viewType === "minutes" ? { category: "회의록" } : {} })
+    api.get("/admin/notices")
       .then(r => {
         const list = Array.isArray(r.data) ? r.data : [];
         const mapped = list.map(n => ({
-          id: `api-${n.id}`,
+          id: n.id,
           source: n.category,
           daysAgo: new Date(n.created_at).toLocaleDateString("ko-KR"),
           title: n.title,
@@ -38,7 +31,7 @@ export default function NoticePage() {
           attachments: 0,
           type: "notice",
         }));
-        if (mapped.length > 0) setNotices(prev => [...prev, ...mapped]);
+        setNotices(mapped);
       })
       .catch(() => {});
   }, [viewType]);

@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session, joinedload
 import aiofiles
 
 from app.database import get_db
-from app.models.models import Post, Comment, PostLike, PostCategory, User
+from app.models.models import Post, Comment, PostLike, User
 from app.auth import get_current_user, require_user
 
 router = APIRouter(prefix="/posts", tags=["게시판"])
@@ -66,7 +66,7 @@ def _post_out(post: Post, current_user: Optional[User], db: Session) -> PostOut:
         id=post.id,
         title=post.title,
         content=post.content,
-        category=post.category.value,
+        category=post.category,
         image_url=post.image_url,
         author_nickname=post.author.nickname,
         author_type=post.author.user_type.value,
@@ -128,7 +128,7 @@ def get_post(
 async def create_post(
     title: str = Form(...),
     content: str = Form(...),
-    category: PostCategory = Form(...),
+    category: str = Form(...),
     image: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_user),

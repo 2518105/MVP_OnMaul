@@ -5,20 +5,6 @@ import { getUser } from "../../api/auth";
 import { getTodayQuestion } from "../../constants/questions";
 import LoginPromptSheet from "../../components/LoginPromptSheet";
 
-const DUMMY = {
-  nickname: "단풍나무",
-  type: "새내기",
-  date: "5월의 두 번째 화요일",
-  stop: { name: "청산주차장", dist: "150m", next: "7분 후", line: "541번 옥천행" },
-  schedule: [
-    { date: "5/10", label: "마을회의" },
-    { date: "5/12", label: "농약 안전교육" },
-  ],
-  posts: [
-    { title: "청산면 귀농 1년차 후기 올려요", comments: 14 },
-    { title: "주차장 버스 출발 시간 바뀌었나요?", comments: 8 },
-  ],
-};
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -30,6 +16,8 @@ export default function HomePage() {
   const [answerText, setAnswerText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState("");
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [popularPosts, setPopularPosts] = useState([]);
   const textareaRef = useRef(null);
 
   useEffect(() => {
@@ -38,6 +26,19 @@ export default function HomePage() {
         if (r.data.answers?.length > 0) setRecentAnswers(r.data.answers);
         setApiQuestionId(r.data.question_id);
       })
+      .catch(() => {});
+    api.get("/admin/calendar")
+      .then(r => {
+        const now = new Date();
+        const upcoming = (Array.isArray(r.data) ? r.data : [])
+          .filter(e => new Date(e.event_date) >= now)
+          .sort((a, b) => new Date(a.event_date) - new Date(b.event_date))
+          .slice(0, 2);
+        setUpcomingEvents(upcoming);
+      })
+      .catch(() => {});
+    api.get("/posts", { params: { limit: 2 } })
+      .then(r => setPopularPosts(Array.isArray(r.data) ? r.data.slice(0, 2) : []))
       .catch(() => {});
   }, []);
 
@@ -154,45 +155,45 @@ export default function HomePage() {
         </div>
 
         {/* 이번 주 일정 */}
-        <div
-          className="widget-card fade-in-3"
-          onClick={() => navigate("/admin")}
-        >
+        <div className="widget-card fade-in-3" onClick={() => navigate("/admin")}>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-bold text-ink">이번 주 일정</span>
+            <span className="text-sm font-bold text-ink">다가오는 일정</span>
             <span>📅</span>
           </div>
-          <ul className="flex flex-col gap-1.5">
-            {DUMMY.schedule.map(s => (
-              <li key={s.date} className="flex items-center gap-2 text-sm text-ink">
-                <span className="bg-cream text-sub text-xs font-semibold px-2 py-0.5 rounded-lg w-10 text-center">
-                  {s.date}
-                </span>
-                <span>{s.label}</span>
-              </li>
-            ))}
-          </ul>
+          {upcomingEvents.length === 0 ? (
+            <p className="text-xs text-sub/60">등록된 일정이 없어요</p>
+          ) : (
+            <ul className="flex flex-col gap-1.5">
+              {upcomingEvents.map(e => (
+                <li key={e.id} className="flex items-center gap-2 text-sm text-ink">
+                  <span className="bg-cream text-sub text-xs font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap">
+                    {new Date(e.event_date).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })}
+                  </span>
+                  <span className="truncate">{e.title}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
-        {/* 인기 게시글 */}
-        <div
-          className="widget-card fade-in-4"
-          onClick={() => navigate("/board")}
-        >
+        {/* 최근 게시글 */}
+        <div className="widget-card fade-in-4" onClick={() => navigate("/board")}>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-bold text-ink">인기 게시글</span>
-            <span>🔥</span>
+            <span className="text-sm font-bold text-ink">최근 게시글</span>
+            <span>📝</span>
           </div>
-          <ul className="flex flex-col gap-2">
-            {DUMMY.posts.map((p, i) => (
-              <li key={i} className="flex items-center justify-between text-sm">
-                <span className="text-ink truncate flex-1">{p.title}</span>
-                <span className="text-sub ml-2 text-xs whitespace-nowrap">
-                  💬 {p.comments}
-                </span>
-              </li>
-            ))}
-          </ul>
+          {popularPosts.length === 0 ? (
+            <p className="text-xs text-sub/60">아직 게시글이 없어요</p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {popularPosts.map(p => (
+                <li key={p.id} className="flex items-center justify-between text-sm">
+                  <span className="text-ink truncate flex-1">{p.title}</span>
+                  <span className="text-sub ml-2 text-xs whitespace-nowrap">💬 {p.comment_count}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </div>

@@ -11,37 +11,6 @@ const CATEGORIES = [
   { value: "면 정보", label: "면 정보" },
 ];
 
-const DUMMY_POSTS = [
-  { id: 1, category: "농사·약", time: "1시간 전", title: "오늘 농약 사러 갈 곳 추천?", comments: 12, likes: 10, badge: "이장인증" },
-  { id: 2, category: "동네정보", time: "3시간 전", title: "면사무소 주차장 주차 가능?", comments: 4, likes: 2, badge: null },
-  { id: 3, category: "잃어버림", time: "어제", title: "강아지 봤어요 (목동마을)", comments: 9, likes: 7, badge: null },
-  { id: 4, category: "한마디", time: "어제", title: "나물 무침 레시피 공유 🥬", comments: 21, likes: 19, badge: null },
-];
-
-function FeedItem({ post }) {
-  const navigate = useNavigate();
-  return (
-    <button
-      onClick={() => navigate(`/board/${post.id}`)}
-      className="w-full text-left px-5 py-4 border-b border-gray-100 last:border-0 hover:bg-white/50 transition-colors"
-    >
-      <div className="flex items-center gap-2 mb-1">
-        <span className="text-xs text-sub">{post.category}</span>
-        {post.badge && (
-          <span className="text-xs bg-orange-500 text-white px-1.5 py-0.5 rounded-full font-medium">
-            {post.badge}
-          </span>
-        )}
-        <span className="text-xs text-sub ml-auto">{post.time}</span>
-      </div>
-      <p className="text-sm font-semibold text-ink mb-2 leading-snug">{post.title}</p>
-      <div className="flex items-center gap-3 text-xs text-sub">
-        <span>💬 {post.comments}</span>
-        <span>♡ {post.likes}</span>
-      </div>
-    </button>
-  );
-}
 
 function ApiFeedItem({ post }) {
   const navigate = useNavigate();
@@ -86,13 +55,9 @@ export default function BoardPage() {
       .catch(() => setApiPosts([]));
   }, [category]);
 
-  const filteredDummy = DUMMY_POSTS.filter(p => {
-    if (category && p.category !== category) return false;
-    if (search.trim()) return p.title.includes(search.trim()) || p.category.includes(search.trim());
-    return true;
-  });
-
-  const allPosts = [...filteredDummy];
+  const filteredPosts = (Array.isArray(apiPosts) ? apiPosts : []).filter(p =>
+    !search.trim() || p.title.includes(search.trim()) || p.category.includes(search.trim())
+  );
 
   return (
     <div className="min-h-screen">
@@ -137,12 +102,11 @@ export default function BoardPage() {
 
       {/* 피드 */}
       <div className="bg-white rounded-2xl mx-4 mt-3 shadow-sm overflow-hidden fade-in">
-        {allPosts.length === 0 ? (
+        {filteredPosts.length === 0 ? (
           <p className="text-center py-10 text-sub text-sm">이 카테고리의 첫 글을 작성해보세요</p>
         ) : (
-          allPosts.map(p => <FeedItem key={p.id} post={p} />)
+          filteredPosts.map(p => <ApiFeedItem key={p.id} post={p} />)
         )}
-        {(Array.isArray(apiPosts) ? apiPosts : []).map(p => <ApiFeedItem key={`api-${p.id}`} post={p} />)}
       </div>
 
       {/* 플로팅 버튼 */}

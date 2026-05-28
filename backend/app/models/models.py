@@ -33,19 +33,13 @@ class User(Base):
     daily_answers = relationship("DailyAnswer", back_populates="user")
 
 
-class PostCategory(str, enum.Enum):
-    job = "구인 공고"
-    question = "질문"
-    info = "면 정보"
-
-
 class Post(Base):
     __tablename__ = "posts"
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(100), nullable=False)
     content = Column(Text, nullable=False)
-    category = Column(Enum(PostCategory), nullable=False)
+    category = Column(String(50), nullable=False)
     image_url = Column(String(500), nullable=True)
     author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     like_count = Column(Integer, default=0)

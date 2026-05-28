@@ -4,24 +4,6 @@ import api, { logEvent } from "../../api/client";
 import { getUser } from "../../api/auth";
 import LoginPromptSheet from "../../components/LoginPromptSheet";
 
-const DUMMY_POST = {
-  id: 1,
-  category: "농사·약",
-  author: "이장 김씨",
-  authorBadge: "인증",
-  authorType: "주민",
-  time: "1시간 전",
-  title: "이번 주말 농약 공동구매 합니다",
-  content: "이번 주 토요일 오전 10시에 청산주차장에서 농약 공동구매를 진행합니다.\n필요하신 분들은 댓글 남겨주시거나 이장님께 직접 연락주세요.\n\n• 제초제 (리터당 3,200원)\n• 살충제 (봉지당 2,500원)\n\n최소 10명 이상 모이면 진행됩니다.",
-  hasImage: true,
-  hasVoice: true,
-  likes: 8,
-  isLiked: false,
-  comments: [
-    { id: 1, author: "단풍나무", type: "이주민", text: "저도 참여하고 싶어요!" },
-    { id: 2, author: "동이댁", type: "주민", text: "몇 시에 모이나요?" },
-  ],
-};
 
 function Toast({ msg }) {
   return (
@@ -39,8 +21,8 @@ export default function PostDetailPage() {
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(8);
-  const [comments, setComments] = useState(DUMMY_POST.comments);
+  const [likeCount, setLikeCount] = useState(0);
+  const [comments, setComments] = useState([]);
   const [toast, setToast] = useState("");
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
@@ -95,14 +77,20 @@ export default function PostDetailPage() {
     }
   }
 
-  const post = apiPost ? {
-    ...DUMMY_POST,
+  if (!apiPost) return (
+    <div className="min-h-screen flex items-center justify-center bg-cream">
+      <p className="text-sub text-sm">게시글을 불러오는 중...</p>
+    </div>
+  );
+
+  const post = {
     category: apiPost.category,
     author: apiPost.author_nickname,
+    authorType: apiPost.author_type,
     title: apiPost.title,
     content: apiPost.content,
-    hasImage: !!apiPost.image_url,
-  } : DUMMY_POST;
+    imageUrl: apiPost.image_url,
+  };
 
   return (
     <div className="min-h-screen bg-cream">
@@ -128,46 +116,21 @@ export default function PostDetailPage() {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-ink">{post.author}</span>
-              {post.authorBadge && (
-                <span className="text-xs bg-orange-500 text-white px-1.5 py-0.5 rounded-full font-medium">
-                  {post.authorBadge}
-                </span>
-              )}
             </div>
-            <p className="text-xs text-sub">{post.authorType} · {post.time}</p>
+            <p className="text-xs text-sub">{post.authorType}</p>
           </div>
         </div>
 
         {/* 제목 + 본문 */}
         <h1 className="text-lg font-bold text-ink mb-3 fade-in-1">{post.title}</h1>
 
-        {post.hasImage && (
-          <div className="w-full h-44 bg-gray-200 rounded-2xl mb-3 flex items-center justify-center text-gray-400 text-sm fade-in-1">
-            📷 사진 1/2
-          </div>
+        {post.imageUrl && (
+          <img src={post.imageUrl} alt="" className="w-full rounded-2xl mb-3 fade-in-1" />
         )}
 
         <p className="text-sm text-ink leading-relaxed whitespace-pre-wrap mb-4 fade-in-2">
           {post.content}
         </p>
-
-        {post.hasVoice && (
-          <div className="bg-white rounded-2xl p-4 flex items-center gap-3 mb-4 shadow-sm fade-in-2">
-            <button
-              onClick={() => showToast("음성 재생 기능은 준비 중입니다")}
-              className="w-10 h-10 bg-maul rounded-full flex items-center justify-center text-lg"
-            >
-              ▶
-            </button>
-            <div>
-              <p className="text-xs text-sub">음성 메시지</p>
-              <p className="text-sm font-medium text-ink">음성 0:42</p>
-            </div>
-            <div className="flex-1 h-1 bg-gray-200 rounded-full ml-2">
-              <div className="h-1 bg-maul rounded-full w-1/3" />
-            </div>
-          </div>
-        )}
 
         {/* 반응 바 */}
         <div className="flex items-center gap-5 py-3 border-t border-b border-gray-100 mb-4 fade-in-3">
