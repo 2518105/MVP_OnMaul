@@ -112,7 +112,7 @@ def get_my_posts(
         PostSummary(
             id=p.id,
             title=p.title,
-            category=p.category.value,
+            category=p.category,
             like_count=p.like_count,
             view_count=p.view_count,
             comment_count=len(p.comments),
