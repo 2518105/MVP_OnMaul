@@ -3,6 +3,7 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
+from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -19,9 +20,10 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user_type: str
-    nickname: str
+    nickname: Optional[str] = None
     user_id: int
     is_new_user: bool = False
+    onboarding_completed: bool = False
 
 
 class RegisterRequest(BaseModel):
@@ -54,6 +56,7 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
         nickname=req.nickname,
         hashed_password=hash_password(req.password),
         user_type=user_type,
+        onboarding_completed=True,
     )
     db.add(user)
     db.commit()
@@ -65,6 +68,7 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
         nickname=user.nickname,
         user_id=user.id,
         is_new_user=True,
+        onboarding_completed=True,
     )
 
 
@@ -79,6 +83,7 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
         user_type=user.user_type.value,
         nickname=user.nickname,
         user_id=user.id,
+        onboarding_completed=user.onboarding_completed,
     )
 
 
@@ -131,6 +136,7 @@ def kakao_login(req: KakaoLoginRequest, db: Session = Depends(get_db)):
             hashed_password="",
             kakao_id=kakao_id,
             user_type=UserType.immigrant,
+            onboarding_completed=False,
         )
         db.add(user)
         db.commit()
@@ -143,4 +149,5 @@ def kakao_login(req: KakaoLoginRequest, db: Session = Depends(get_db)):
         nickname=user.nickname,
         user_id=user.id,
         is_new_user=is_new,
+        onboarding_completed=user.onboarding_completed,
     )

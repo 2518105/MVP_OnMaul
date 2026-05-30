@@ -50,11 +50,16 @@ app.include_router(users.router, prefix="/api")
 def on_startup():
     # kakao_id 컬럼이 없는 기존 DB 자동 마이그레이션
     with engine.connect() as conn:
-        try:
-            conn.execute(text("ALTER TABLE users ADD COLUMN kakao_id VARCHAR(50)"))
-            conn.commit()
-        except Exception:
-            pass  # 컬럼이 이미 존재하면 무시
+        for stmt in [
+            "ALTER TABLE users ADD COLUMN kakao_id VARCHAR(50)",
+            "ALTER TABLE users ADD COLUMN village_name VARCHAR(100)",
+            "ALTER TABLE users ADD COLUMN onboarding_completed BOOLEAN NOT NULL DEFAULT 0",
+        ]:
+            try:
+                conn.execute(text(stmt))
+                conn.commit()
+            except Exception:
+                pass
 
     db = SessionLocal()
     try:

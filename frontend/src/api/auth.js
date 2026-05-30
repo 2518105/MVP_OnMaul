@@ -3,6 +3,7 @@ import api from "./client";
 function saveSession(data) {
   localStorage.setItem("token", data.access_token);
   localStorage.setItem("user", JSON.stringify({ nickname: data.nickname, userType: data.user_type, id: data.user_id }));
+  localStorage.setItem("onboarding_completed", String(data.onboarding_completed ?? false));
 }
 
 export async function register(username, nickname, password, userType) {
@@ -37,6 +38,28 @@ export function initiateKakaoOAuth() {
 export function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
+  localStorage.removeItem("onboarding_completed");
+}
+
+export async function checkNickname(nickname) {
+  const { data } = await api.get(`/users/check-nickname?nickname=${encodeURIComponent(nickname)}`);
+  return data;
+}
+
+export async function completeOnboarding({ nickname, residentType, villageName }) {
+  const { data } = await api.patch("/users/me/onboarding", {
+    nickname,
+    resident_type: residentType,
+    village_name: villageName,
+  });
+  const user = getUser();
+  if (user) {
+    user.nickname = nickname;
+    user.userType = residentType;
+    localStorage.setItem("user", JSON.stringify(user));
+  }
+  localStorage.setItem("onboarding_completed", "true");
+  return data;
 }
 
 export function getUser() {

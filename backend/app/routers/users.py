@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
-from app.models.models import User, Post, DailyAnswer, AnswerReaction
+from app.models.models import User, UserType, Post, DailyAnswer, AnswerReaction
 from app.auth import require_user, hash_password, verify_password
 
 router = APIRouter(prefix="/users", tags=["사용자"])
@@ -48,6 +48,62 @@ class NicknameUpdateRequest(BaseModel):
 class PasswordUpdateRequest(BaseModel):
     current_password: str
     new_password: str
+
+
+class OnboardingRequest(BaseModel):
+    nickname: str
+    resident_type: str  # "이주민" | "주민"
+    village_name: str
+
+
+@router.get("/check-nickname", summary="닉네임 중복 확인")
+def check_nickname(nickname: str, db: Session = Depends(get_db)):
+    trimmed = nickname.strip()
+    if len(trimmed) < 2:
+        return {"available": False, "reason": "닉네임은 2자 이상이어야 합니다"}
+    exists = db.query(User).filter(User.nickname == trimmed).first() is not None
+    return {"available": not exists}
+
+
+@router.patch("/me/onboarding", summary="온보딩 정보 저장")
+def complete_onboarding(
+    req: OnboardingRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_user),
+):
+    nickname = req.nickname.strip()
+    if len(nickname) < 2:
+        raise HTTPException(status_code=400, detail="닉네임은 2자 이상 입력해주세요")
+
+    duplicate = db.query(User).filter(
+        User.nickname == nickname,
+        User.id != current_user.id,
+    ).first()
+    if duplicate:
+        raise HTTPException(status_code=400, detail="이미 사용 중인 닉네임입니다")
+
+    try:
+        user_type = UserType(req.resident_type)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="올바른 주민 유형을 선택해주세요")
+
+    village = req.village_name.strip()
+    if not village:
+        raise HTTPException(status_code=400, detail="마을 이름을 입력해주세요")
+
+    current_user.nickname = nickname
+    current_user.user_type = user_type
+    current_user.village_name = village
+    current_user.onboarding_completed = True
+    db.commit()
+    db.refresh(current_user)
+
+    return {
+        "nickname": current_user.nickname,
+        "user_type": current_user.user_type.value,
+        "village_name": current_user.village_name,
+        "onboarding_completed": True,
+    }
 
 
 @router.get("/me", response_model=UserProfile, summary="내 프로필")

@@ -25,7 +25,7 @@ export default function KakaoCallback() {
     kakaoLogin(code, redirectUri)
       .then((data) => {
         sessionStorage.removeItem(key);
-        if (data.is_new_user) {
+        if (!data.onboarding_completed) {
           navigate("/onboarding", { replace: true });
         } else {
           navigate("/home", { replace: true });

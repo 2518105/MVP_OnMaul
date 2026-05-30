@@ -16,16 +16,21 @@ def init_db():
 
 def seed(db: Session):
     # 관리자 계정
-    if not db.query(User).filter(User.username == "admin").first():
+    admin = db.query(User).filter(User.username == "admin").first()
+    if not admin:
         admin = User(
             username="admin",
             nickname="온마을 관리자",
             hashed_password=hash_password("onmaul2026!"),
             user_type=UserType.admin,
+            onboarding_completed=True,
         )
         db.add(admin)
         db.commit()
         print("[OK] 관리자 계정 생성 (admin / onmaul2026!)")
+    elif not admin.onboarding_completed:
+        admin.onboarding_completed = True
+        db.commit()
 
     # 버스 시간표
     if db.query(BusStop).count() == 0:

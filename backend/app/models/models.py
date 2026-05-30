@@ -24,6 +24,8 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     user_type = Column(Enum(UserType), default=UserType.immigrant, nullable=False)
     kakao_id = Column(String(50), unique=True, nullable=True, index=True)
+    village_name = Column(String(100), nullable=True)
+    onboarding_completed = Column(Boolean, default=False, nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
