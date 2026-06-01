@@ -53,13 +53,13 @@ def on_startup():
         for stmt in [
             "ALTER TABLE users ADD COLUMN kakao_id VARCHAR(50)",
             "ALTER TABLE users ADD COLUMN village_name VARCHAR(100)",
-            "ALTER TABLE users ADD COLUMN onboarding_completed BOOLEAN NOT NULL DEFAULT 0",
+            "ALTER TABLE users ADD COLUMN onboarding_completed BOOLEAN NOT NULL DEFAULT FALSE",
         ]:
             try:
                 conn.execute(text(stmt))
                 conn.commit()
             except Exception:
-                pass
+                conn.rollback()
 
     db = SessionLocal()
     try:
