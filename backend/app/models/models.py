@@ -135,7 +135,12 @@ class Notice(Base):
     author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     is_pinned = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-
+    external_id = Column(String(200), unique=True, nullable=True)
+    published_at = Column(DateTime, nullable=True)
+    view_count = Column(Integer, default=0)
+    source_url = Column(String(500), nullable=True)
+    is_external = Column(Boolean, default=False)
+    
     author = relationship("User")
 
 

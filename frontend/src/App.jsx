@@ -18,6 +18,7 @@ import HanMadiPage from "./pages/Board/HanMadiPage";
 import HanMadiListPage from "./pages/Board/HanMadiListPage";
 import MyPage from "./pages/MyPage/MyPage";
 import RegisterPage from "./pages/Auth/RegisterPage";
+import ExternalNoticesPage from "./pages/Board/ExternalNoticesPage";
 
 const FontSizeCtx = createContext({ large: false, toggle: () => {} });
 
@@ -134,6 +135,8 @@ export default function App() {
             <Route path="/admin/notices" element={<NoticePage />} />
             <Route path="/admin/detail/:id" element={<AdminDetailPage />} />
             <Route path="/mypage" element={<MyPage />} />
+            <Route path="/board/external-notices" element={<ExternalNoticesPage />} />
+            <Route path="/external-notices" element={<ExternalNoticesPage />} />
           </Route>
           </Route>
         </Routes>
