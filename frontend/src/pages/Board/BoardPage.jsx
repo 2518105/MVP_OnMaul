@@ -15,7 +15,8 @@ const CATEGORIES = [
 function ApiFeedItem({ post }) {
   const navigate = useNavigate();
   const timeAgo = (dateStr) => {
-    const diff = Date.now() - new Date(dateStr);
+    const utc = dateStr.endsWith("Z") ? dateStr : dateStr + "Z";
+    const diff = Date.now() - new Date(utc);
     const h = Math.floor(diff / 3600000);
     if (h < 1) return "방금 전";
     if (h < 24) return `${h}시간 전`;

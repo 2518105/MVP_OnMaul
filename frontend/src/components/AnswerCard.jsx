@@ -1,6 +1,7 @@
 export default function AnswerCard({ answer, onLike }) {
   function timeAgo(dateStr) {
-    const diff = Date.now() - new Date(dateStr);
+    const utc = dateStr.endsWith("Z") ? dateStr : dateStr + "Z";
+    const diff = Date.now() - new Date(utc);
     const m = Math.floor(diff / 60000);
     if (m < 1) return "방금";
     if (m < 60) return `${m}분 전`;

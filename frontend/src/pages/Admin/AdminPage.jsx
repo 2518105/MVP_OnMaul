@@ -96,7 +96,6 @@ export default function AdminPage() {
       <div className="sticky top-0 z-10 bg-white">
         <header className="px-5 pt-14 pb-3 flex items-center justify-between">
           <h1 className="text-xl font-bold text-ink">행정</h1>
-          <button onClick={() => showToast("다국어 지원 준비 중입니다")} className="text-xl">🌐</button>
         </header>
 
         <div className="px-4 pb-3">

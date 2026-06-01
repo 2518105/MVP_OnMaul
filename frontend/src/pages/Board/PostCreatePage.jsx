@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { logEvent } from "../../api/client";
 import { getUser } from "../../api/auth";
+import LoginPromptSheet from "../../components/LoginPromptSheet";
 
 const CATEGORIES = [
   { value: "구인 공고", label: "구인 공고" },
@@ -25,8 +26,7 @@ export default function PostCreatePage() {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState("");
-
-  if (!user) { navigate("/login?next=/board/new"); return null; }
+  const [showLoginPrompt, setShowLoginPrompt] = useState(!user);
 
   function showToast(msg) {
     setToast(msg);
@@ -66,6 +66,7 @@ export default function PostCreatePage() {
 
   return (
     <div className="min-h-screen bg-cream">
+      {showLoginPrompt && <LoginPromptSheet onClose={() => navigate(-1)} />}
       {toast && <Toast msg={toast} />}
 
       {/* 헤더 */}

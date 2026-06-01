@@ -6,7 +6,7 @@ bcrypt==4.2.1
 python-multipart==0.0.12
 aiofiles==24.1.0
 Pillow
-httpx==0.28.1
+httpx>=0.26,<0.28
 supabase==2.10.0
 python-dotenv==1.0.1
-psycopg2-binary==2.9.10
+psycopg[binary]
