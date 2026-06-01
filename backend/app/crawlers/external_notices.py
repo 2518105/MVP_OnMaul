@@ -8,7 +8,8 @@ from app.models.models import Notice, NoticeCategory
 from app.database import SessionLocal
 
 
-BASE_URL = "https://www.oc.go.kr/www/selectBbsNttList.do?bbsNo=91&key=796&"
+BASE_URL = "https://www.oc.go.kr/www/selectBbsNttList.do?bbsNo=91&key=796"
+DETAIL_URL = "https://www.oc.go.kr/www/selectBbsNttView.do?bbsNo=91&key=796&nttNo="
 
 
 class ExternalNoticeCrawler:
@@ -77,8 +78,7 @@ class ExternalNoticeCrawler:
                     except:
                         view_count = 0
                     
-                    # 원본 URL (필요시 상세 페이지 URL 생성)
-                    source_url = f"{BASE_URL}"  # 나중에 상세 URL로 변경 가능
+                    source_url = f"{DETAIL_URL}{external_id}"
                     
                     notices.append({
                         'external_id': external_id,

@@ -54,6 +54,11 @@ def on_startup():
             "ALTER TABLE users ADD COLUMN kakao_id VARCHAR(50)",
             "ALTER TABLE users ADD COLUMN village_name VARCHAR(100)",
             "ALTER TABLE users ADD COLUMN onboarding_completed BOOLEAN NOT NULL DEFAULT FALSE",
+            "ALTER TABLE notices ADD COLUMN external_id VARCHAR(200) UNIQUE",
+            "ALTER TABLE notices ADD COLUMN published_at DATETIME",
+            "ALTER TABLE notices ADD COLUMN view_count INTEGER DEFAULT 0",
+            "ALTER TABLE notices ADD COLUMN source_url VARCHAR(500)",
+            "ALTER TABLE notices ADD COLUMN is_external BOOLEAN DEFAULT FALSE",
         ]:
             try:
                 conn.execute(text(stmt))

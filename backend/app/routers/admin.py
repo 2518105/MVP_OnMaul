@@ -137,7 +137,7 @@ def get_notice(notice_id: int, db: Session = Depends(get_db)):
 def create_notice(
     req: NoticeCreate,
     db: Session = Depends(get_db),
-    
+    current_user: User = Depends(require_admin),
 ):
     notice = Notice(
         title=req.title, content=req.content,
