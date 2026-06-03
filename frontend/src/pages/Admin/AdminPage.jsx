@@ -187,24 +187,27 @@ export default function AdminPage() {
       {/* 회의록 탭 */}
       {tab === "minutes" && (
         <div className="px-4 space-y-3 fade-in pt-2">
-          {meetings.length === 0 ? (
-            <div className="bg-white rounded-2xl p-8 text-center text-sub text-sm shadow-sm">
-              등록된 회의록이 없어요
-            </div>
-          ) : (
-            meetings.map(m => (
-              <button
-                key={m.id}
-                onClick={() => navigate(`/admin/detail/${m.id}?type=meeting`)}
-                className="w-full text-left bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-xs text-sub">{new Date(m.meeting_date).toLocaleDateString("ko-KR")}</span>
-                </div>
-                <p className="text-sm font-bold text-ink leading-snug">{m.title}</p>
-              </button>
-            ))
-          )}
+          <a
+            href="https://www.oc.go.kr/www/selectBbsNttList.do?bbsNo=379&key=4664"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between bg-maul rounded-2xl px-4 py-3 shadow-sm hover:shadow-md transition-shadow"
+          >
+            <span className="text-sm font-bold text-ink">📋 청산면 회의록 바로가기</span>
+            <span className="text-xs text-sub">옥천군 홈페이지 →</span>
+          </a>
+          {meetings.map(m => (
+            <button
+              key={m.id}
+              onClick={() => navigate(`/admin/detail/${m.id}?type=meeting`)}
+              className="w-full text-left bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="text-xs text-sub">{new Date(m.meeting_date).toLocaleDateString("ko-KR")}</span>
+              </div>
+              <p className="text-sm font-bold text-ink leading-snug">{m.title}</p>
+            </button>
+          ))}
         </div>
       )}
 
