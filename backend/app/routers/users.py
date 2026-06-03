@@ -45,6 +45,11 @@ class NicknameUpdateRequest(BaseModel):
     nickname: str
 
 
+class ProfileUpdateRequest(BaseModel):
+    nickname: str
+    user_type: str
+
+
 class PasswordUpdateRequest(BaseModel):
     current_password: str
     new_password: str
@@ -108,6 +113,34 @@ def complete_onboarding(
 
 @router.get("/me", response_model=UserProfile, summary="내 프로필")
 def get_my_profile(current_user: User = Depends(require_user)):
+    return UserProfile(
+        id=current_user.id,
+        nickname=current_user.nickname,
+        user_type=current_user.user_type.value,
+        created_at=current_user.created_at,
+    )
+
+
+@router.patch("/me/profile", response_model=UserProfile, summary="프로필 수정 (닉네임 + 주민유형)")
+def update_profile(
+    req: ProfileUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_user),
+):
+    nickname = req.nickname.strip()
+    if len(nickname) < 2:
+        raise HTTPException(status_code=400, detail="닉네임은 2자 이상 입력해주세요")
+    duplicate = db.query(User).filter(User.nickname == nickname, User.id != current_user.id).first()
+    if duplicate:
+        raise HTTPException(status_code=400, detail="이미 사용 중인 닉네임입니다")
+    try:
+        user_type = UserType(req.user_type)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="올바른 주민 유형을 선택해주세요")
+    current_user.nickname = nickname
+    current_user.user_type = user_type
+    db.commit()
+    db.refresh(current_user)
     return UserProfile(
         id=current_user.id,
         nickname=current_user.nickname,
