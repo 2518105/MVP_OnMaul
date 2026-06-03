@@ -73,7 +73,7 @@ export default function BusPage() {
         </div>
       </div>
 
-      <div className="px-4 pb-24 space-y-2">
+      <div className="px-4 pt-2 pb-24 space-y-2">
         {filtered.length === 0 ? (
           <p className="text-center py-12 text-sub text-sm">
             {tab === "fav" ? "즐겨찾기한 노선이 없어요" : "검색 결과가 없어요"}
