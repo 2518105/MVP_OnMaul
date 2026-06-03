@@ -17,6 +17,7 @@ import HomePage from "./pages/Home/HomePage";
 import HanMadiPage from "./pages/Board/HanMadiPage";
 import HanMadiListPage from "./pages/Board/HanMadiListPage";
 import MyPage from "./pages/MyPage/MyPage";
+import MyActivityPage from "./pages/MyPage/MyActivityPage";
 import RegisterPage from "./pages/Auth/RegisterPage";
 import ExternalNoticesPage from "./pages/Board/ExternalNoticesPage";
 
@@ -172,6 +173,7 @@ export default function App() {
             <Route path="/admin/notices" element={<NoticePage />} />
             <Route path="/admin/detail/:id" element={<AdminDetailPage />} />
             <Route path="/mypage" element={<MyPage />} />
+            <Route path="/mypage/activity" element={<MyActivityPage />} />
             <Route path="/board/external-notices" element={<ExternalNoticesPage />} />
             <Route path="/external-notices" element={<ExternalNoticesPage />} />
           </Route>

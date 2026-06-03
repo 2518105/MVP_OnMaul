@@ -40,6 +40,20 @@ export default function HanMadiListPage() {
     } catch {}
   }
 
+  async function handleEdit(answerId, newContent) {
+    try {
+      const r = await api.patch(`/hanmadi/answers/${answerId}`, { content: newContent });
+      setAnswers(prev => prev.map(a => a.id === answerId ? { ...a, content: r.data.content } : a));
+    } catch {}
+  }
+
+  async function handleDelete(answerId) {
+    try {
+      await api.delete(`/hanmadi/answers/${answerId}`);
+      setAnswers(prev => prev.filter(a => a.id !== answerId));
+    } catch {}
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {showLoginPrompt && <LoginPromptSheet onClose={() => setShowLoginPrompt(false)} />}
@@ -63,7 +77,13 @@ export default function HanMadiListPage() {
         ) : (
           <div className="flex flex-col gap-3 fade-in-1">
             {answers.map(a => (
-              <AnswerCard key={a.id} answer={a} onLike={() => handleLike(a.id)} />
+              <AnswerCard
+                key={a.id}
+                answer={a}
+                onLike={() => handleLike(a.id)}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
             ))}
           </div>
         )}

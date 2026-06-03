@@ -3,12 +3,136 @@ import { useParams, useNavigate } from "react-router-dom";
 import api, { logEvent } from "../../api/client";
 import { getUser } from "../../api/auth";
 import LoginPromptSheet from "../../components/LoginPromptSheet";
+import {
+  isPostSaved, savePost, unsavePost,
+  addLikedPost, removeLikedPost,
+  addMyComment,
+} from "../../utils/activity";
 
+const CATEGORIES = ["동네 정보", "구인·구직", "나눔·거래", "질문"];
 
 function Toast({ msg }) {
   return (
     <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-ink text-white text-sm px-4 py-2.5 rounded-full shadow-lg z-50 fade-in">
       {msg}
+    </div>
+  );
+}
+
+function ActionSheet({ onEdit, onDelete, onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col justify-end">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="relative bg-white rounded-t-3xl px-5 pt-4 pb-10 max-w-[390px] mx-auto w-full">
+        <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
+        <button
+          onClick={onEdit}
+          className="w-full py-3.5 text-sm text-ink text-left border-b border-gray-100"
+        >
+          수정하기
+        </button>
+        <button
+          onClick={onDelete}
+          className="w-full py-3.5 text-sm text-red-500 text-left"
+        >
+          삭제하기
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PostEditSheet({ post, onClose, onSave }) {
+  const [title, setTitle] = useState(post.title);
+  const [content, setContent] = useState(post.content);
+  const [category, setCategory] = useState(post.category);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleSave() {
+    if (!title.trim() || !content.trim()) { setError("제목과 본문을 입력해주세요"); return; }
+    setSaving(true);
+    setError("");
+    try {
+      const { data } = await api.patch(`/posts/${post.id}`, { title: title.trim(), content: content.trim(), category });
+      onSave(data);
+    } catch {
+      setError("저장에 실패했어요. 다시 시도해주세요.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col justify-end">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="relative bg-white rounded-t-3xl px-5 pt-6 pb-10 max-w-[390px] mx-auto w-full max-h-[85vh] overflow-y-auto">
+        <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+        <h2 className="text-base font-bold text-ink mb-4">게시글 수정</h2>
+
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+          {CATEGORIES.map(c => (
+            <button
+              key={c}
+              onClick={() => setCategory(c)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-colors ${
+                category === c ? "bg-maul border-maul text-ink font-bold" : "border-gray-300 text-sub bg-white"
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+
+        <input
+          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-ink outline-none focus:border-maul mb-3"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          maxLength={50}
+          placeholder="제목"
+        />
+        <textarea
+          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-ink outline-none focus:border-maul resize-none"
+          rows={7}
+          value={content}
+          onChange={e => setContent(e.target.value)}
+          maxLength={2000}
+          placeholder="본문"
+        />
+
+        {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
+
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full mt-4 py-3 bg-maul text-ink text-sm font-bold rounded-xl disabled:opacity-50"
+        >
+          {saving ? "저장 중…" : "저장"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function DeleteConfirmSheet({ onClose, onConfirm, deleting }) {
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col justify-end">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="relative bg-white rounded-t-3xl px-5 pt-6 pb-10 max-w-[390px] mx-auto w-full">
+        <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+        <p className="text-base font-bold text-ink text-center">게시글을 삭제할까요?</p>
+        <p className="text-xs text-sub text-center mt-1 mb-6">삭제된 게시글은 복구할 수 없어요</p>
+        <div className="flex gap-3">
+          <button onClick={onClose} className="flex-1 py-3 border border-gray-200 rounded-xl text-sm text-sub font-medium">취소</button>
+          <button
+            onClick={onConfirm}
+            disabled={deleting}
+            className="flex-1 py-3 bg-red-500 rounded-xl text-sm text-white font-bold disabled:opacity-50"
+          >
+            {deleting ? "삭제 중…" : "삭제"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -23,14 +147,19 @@ export default function PostDetailPage() {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [comments, setComments] = useState([]);
+  const [saved, setSaved] = useState(() => isPostSaved(Number(id)));
   const [toast, setToast] = useState("");
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showActionSheet, setShowActionSheet] = useState(false);
+  const [showEditSheet, setShowEditSheet] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     api.get(`/posts/${id}`)
       .then(r => {
         setApiPost(r.data);
-        setLikeCount(r.data.like_count ?? 8);
+        setLikeCount(r.data.like_count ?? 0);
         setLiked(r.data.is_liked ?? false);
         const rawComments = r.data.comments;
         if (Array.isArray(rawComments) && rawComments.length) {
@@ -48,15 +177,43 @@ export default function PostDetailPage() {
     setTimeout(() => setToast(""), 2500);
   }
 
+  function postSnapshot() {
+    if (!apiPost) return null;
+    return {
+      id: Number(id),
+      title: apiPost.title,
+      category: apiPost.category,
+      like_count: likeCount,
+      comment_count: comments.length,
+      author_nickname: apiPost.author_nickname,
+    };
+  }
+
   async function handleLike() {
     if (!user) { setShowLoginPrompt(true); return; }
-    try {
-      await api.post(`/posts/${id}/like`);
-      setLiked(v => !v);
-      setLikeCount(v => liked ? v - 1 : v + 1);
-    } catch {
-      setLiked(v => !v);
-      setLikeCount(v => liked ? v - 1 : v + 1);
+    const nowLiked = liked;
+    try { await api.post(`/posts/${id}/like`); } catch {}
+    setLiked(!nowLiked);
+    setLikeCount(v => nowLiked ? v - 1 : v + 1);
+    const snap = postSnapshot();
+    if (snap) {
+      if (!nowLiked) addLikedPost(snap);
+      else removeLikedPost(snap.id);
+    }
+  }
+
+  function handleSave() {
+    if (!user) { setShowLoginPrompt(true); return; }
+    const snap = postSnapshot();
+    if (!snap) return;
+    if (saved) {
+      unsavePost(snap.id);
+      setSaved(false);
+      showToast("저장 취소됐어요");
+    } else {
+      savePost(snap);
+      setSaved(true);
+      showToast("저장됐어요");
     }
   }
 
@@ -71,10 +228,28 @@ export default function PostDetailPage() {
       logEvent("comment_created", { post_id: Number(id) });
     } catch {
       setComments(prev => [...prev, { id: Date.now(), author: user?.nickname ?? "나", type: "이주민", text: comment }]);
-    } finally {
-      setComment("");
-      setSubmitting(false);
     }
+    if (apiPost) addMyComment({ postId: Number(id), postTitle: apiPost.title, content: comment.trim() });
+    setComment("");
+    setSubmitting(false);
+  }
+
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      await api.delete(`/posts/${id}`);
+      navigate(-1);
+    } catch {
+      showToast("삭제에 실패했어요");
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  }
+
+  function handleEditSave(updatedPost) {
+    setApiPost(prev => ({ ...prev, ...updatedPost }));
+    setShowEditSheet(false);
+    showToast("수정됐어요");
   }
 
   if (!apiPost) return (
@@ -83,14 +258,7 @@ export default function PostDetailPage() {
     </div>
   );
 
-  const post = {
-    category: apiPost.category,
-    author: apiPost.author_nickname,
-    authorType: apiPost.author_type,
-    title: apiPost.title,
-    content: apiPost.content,
-    imageUrl: apiPost.image_url,
-  };
+  const isMine = apiPost.is_mine === true;
 
   return (
     <div className="min-h-screen bg-white">
@@ -101,35 +269,43 @@ export default function PostDetailPage() {
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="text-ink text-xl font-light">←</button>
           <span className="text-xs bg-white border border-gray-200 text-sub px-2.5 py-1 rounded-full">
-            {post.category}
+            {apiPost.category}
           </span>
         </div>
-        <button className="text-sub text-lg">···</button>
+        <div className="flex items-center gap-2">
+          <button onClick={handleSave} aria-label={saved ? "저장 취소" : "저장"} className="p-1">
+            <svg width="22" height="22" viewBox="0 0 24 24"
+              fill={saved ? "#639d6b" : "none"}
+              stroke={saved ? "#639d6b" : "#9ca3af"}
+              strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            </svg>
+          </button>
+          {isMine && (
+            <button onClick={() => setShowActionSheet(true)} className="text-sub text-lg px-1">···</button>
+          )}
+        </div>
       </header>
 
       <div className="px-5 pb-32">
         {/* 작성자 */}
         <div className="flex items-center gap-3 mb-4 fade-in">
           <div className="w-10 h-10 rounded-full bg-maul flex items-center justify-center text-lg font-bold">
-            {post.author[0]}
+            {apiPost.author_nickname[0]}
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-ink">{post.author}</span>
-            </div>
-            <p className="text-xs text-sub">{post.authorType}</p>
+            <span className="text-sm font-bold text-ink">{apiPost.author_nickname}</span>
+            <p className="text-xs text-sub">{apiPost.author_type}</p>
           </div>
         </div>
 
         {/* 제목 + 본문 */}
-        <h1 className="text-lg font-bold text-ink mb-3 fade-in-1">{post.title}</h1>
-
-        {post.imageUrl && (
-          <img src={post.imageUrl} alt="" className="w-full rounded-2xl mb-3 fade-in-1" />
+        <h1 className="text-lg font-bold text-ink mb-3 fade-in-1">{apiPost.title}</h1>
+        {apiPost.image_url && (
+          <img src={apiPost.image_url} alt="" className="w-full rounded-2xl mb-3 fade-in-1" />
         )}
-
         <p className="text-sm text-ink leading-relaxed whitespace-pre-wrap mb-4 fade-in-2">
-          {post.content}
+          {apiPost.content}
         </p>
 
         {/* 반응 바 */}
@@ -146,10 +322,11 @@ export default function PostDetailPage() {
             <span>{comments.length}</span>
           </span>
           <button
-            onClick={() => showToast("공유 기능은 준비 중입니다")}
+            onClick={() => showToast("공유 기능은 준비 중이에요")}
             className="flex items-center gap-1.5 text-sm text-sub ml-auto"
           >
-            <span>↗ 공유</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            <span>공유</span>
           </button>
         </div>
 
@@ -172,20 +349,39 @@ export default function PostDetailPage() {
 
       {showLoginPrompt && <LoginPromptSheet onClose={() => setShowLoginPrompt(false)} />}
 
-      {/* 댓글 입력 (fixed 하단) */}
+      {showActionSheet && (
+        <ActionSheet
+          onEdit={() => { setShowActionSheet(false); setShowEditSheet(true); }}
+          onDelete={() => { setShowActionSheet(false); setShowDeleteConfirm(true); }}
+          onClose={() => setShowActionSheet(false)}
+        />
+      )}
+
+      {showEditSheet && apiPost && (
+        <PostEditSheet
+          post={{ id: Number(id), title: apiPost.title, content: apiPost.content, category: apiPost.category }}
+          onClose={() => setShowEditSheet(false)}
+          onSave={handleEditSave}
+        />
+      )}
+
+      {showDeleteConfirm && (
+        <DeleteConfirmSheet
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleDelete}
+          deleting={deleting}
+        />
+      )}
+
+      {/* 댓글 입력 */}
       <div className="fixed bottom-16 left-1/2 -translate-x-1/2 w-full max-w-[390px] bg-white border-t border-gray-100 px-4 py-3 flex gap-2">
         <input
           className="input flex-1 text-sm"
           value={comment}
           onChange={e => setComment(e.target.value)}
-          placeholder="댓글 또는 음성 댓글…"
+          placeholder="댓글을 입력하세요…"
           onKeyDown={e => e.key === "Enter" && handleComment(e)}
         />
-        <button
-          onClick={() => showToast("음성 녹음 기능은 준비 중입니다")}
-          className="text-sub"
-        ><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-        </button>
         <button
           onClick={handleComment}
           disabled={submitting || !comment.trim()}

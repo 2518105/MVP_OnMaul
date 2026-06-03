@@ -155,6 +155,26 @@ export default function HanMadiPage() {
     } catch {}
   }
 
+  async function handleEdit(answerId, newContent) {
+    try {
+      const r = await api.patch(`/hanmadi/answers/${answerId}`, { content: newContent });
+      setAnswers(prev => prev.map(a => a.id === answerId ? { ...a, content: r.data.content } : a));
+      showToast("수정됐어요");
+    } catch {
+      showToast("수정에 실패했어요");
+    }
+  }
+
+  async function handleDelete(answerId) {
+    try {
+      await api.delete(`/hanmadi/answers/${answerId}`);
+      setAnswers(prev => prev.filter(a => a.id !== answerId));
+      showToast("삭제됐어요");
+    } catch {
+      showToast("삭제에 실패했어요");
+    }
+  }
+
   if (!question) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -287,7 +307,13 @@ export default function HanMadiPage() {
           ) : (
             <div className="flex flex-col gap-3">
               {answers.map(a => (
-                <AnswerCard key={a.id} answer={a} onLike={() => handleLike(a.id)} />
+                <AnswerCard
+                key={a.id}
+                answer={a}
+                onLike={() => handleLike(a.id)}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
               ))}
             </div>
           )}

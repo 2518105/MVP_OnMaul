@@ -9,6 +9,32 @@ const USER_TYPES = [
   { value: "주민", label: "청산면 주민" },
 ];
 
+function Toast({ msg }) {
+  return (
+    <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-ink text-white text-sm px-4 py-2.5 rounded-full shadow-lg z-50 fade-in">
+      {msg}
+    </div>
+  );
+}
+
+function BellIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#639d6b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  );
+}
+
+function ProfileCircleIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#639d6b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
+
 function ProfileEditSheet({ profile, onClose, onSave }) {
   const fileRef = useRef(null);
   const [nickname, setNickname] = useState(profile.nickname);
@@ -53,15 +79,13 @@ function ProfileEditSheet({ profile, onClose, onSave }) {
     <div className="fixed inset-0 z-50 flex flex-col justify-end">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="relative bg-white rounded-t-3xl px-5 pt-6 pb-10 max-w-[390px] mx-auto w-full">
-        {/* 핸들 */}
         <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
         <h2 className="text-base font-bold text-ink mb-6">프로필 수정</h2>
 
-        {/* 프로필 사진 */}
         <div className="flex flex-col items-center mb-6">
           <button
             onClick={() => fileRef.current?.click()}
-            className="relative w-20 h-20 rounded-full overflow-hidden bg-maul-light flex items-center justify-center group"
+            className="relative w-20 h-20 rounded-full overflow-hidden bg-[#e8f5e9] flex items-center justify-center group"
           >
             {photo ? (
               <img src={photo} alt="프로필" className="w-full h-full object-cover" />
@@ -78,20 +102,16 @@ function ProfileEditSheet({ profile, onClose, onSave }) {
               </svg>
             </div>
           </button>
-          <button
-            onClick={() => fileRef.current?.click()}
-            className="mt-2 text-xs text-maul-dark font-medium"
-          >
+          <button onClick={() => fileRef.current?.click()} className="mt-2 text-xs text-maul font-medium">
             사진 변경
           </button>
           <input ref={fileRef} type="file" accept="image/*" onChange={handlePhoto} className="hidden" />
         </div>
 
-        {/* 닉네임 */}
         <div className="mb-4">
           <label className="text-xs font-semibold text-sub block mb-1.5">닉네임</label>
           <input
-            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-ink outline-none focus:border-maul-dark"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-ink outline-none focus:border-maul"
             value={nickname}
             onChange={e => setNickname(e.target.value)}
             maxLength={20}
@@ -99,7 +119,6 @@ function ProfileEditSheet({ profile, onClose, onSave }) {
           />
         </div>
 
-        {/* 주민 유형 */}
         <div className="mb-6">
           <label className="text-xs font-semibold text-sub block mb-1.5">주민 유형</label>
           <div className="flex gap-2">
@@ -124,7 +143,7 @@ function ProfileEditSheet({ profile, onClose, onSave }) {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full py-3 bg-maul-dark text-white rounded-xl text-sm font-bold disabled:opacity-50"
+          className="w-full py-3 bg-maul text-white rounded-xl text-sm font-bold disabled:opacity-50"
         >
           {saving ? "저장 중…" : "저장"}
         </button>
@@ -137,12 +156,16 @@ export default function MyPage() {
   const navigate = useNavigate();
   const localUser = getUser();
   const [profile, setProfile] = useState(null);
-  const [myPosts, setMyPosts] = useState([]);
-  const [myAnswers, setMyAnswers] = useState([]);
-  const [tab, setTab] = useState("posts");
+  const [events, setEvents] = useState([]);
   const [showEdit, setShowEdit] = useState(false);
   const [photo, setPhoto] = useState(localStorage.getItem(PHOTO_KEY) || null);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState("");
+
+  function showToast(msg) {
+    setToast(msg);
+    setTimeout(() => setToast(""), 2500);
+  }
 
   useEffect(() => {
     if (!localUser) { navigate("/login"); return; }
@@ -151,14 +174,19 @@ export default function MyPage() {
 
   async function fetchAll() {
     try {
-      const [profileRes, postsRes, answersRes] = await Promise.all([
-        api.get("/users/me"),
-        api.get("/users/me/posts"),
-        api.get("/users/me/answers"),
-      ]);
-      setProfile(profileRes.data);
-      setMyPosts(postsRes.data);
-      setMyAnswers(answersRes.data);
+      const { data } = await api.get("/users/me");
+      setProfile(data);
+
+      api.get("/admin/calendar")
+        .then(r => {
+          const now = new Date();
+          const upcoming = (Array.isArray(r.data) ? r.data : [])
+            .filter(e => new Date(e.event_date) >= now)
+            .sort((a, b) => new Date(a.event_date) - new Date(b.event_date))
+            .slice(0, 5);
+          setEvents(upcoming);
+        })
+        .catch(() => {});
     } catch {
       navigate("/login");
     } finally {
@@ -177,115 +205,161 @@ export default function MyPage() {
     navigate("/login");
   }
 
+  function fmtDate(dateStr) {
+    const d = new Date(dateStr);
+    return `${d.getMonth() + 1}/${d.getDate()}`;
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-[#f1f1f1]">
         <p className="text-sub text-sm">불러오는 중...</p>
       </div>
     );
   }
 
+  const activities = [
+    {
+      label: "내가 쓴 글",
+      action: () => navigate("/mypage/activity?type=posts"),
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>
+        </svg>
+      ),
+    },
+    {
+      label: "내 댓글",
+      action: () => navigate("/mypage/activity?type=comments"),
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      ),
+    },
+    {
+      label: "저장한 글",
+      action: () => navigate("/mypage/activity?type=saves"),
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+        </svg>
+      ),
+    },
+    {
+      label: "좋아요 한 글",
+      action: () => navigate("/mypage/activity?type=likes"),
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+      ),
+    },
+  ];
+
   return (
-    <div className="max-w-[390px] mx-auto px-4 pt-6 pb-4">
+    <div className="min-h-screen bg-[#f1f1f1] pb-24">
+      {toast && <Toast msg={toast} />}
+
       {/* 헤더 */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-ink">마이페이지</h1>
-        <button
-          onClick={handleLogout}
-          className="text-sm text-red-500 border border-red-200 rounded-lg px-3 py-1.5"
-        >
-          로그아웃
-        </button>
-      </div>
-
-      {/* 프로필 카드 */}
-      <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-gray-100">
+      <header className="flex items-center justify-between px-5 pt-12 pb-3">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-maul-light flex items-center justify-center overflow-hidden flex-shrink-0">
-            {photo ? (
-              <img src={photo} alt="프로필" className="w-full h-full object-cover" />
-            ) : (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#639d6b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-ink truncate">{profile?.nickname}</span>
-              <button
-                onClick={() => setShowEdit(true)}
-                className="text-xs text-sub underline flex-shrink-0"
-              >
-                수정
-              </button>
-            </div>
-            <span className="text-xs text-sub mt-0.5 block">{profile?.user_type}</span>
-          </div>
+          <button onClick={() => navigate(-1)} className="text-ink text-xl font-light">←</button>
+          <h1 className="text-xl font-bold text-ink">마이페이지</h1>
         </div>
-      </div>
-
-      {/* 탭 */}
-      <div className="flex border-b border-gray-100 mb-4">
-        {[["posts", `게시글 ${myPosts.length}`], ["answers", `한마디 ${myAnswers.length}`]].map(([key, label]) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className={`flex-1 pb-2.5 text-sm font-medium transition-colors ${
-              tab === key ? "text-maul-dark border-b-2 border-maul-dark" : "text-sub"
-            }`}
-          >
-            {label}
+        <div className="flex items-center gap-3">
+          <button aria-label="알림" className="flex flex-col items-center gap-0.5">
+            <BellIcon />
           </button>
-        ))}
-      </div>
+          <button aria-label="프로필" className="flex flex-col items-center gap-0.5">
+            <ProfileCircleIcon />
+          </button>
+        </div>
+      </header>
 
-      {/* 게시글 */}
-      {tab === "posts" && (
-        <div className="space-y-2">
-          {myPosts.length === 0 ? (
-            <p className="text-center text-sub text-sm py-8">아직 쓴 글이 없어요</p>
-          ) : (
-            myPosts.map(p => (
-              <div
-                key={p.id}
-                onClick={() => navigate(`/board/${p.id}`)}
-                className="bg-white rounded-xl p-3.5 border border-gray-100 cursor-pointer hover:border-maul-light"
+      <div className="px-4 flex flex-col gap-4">
+        {/* 프로필 카드 */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowEdit(true)}
+              className="w-20 h-20 rounded-full overflow-hidden bg-[#e8f5e9] flex-shrink-0 flex items-center justify-center"
+            >
+              {photo ? (
+                <img src={photo} alt="프로필" className="w-full h-full object-cover" />
+              ) : (
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#639d6b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              )}
+            </button>
+            <div className="flex-1 min-w-0">
+              <p className="text-xl font-bold text-maul leading-tight">{profile?.nickname}</p>
+              <p className="text-sm text-sub mt-0.5">{profile?.user_type ?? "청산면 주민"}</p>
+              <div className="flex items-center gap-2 mt-2">
+                <button
+                  onClick={() => setShowEdit(true)}
+                  className="text-xs text-sub underline underline-offset-2"
+                >
+                  회원 정보 수정
+                </button>
+                <span className="text-gray-300 text-xs">·</span>
+                <button
+                  onClick={handleLogout}
+                  className="text-xs text-red-400 underline underline-offset-2"
+                >
+                  로그아웃
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 나의 활동 */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <h2 className="text-base font-bold text-ink mb-2">나의 활동</h2>
+          <div className="flex flex-col">
+            {activities.map(({ label, action, icon }) => (
+              <button
+                key={label}
+                onClick={action}
+                className="flex items-center gap-3 py-3 text-sm text-ink border-b border-gray-50 last:border-0 hover:text-maul transition-colors text-left"
               >
-                <p className="text-xs text-maul-dark font-medium mb-1">{p.category}</p>
-                <p className="text-sm text-ink font-medium line-clamp-2">{p.title}</p>
-                <div className="flex gap-3 mt-1.5 text-xs text-sub">
-                  <span>좋아요 {p.like_count}</span>
-                  <span>댓글 {p.comment_count}</span>
-                </div>
-              </div>
-            ))
-          )}
+                <span className="text-sub w-5 flex justify-center flex-shrink-0">{icon}</span>
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
-      )}
 
-      {/* 한마디 */}
-      {tab === "answers" && (
-        <div className="space-y-2">
-          {myAnswers.length === 0 ? (
-            <p className="text-center text-sub text-sm py-8">아직 남긴 한마디가 없어요</p>
+        {/* 저장한 일정 */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <h2 className="text-base font-bold text-ink mb-3">저장한 일정</h2>
+          {events.length === 0 ? (
+            <p className="text-xs text-sub/60 py-1">예정된 일정이 없어요</p>
           ) : (
-            myAnswers.map(a => (
-              <div key={a.id} className="bg-white rounded-xl p-3.5 border border-gray-100">
-                {a.media_url && (
-                  <img src={a.media_url} alt="" className="w-full h-32 object-cover rounded-lg mb-2" />
-                )}
-                {a.content && <p className="text-sm text-ink">{a.content}</p>}
-                <div className="flex justify-between mt-1.5 text-xs text-sub">
-                  <span>좋아요 {a.like_count}</span>
-                  <span>{new Date(a.created_at).toLocaleDateString("ko-KR")}</span>
-                </div>
-              </div>
-            ))
+            <ul className="flex flex-col gap-2.5">
+              {events.map(e => (
+                <li key={e.id} className="flex items-center gap-3">
+                  <span className="bg-maul text-white text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap flex-shrink-0">
+                    {fmtDate(e.event_date)}
+                  </span>
+                  <span className="text-sm text-ink">{e.title}</span>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
-      )}
+
+        {/* 나의 마을 메달 */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <h2 className="text-base font-bold text-ink mb-3">나의 마을 메달</h2>
+          <div className="h-20 flex items-center justify-center">
+            <p className="text-xs text-sub/50">활동하면 메달을 받을 수 있어요</p>
+          </div>
+        </div>
+      </div>
 
       {showEdit && profile && (
         <ProfileEditSheet

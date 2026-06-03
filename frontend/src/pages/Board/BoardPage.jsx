@@ -6,9 +6,10 @@ import LoginPromptSheet from "../../components/LoginPromptSheet";
 
 const CATEGORIES = [
   { value: "", label: "전체" },
-  { value: "구인 공고", label: "구인 공고" },
+  { value: "동네 정보", label: "동네 정보" },
+  { value: "구인·구직", label: "구인·구직" },
+  { value: "나눔·거래", label: "나눔·거래" },
   { value: "질문", label: "질문" },
-  { value: "면 정보", label: "면 정보" },
 ];
 
 

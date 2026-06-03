@@ -40,6 +40,7 @@ class AnswerOut(BaseModel):
     like_count: int
     comment_count: int
     is_liked: bool = False
+    is_mine: bool = False
 
     class Config:
         from_attributes = True
@@ -56,15 +57,17 @@ class CommentReq(BaseModel):
     content: str
 
 
+class AnswerUpdateReq(BaseModel):
+    content: Optional[str] = None
+
+
 # ---------- Helpers ----------
 
 def _build_answer_out(answer: DailyAnswer, current_user: Optional[User]) -> AnswerOut:
     likes = [r for r in answer.reactions if r.type == "like"]
     comments = [r for r in answer.reactions if r.type == "comment"]
-    is_liked = (
-        current_user is not None
-        and any(r.user_id == current_user.id for r in likes)
-    )
+    is_liked = current_user is not None and any(r.user_id == current_user.id for r in likes)
+    is_mine = current_user is not None and answer.user_id == current_user.id
     return AnswerOut(
         id=answer.id,
         question_id=answer.question_index,
@@ -76,6 +79,7 @@ def _build_answer_out(answer: DailyAnswer, current_user: Optional[User]) -> Answ
         like_count=len(likes),
         comment_count=len(comments),
         is_liked=is_liked,
+        is_mine=is_mine,
     )
 
 
@@ -166,6 +170,45 @@ async def create_answer(
         comment_count=0,
         is_liked=False,
     )
+
+
+@router.patch("/answers/{answer_id}", response_model=AnswerOut, summary="답변 수정")
+def update_answer(
+    answer_id: int,
+    req: AnswerUpdateReq,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_user),
+):
+    answer = db.query(DailyAnswer).options(
+        joinedload(DailyAnswer.reactions), joinedload(DailyAnswer.user)
+    ).filter(DailyAnswer.id == answer_id).first()
+    if not answer:
+        raise HTTPException(status_code=404, detail="답변을 찾을 수 없습니다")
+    if answer.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="권한이 없습니다")
+    if req.content is not None:
+        answer.content = req.content
+    db.commit()
+    answer = db.query(DailyAnswer).options(
+        joinedload(DailyAnswer.reactions), joinedload(DailyAnswer.user)
+    ).filter(DailyAnswer.id == answer_id).first()
+    return _build_answer_out(answer, current_user)
+
+
+@router.delete("/answers/{answer_id}", summary="답변 삭제")
+def delete_answer(
+    answer_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_user),
+):
+    answer = db.query(DailyAnswer).filter(DailyAnswer.id == answer_id).first()
+    if not answer:
+        raise HTTPException(status_code=404, detail="답변을 찾을 수 없습니다")
+    if answer.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="권한이 없습니다")
+    db.delete(answer)
+    db.commit()
+    return {"ok": True}
 
 
 @router.post("/answers/{answer_id}/like", summary="좋아요 토글")

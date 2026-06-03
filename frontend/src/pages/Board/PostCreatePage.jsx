@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { logEvent } from "../../api/client";
 import { getUser } from "../../api/auth";
 import LoginPromptSheet from "../../components/LoginPromptSheet";
 
 const CATEGORIES = [
-  { value: "구인 공고", label: "구인 공고" },
+  { value: "동네 정보", label: "동네 정보" },
+  { value: "구인·구직", label: "구인·구직" },
+  { value: "나눔·거래", label: "나눔·거래" },
   { value: "질문", label: "질문" },
-  { value: "면 정보", label: "면 정보" },
 ];
 
 function Toast({ msg }) {
@@ -21,16 +22,64 @@ function Toast({ msg }) {
 export default function PostCreatePage() {
   const navigate = useNavigate();
   const user = getUser();
-  const [form, setForm] = useState({ title: "", content: "", category: "농사·약" });
+  const [form, setForm] = useState({ title: "", content: "", category: "동네 정보" });
   const [previews, setPreviews] = useState([]);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState("");
   const [showLoginPrompt, setShowLoginPrompt] = useState(!user);
+  const [isListening, setIsListening] = useState(false);
+  const [interimText, setInterimText] = useState("");
+  const [recordingTime, setRecordingTime] = useState(0);
+  const recognitionRef = useRef(null);
+  const timerRef = useRef(null);
 
   function showToast(msg) {
     setToast(msg);
     setTimeout(() => setToast(""), 2500);
+  }
+
+  useEffect(() => {
+    if (isListening) {
+      timerRef.current = setInterval(() => setRecordingTime(t => t + 1), 1000);
+    } else {
+      clearInterval(timerRef.current);
+    }
+    return () => clearInterval(timerRef.current);
+  }, [isListening]);
+
+  function startListening() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { showToast("이 브라우저는 음성 인식을 지원하지 않아요"); return; }
+    const recognition = new SR();
+    recognition.lang = "ko-KR";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.onresult = (e) => {
+      let interim = "";
+      let final = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) final += e.results[i][0].transcript;
+        else interim += e.results[i][0].transcript;
+      }
+      if (final) setForm(f => ({ ...f, content: f.content + final }));
+      setInterimText(interim);
+    };
+    recognition.onerror = (e) => {
+      if (e.error === "not-allowed") showToast("마이크 권한이 필요해요");
+      else if (e.error === "network") showToast("네트워크 연결을 확인해주세요");
+    };
+    recognition.onend = () => { setIsListening(false); setInterimText(""); };
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
+    setRecordingTime(0);
+  }
+
+  function stopListening() {
+    recognitionRef.current?.stop();
+    setIsListening(false);
+    setInterimText("");
   }
 
   function handleImageChange(e) {
@@ -165,14 +214,33 @@ export default function PostCreatePage() {
             </div>
           ))}
 
-          <button
-            onClick={() => showToast("음성 녹음 기능은 준비 중입니다")}
-            className="ml-auto flex items-center gap-1.5 text-sub text-sm"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-            <span>음성 추가</span>
-          </button>
+          {isListening ? (
+            <div className="ml-auto flex items-center gap-2">
+              <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse flex-shrink-0" />
+              <span className="text-sm text-red-500 font-medium">
+                {String(Math.floor(recordingTime / 60)).padStart(2, "0")}:{String(recordingTime % 60).padStart(2, "0")} 인식 중…
+              </span>
+              <button
+                onClick={stopListening}
+                className="text-xs font-bold text-red-500 border border-red-400 px-3 py-1 rounded-full"
+              >
+                중지
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={startListening}
+              className="ml-auto flex items-center gap-1.5 text-sub text-sm hover:text-ink transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              <span>음성 입력</span>
+            </button>
+          )}
         </div>
+
+        {isListening && interimText && (
+          <p className="text-xs text-sub italic px-1 -mt-2">{interimText}</p>
+        )}
 
         {/* 하단 CTA */}
         <button

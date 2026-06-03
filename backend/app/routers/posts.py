@@ -44,6 +44,7 @@ class PostOut(BaseModel):
     comment_count: int
     created_at: datetime
     is_liked: bool = False
+    is_mine: bool = False
 
     class Config:
         from_attributes = True
@@ -57,11 +58,13 @@ class PostDetail(PostOut):
 
 def _post_out(post: Post, current_user: Optional[User], db: Session) -> PostOut:
     is_liked = False
+    is_mine = False
     if current_user:
         is_liked = db.query(PostLike).filter(
             PostLike.post_id == post.id,
             PostLike.user_id == current_user.id,
         ).first() is not None
+        is_mine = post.author_id == current_user.id
     return PostOut(
         id=post.id,
         title=post.title,
@@ -75,6 +78,7 @@ def _post_out(post: Post, current_user: Optional[User], db: Session) -> PostOut:
         comment_count=len(post.comments),
         created_at=post.created_at,
         is_liked=is_liked,
+        is_mine=is_mine,
     )
 
 
@@ -179,6 +183,53 @@ def toggle_like(
         liked = True
     db.commit()
     return {"liked": liked, "like_count": post.like_count}
+
+
+class PostUpdateReq(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    category: Optional[str] = None
+
+
+@router.patch("/{post_id}", response_model=PostOut, summary="게시글 수정")
+def update_post(
+    post_id: int,
+    req: PostUpdateReq,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_user),
+):
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다")
+    if post.author_id != current_user.id:
+        raise HTTPException(status_code=403, detail="권한이 없습니다")
+    if req.title is not None:
+        post.title = req.title
+    if req.content is not None:
+        post.content = req.content
+    if req.category is not None:
+        post.category = req.category
+    db.commit()
+    post = db.query(Post).options(
+        joinedload(Post.author), joinedload(Post.comments), joinedload(Post.likes)
+    ).filter(Post.id == post_id).first()
+    return _post_out(post, current_user, db)
+
+
+@router.delete("/{post_id}", summary="게시글 삭제")
+def delete_post(
+    post_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_user),
+):
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다")
+    if post.author_id != current_user.id:
+        raise HTTPException(status_code=403, detail="권한이 없습니다")
+    db.delete(post)
+    db.commit()
+    return {"ok": True}
 
 
 class CommentRequest(BaseModel):
