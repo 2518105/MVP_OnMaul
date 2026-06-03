@@ -111,7 +111,7 @@ export default function AdminPage() {
                 key={t.key}
                 onClick={() => setTab(t.key)}
                 className={`flex-1 py-3 text-sm font-medium transition-colors rounded-2xl ${
-                  tab === t.key ? "bg-white text-ink font-bold shadow-sm" : "text-sub"
+                  tab === t.key ? "bg-maul text-white font-bold shadow-sm" : "text-sub"
                 }`}
               >
                 {t.label}
