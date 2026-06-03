@@ -135,8 +135,12 @@ export default function HanMadiPage() {
       setMediaFile(null);
       setMediaPreview(null);
       showToast("답변이 등록됐어요.");
-    } catch {
-      showToast("등록에 실패했어요. 다시 시도해주세요.");
+    } catch (err) {
+      if (err?.response?.status === 401 || err?.response?.status === 403) {
+        setShowLoginPrompt(true);
+      } else {
+        showToast("등록에 실패했어요. 다시 시도해주세요.");
+      }
     } finally {
       setSubmitting(false);
     }
