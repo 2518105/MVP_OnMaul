@@ -143,7 +143,7 @@ export default function HanMadiPage() {
 
   if (!question) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <p className="text-sub text-sm">불러오는 중…</p>
       </div>
     );
@@ -153,12 +153,12 @@ export default function HanMadiPage() {
   const showMedia = question.type === "media" || question.type === "both";
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-white">
       {toast && <Toast msg={toast} />}
       {showLoginPrompt && <LoginPromptSheet onClose={() => setShowLoginPrompt(false)} />}
 
       {/* 헤더 */}
-      <header className="flex items-center justify-between px-5 pt-14 pb-3 bg-cream sticky top-0 z-10">
+      <header className="flex items-center justify-between px-5 pt-14 pb-3 bg-white sticky top-0 z-10">
         <button onClick={() => navigate(-1)} className="text-ink text-xl font-light">←</button>
         <button
           onClick={handleSubmit}
@@ -173,7 +173,7 @@ export default function HanMadiPage() {
         {/* 오늘의 질문 */}
         <div className="mb-5 fade-in">
           <p className="text-xs text-sub mb-2">{formatDate(new Date())} · 오늘의 질문</p>
-          <h1 className="text-2xl font-bold text-ink leading-snug">{question.text}</h1>
+          <h1 className="text-2xl font-bold text-ink leading-snug" style={{ whiteSpace: "pre-line" }}>{question.text}</h1>
         </div>
 
         {/* 입력 영역 */}

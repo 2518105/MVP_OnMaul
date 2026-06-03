@@ -10,7 +10,7 @@ export default function SplashScreen() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="min-h-screen bg-cream flex flex-col items-center justify-center gap-6">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-6">
       <div className="flex flex-col items-center gap-4 fade-in">
         <div className="w-24 h-24 rounded-full bg-maul flex items-center justify-center text-5xl shadow-lg">
           🏘

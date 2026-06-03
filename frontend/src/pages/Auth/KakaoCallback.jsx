@@ -40,7 +40,7 @@ export default function KakaoCallback() {
 
   if (errorMsg) {
     return (
-      <div className="min-h-screen bg-cream flex flex-col items-center justify-center gap-4 px-6">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4 px-6">
         <p className="text-red-500 text-sm text-center font-medium">{errorMsg}</p>
         <button onClick={() => navigate("/login")} className="btn-maul w-auto px-8">
           다시 로그인하기
@@ -50,7 +50,7 @@ export default function KakaoCallback() {
   }
 
   return (
-    <div className="min-h-screen bg-cream flex flex-col items-center justify-center gap-4">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4">
       <div className="flex gap-1.5">
         <span className="w-2.5 h-2.5 rounded-full bg-maul-dark dot-bounce" />
         <span className="w-2.5 h-2.5 rounded-full bg-maul-dark dot-bounce" />

@@ -51,9 +51,9 @@ export default function BusOnboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-white">
       {/* 헤더 */}
-      <header className="px-5 pt-14 pb-3 flex items-center justify-between sticky top-0 bg-cream z-10">
+      <header className="px-5 pt-14 pb-3 flex items-center justify-between sticky top-0 bg-white z-10">
         <div className="flex items-center gap-3">
           <button onClick={handleSkip} className="text-ink text-xl font-light">←</button>
           <div>
@@ -88,7 +88,7 @@ export default function BusOnboarding() {
           <button
             key={dest.label}
             onClick={() => handleSelect(dest)}
-            className={`w-full flex items-center px-5 py-4 text-left hover:bg-cream transition-colors ${
+            className={`w-full flex items-center px-5 py-4 text-left hover:bg-white transition-colors ${
               i > 0 ? "border-t border-gray-100" : ""
             }`}
           >

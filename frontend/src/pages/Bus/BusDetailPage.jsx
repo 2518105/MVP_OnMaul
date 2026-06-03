@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/client";
 
@@ -16,6 +16,7 @@ export default function BusDetailPage() {
   const [tab, setTab] = useState("route");
   const [dir, setDir] = useState("down");
   const [favs, setFavs] = useState(getFavs);
+  const [highlightedStop, setHighlightedStop] = useState(null);
 
   useEffect(() => {
     api.get(`/bus/routes/${routeId}`)
@@ -26,7 +27,7 @@ export default function BusDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <p className="text-sub text-sm">노선 정보를 불러오는 중...</p>
       </div>
     );
@@ -34,7 +35,7 @@ export default function BusDetailPage() {
 
   if (!route) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <p className="text-sub text-sm">노선 정보를 찾을 수 없어요</p>
       </div>
     );
@@ -51,12 +52,18 @@ export default function BusDetailPage() {
     });
   }
 
+  function handleStopClick(idx) {
+    setHighlightedStop(idx);
+    setTab("schedule");
+  }
+
   const currentDir = (dir === "up" && route.up) ? route.up : route.down;
+  const arrow = route.isBidirectional ? "↔" : "→";
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="px-4 pt-14 pb-3 flex items-center gap-3 sticky top-0 bg-cream z-30">
+      <header className="px-4 pt-14 pb-3 flex items-center gap-3 sticky top-0 bg-white z-30">
         <button
           onClick={() => navigate(-1)}
           className="text-ink text-2xl leading-none pr-1"
@@ -64,11 +71,8 @@ export default function BusDetailPage() {
         >
           ←
         </button>
-        <div className="w-10 h-10 rounded-full bg-maul flex items-center justify-center flex-shrink-0">
-          <span className="text-sm font-extrabold text-ink leading-none">{route.id}</span>
-        </div>
         <div className="flex-1 flex items-center gap-2 min-w-0">
-          <span className="text-base font-bold text-ink">{route.id}번</span>
+          <span className="font-extrabold text-maul leading-none" style={{ fontSize: "27px" }}>{route.id}</span>
           <BadgePill badge={route.badge} />
         </div>
         <button
@@ -83,9 +87,8 @@ export default function BusDetailPage() {
       {/* Route meta */}
       <div className="px-5 pb-3">
         <p className="text-xs text-sub">
-          {route.origin} → {route.destination}
+          {route.tripsPerDay} 운행 | {route.origin} {arrow} {route.destination}
         </p>
-        <p className="text-xs text-sub mt-0.5">{route.tripsPerDay}</p>
       </div>
 
       {/* Main tabs */}
@@ -96,7 +99,7 @@ export default function BusDetailPage() {
             onClick={() => setTab(v)}
             className={`flex-1 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
               tab === v
-                ? "border-maul-dark text-ink font-bold"
+                ? "border-maul text-maul font-bold"
                 : "border-transparent text-sub"
             }`}
           >
@@ -116,7 +119,7 @@ export default function BusDetailPage() {
                 : "border-gray-300 text-sub bg-white"
             }`}
           >
-            ↓ {route.down.label}
+            {route.down.label}
           </button>
           <button
             onClick={() => setDir("up")}
@@ -126,7 +129,7 @@ export default function BusDetailPage() {
                 : "border-gray-300 text-sub bg-white"
             }`}
           >
-            ↑ {route.up.label}
+            {route.up?.label}
           </button>
         </div>
       )}
@@ -134,9 +137,9 @@ export default function BusDetailPage() {
       {/* Content */}
       <div className="pb-24 mt-4">
         {tab === "route" ? (
-          <RouteMap stops={currentDir.stops} />
+          <RouteMap stops={currentDir.stops} onStopClick={handleStopClick} />
         ) : (
-          <ScheduleTable stops={currentDir.stops} />
+          <ScheduleTable stops={currentDir.stops} highlightedStop={highlightedStop} />
         )}
       </div>
     </div>
@@ -159,26 +162,27 @@ function getDuplicateNames(stops) {
   return new Set(Object.keys(count).filter(n => count[n] > 1));
 }
 
-function RouteMap({ stops }) {
+function RouteMap({ stops, onStopClick }) {
   const dupNames = getDuplicateNames(stops);
   return (
     <div className="px-5 space-y-0">
       {stops.map((stop, i) => {
         const isFirst = i === 0;
         const isLast = i === stops.length - 1;
-        const isTerminal = isFirst || isLast;
         const isDup = dupNames.has(stop.name);
         return (
-          <div key={i} className="flex gap-3">
+          <div
+            key={i}
+            className="flex gap-3 cursor-pointer active:opacity-70"
+            onClick={() => onStopClick(i)}
+          >
             {/* Timeline column */}
             <div className="flex flex-col items-center w-7 flex-shrink-0">
               <div className={`w-0.5 ${isFirst ? "h-3 opacity-0" : "h-3 bg-maul-dark"}`} />
               <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold border-2 ${
                 isDup
                   ? "bg-red-100 border-red-400 text-red-600"
-                  : isTerminal
-                    ? "bg-maul border-maul-dark text-ink"
-                    : "bg-white border-maul text-ink"
+                  : "bg-white border-maul text-ink"
               }`}>
                 {i + 1}
               </div>
@@ -186,7 +190,7 @@ function RouteMap({ stops }) {
             </div>
             {/* Stop info */}
             <div className={`pb-2 pt-1 flex-1 min-w-0 ${isLast ? "" : "border-b border-gray-100"}`}>
-              <p className={`text-sm leading-snug ${isDup ? "font-bold text-red-500" : isTerminal ? "font-bold text-ink" : "text-ink"}`}>
+              <p className={`text-sm leading-snug ${isDup ? "font-bold text-red-500" : "text-ink"}`}>
                 {stop.name}
               </p>
               {isDup && (
@@ -205,9 +209,16 @@ function RouteMap({ stops }) {
   );
 }
 
-function ScheduleTable({ stops }) {
+function ScheduleTable({ stops, highlightedStop }) {
   const tripCount = stops[0]?.times?.length ?? 0;
   const dupNames = getDuplicateNames(stops);
+  const highlightRef = useRef(null);
+
+  useEffect(() => {
+    if (highlightedStop !== null && highlightRef.current) {
+      highlightRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [highlightedStop]);
 
   if (tripCount === 0) {
     return (
@@ -232,13 +243,21 @@ function ScheduleTable({ stops }) {
         </thead>
         <tbody>
           {stops.map((stop, i) => {
-            const isTerminal = i === 0 || i === stops.length - 1;
+            const isHighlighted = i === highlightedStop;
             const isDup = dupNames.has(stop.name);
-            const rowBg = i % 2 === 0 ? "bg-white" : "bg-gray-50";
+            const rowBg = isHighlighted
+              ? "bg-maul/20"
+              : isDup
+                ? "bg-red-50"
+                : i % 2 === 0 ? "bg-white" : "bg-gray-50";
             return (
-              <tr key={i} className={isDup ? "bg-red-50" : ""}>
-                <td className={`sticky left-0 z-10 px-3 py-2 text-left border-r border-gray-100 text-xs ${isDup ? "bg-red-50" : rowBg} ${
-                  isDup ? "font-bold text-red-500" : isTerminal ? "font-bold text-ink" : "text-ink"
+              <tr
+                key={i}
+                ref={isHighlighted ? highlightRef : null}
+                className={rowBg}
+              >
+                <td className={`sticky left-0 z-10 px-3 py-2 text-left border-r border-gray-100 text-xs ${rowBg} ${
+                  isDup ? "font-bold text-red-500" : isHighlighted ? "font-bold text-maul" : "text-ink"
                 }`}>
                   <span>{stop.name}</span>
                   {isDup && (
@@ -251,7 +270,9 @@ function ScheduleTable({ stops }) {
                   )}
                 </td>
                 {stop.times.map((t, j) => (
-                  <td key={j} className={`text-center text-xs px-4 py-2 ${isDup ? "bg-red-50 text-red-500 font-bold" : `${rowBg} ${isTerminal ? "font-bold text-ink" : "text-ink"}`}`}>
+                  <td key={j} className={`text-center text-xs px-4 py-2 ${
+                    isDup ? "text-red-500 font-bold" : isHighlighted ? "font-bold text-maul" : "text-ink"
+                  }`}>
                     {t}
                   </td>
                 ))}

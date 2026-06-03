@@ -99,7 +99,7 @@ export default function HomePage() {
           <span className="text-ink"> 님</span>
         </p>
         {questionText ? (
-          <p className="font-bold text-ink mt-2 leading-snug" style={{ fontSize: "28px" }}>{questionText}</p>
+          <p className="font-bold text-ink mt-2 leading-snug" style={{ fontSize: "28px", whiteSpace: "pre-line" }}>{questionText}</p>
         ) : (
           <p className="font-bold text-ink/30 mt-2" style={{ fontSize: "28px" }}>오늘의 질문을 불러오는 중…</p>
         )}
@@ -112,10 +112,7 @@ export default function HomePage() {
           className="w-full rounded-2xl px-5 py-4 text-left transition-opacity active:opacity-80"
           style={{ backgroundColor: "#639d6b" }}
         >
-          <p className="text-white font-semibold text-sm leading-relaxed">
-            이웃들에게 오늘의 이야기를<br />전해 주세요!
-          </p>
-          <span className="text-white/70 text-xs mt-1.5 inline-block">한 마디 남기기 →</span>
+          <span className="text-white/70 text-xs inline-block">한 마디 남기기 →</span>
         </button>
       </div>
 
@@ -124,7 +121,7 @@ export default function HomePage() {
         <div className="bg-white rounded-2xl shadow-sm p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-bold text-ink">이웃 답변</span>
-            <button onClick={() => navigate("/hanmadi")} className="text-xs text-maul">
+            <button onClick={() => navigate("/hanmadi/list")} className="text-xs text-maul">
               전체 보기 →
             </button>
           </div>

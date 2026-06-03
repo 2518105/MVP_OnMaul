@@ -63,7 +63,7 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-cream flex flex-col px-6 pt-14 pb-10">
+    <div className="min-h-screen bg-white flex flex-col px-6 pt-14 pb-10">
       {/* 헤더 */}
       <div className="mb-8 fade-in">
         <h2 className="text-2xl font-bold text-ink">온마을에 오신 것을<br />환영합니다</h2>

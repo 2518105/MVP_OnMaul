@@ -6,7 +6,7 @@ const SOURCE_FILTERS = ["전체", "면사무소", "이장", "자치회"];
 
 const SOURCE_STYLE = {
   자치회:   { bg: "bg-[#FFE8E8]", badge: "bg-[#FFE8E8] text-[#C0392B]" },
-  면사무소: { bg: "bg-cream", badge: "bg-maul text-white" },
+  면사무소: { bg: "bg-white", badge: "bg-maul text-white" },
   이장:     { bg: "bg-[#E8F4E8]", badge: "bg-[#E8F4E8] text-[#2E7D32]" },
 };
 
@@ -48,9 +48,9 @@ export default function NoticePage() {
   const title = viewType === "minutes" ? "회의록" : "공지사항";
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-white">
       {/* 헤더 */}
-      <header className="px-5 pt-14 pb-3 flex items-center justify-between sticky top-0 bg-cream z-10">
+      <header className="px-5 pt-14 pb-3 flex items-center justify-between sticky top-0 bg-white z-10">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="text-ink text-xl font-light">←</button>
           <h1 className="text-base font-bold text-ink">{title}</h1>

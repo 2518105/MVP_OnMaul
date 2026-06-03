@@ -54,7 +54,7 @@ export default function AdminDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cream">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <p className="text-sub text-sm">불러오는 중...</p>
       </div>
     );
@@ -62,7 +62,7 @@ export default function AdminDetailPage() {
 
   if (!detail) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-cream gap-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
         <p className="text-sub text-sm">내용을 찾을 수 없어요</p>
         <button onClick={() => navigate(-1)} className="btn-maul w-auto px-8">돌아가기</button>
       </div>
@@ -81,10 +81,10 @@ export default function AdminDetailPage() {
   const source = detail.category ?? detail.event_type ?? detail.author_nickname ?? "";
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-white">
       {toast && <Toast msg={toast} />}
 
-      <header className="px-5 pt-14 pb-3 flex items-center justify-between sticky top-0 bg-cream z-10">
+      <header className="px-5 pt-14 pb-3 flex items-center justify-between sticky top-0 bg-white z-10">
         <button onClick={() => navigate(-1)} className="text-ink text-xl font-light">←</button>
         <button onClick={() => showToast("공유 기능은 준비 중입니다")} className="text-sm text-sub">
           ↗ 공유

@@ -78,7 +78,7 @@ export default function PostDetailPage() {
   }
 
   if (!apiPost) return (
-    <div className="min-h-screen flex items-center justify-center bg-cream">
+    <div className="min-h-screen flex items-center justify-center bg-white">
       <p className="text-sub text-sm">게시글을 불러오는 중...</p>
     </div>
   );
@@ -93,11 +93,11 @@ export default function PostDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-white">
       {toast && <Toast msg={toast} />}
 
       {/* 헤더 */}
-      <header className="flex items-center justify-between px-5 pt-14 pb-3 bg-cream sticky top-0 z-10">
+      <header className="flex items-center justify-between px-5 pt-14 pb-3 bg-white sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="text-ink text-xl font-light">←</button>
           <span className="text-xs bg-white border border-gray-200 text-sub px-2.5 py-1 rounded-full">
@@ -158,7 +158,7 @@ export default function PostDetailPage() {
           {comments.map(c => (
             <div key={c.id} className="bg-white rounded-2xl p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-1.5">
-                <div className="w-7 h-7 rounded-full bg-cream flex items-center justify-center text-xs font-bold text-sub">
+                <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-xs font-bold text-sub">
                   {c.author[0]}
                 </div>
                 <span className="text-sm font-semibold text-ink">{c.author}</span>

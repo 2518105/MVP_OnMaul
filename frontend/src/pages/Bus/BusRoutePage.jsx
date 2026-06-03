@@ -117,9 +117,9 @@ export default function BusRoutePage() {
   const [tab, setTab] = useState("diagram");
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-white">
       {/* 헤더 */}
-      <header className="px-5 pt-14 pb-3 flex items-center gap-3 sticky top-0 bg-cream z-10">
+      <header className="px-5 pt-14 pb-3 flex items-center gap-3 sticky top-0 bg-white z-10">
         <button onClick={() => navigate(-1)} className="text-ink text-xl font-light">←</button>
         <h1 className="text-base font-bold text-ink">노선도 / 지도</h1>
       </header>

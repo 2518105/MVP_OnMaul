@@ -20,7 +20,7 @@ export default function LoginPage() {
   const next = params.get("next") || "";
 
   return (
-    <div className="min-h-screen bg-cream flex flex-col px-6 pt-16 pb-10">
+    <div className="min-h-screen bg-white flex flex-col px-6 pt-16 pb-10">
       <div className="mb-10 fade-in">
         <h1 className="text-3xl font-bold text-ink leading-snug">
           환영해요<br />청산면 이웃 님

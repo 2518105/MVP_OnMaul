@@ -41,10 +41,10 @@ export default function HanMadiListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-white">
       {showLoginPrompt && <LoginPromptSheet onClose={() => setShowLoginPrompt(false)} />}
 
-      <header className="px-5 pt-14 pb-3 bg-cream sticky top-0 z-10 flex items-center gap-3">
+      <header className="px-5 pt-14 pb-3 bg-white sticky top-0 z-10 flex items-center gap-3">
         <button onClick={() => navigate(-1)} className="text-ink text-xl font-light">←</button>
         <h1 className="text-base font-bold text-ink">이웃 답변 모음</h1>
       </header>

@@ -46,7 +46,7 @@ export default function RegisterPage() {
                 onClick={() => setForm(f => ({ ...f, userType: value }))}
                 className={`p-3 rounded-lg border-2 text-left transition-colors ${
                   form.userType === value
-                    ? "border-maul bg-cream"
+                    ? "border-maul bg-white"
                     : "border-gray-200 bg-white"
                 }`}
               >

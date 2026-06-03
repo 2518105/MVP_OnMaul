@@ -65,12 +65,12 @@ export default function PostCreatePage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-white">
       {showLoginPrompt && <LoginPromptSheet onClose={() => navigate(-1)} />}
       {toast && <Toast msg={toast} />}
 
       {/* 헤더 */}
-      <header className="flex items-center justify-between px-5 pt-14 pb-3 bg-cream sticky top-0 z-10">
+      <header className="flex items-center justify-between px-5 pt-14 pb-3 bg-white sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="text-ink text-xl font-light">←</button>
           <h1 className="text-base font-bold text-ink">새 글 쓰기</h1>

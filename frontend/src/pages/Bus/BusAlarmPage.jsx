@@ -60,11 +60,11 @@ export default function BusAlarmPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-white">
       {toast && <Toast msg={toast} />}
 
       {/* 헤더 */}
-      <header className="px-5 pt-14 pb-3 flex items-center gap-3 sticky top-0 bg-cream z-10">
+      <header className="px-5 pt-14 pb-3 flex items-center gap-3 sticky top-0 bg-white z-10">
         <button onClick={() => navigate(-1)} className="text-ink text-xl font-light">←</button>
         <h1 className="text-base font-bold text-ink">출발 알림 설정</h1>
       </header>
@@ -100,11 +100,11 @@ export default function BusAlarmPage() {
             <span className="text-xs text-sub">첫차 ~ 막차</span>
           </div>
           <div className="mt-3 flex items-center gap-3">
-            <span className="text-sm font-medium text-ink bg-cream rounded-xl px-3 py-2">07:00</span>
+            <span className="text-sm font-medium text-ink bg-white rounded-xl px-3 py-2">07:00</span>
             <div className="flex-1 h-1.5 bg-gray-200 rounded-full relative">
               <div className="absolute left-0 right-0 h-1.5 bg-maul rounded-full" />
             </div>
-            <span className="text-sm font-medium text-ink bg-cream rounded-xl px-3 py-2">19:00</span>
+            <span className="text-sm font-medium text-ink bg-white rounded-xl px-3 py-2">19:00</span>
           </div>
         </div>
 

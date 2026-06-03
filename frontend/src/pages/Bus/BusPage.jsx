@@ -56,7 +56,7 @@ export default function BusPage() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sub mr-2 flex-shrink-0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input
               className="flex-1 text-sm text-ink bg-transparent outline-none placeholder-sub"
-              placeholder="노선번호, 지역명으로 검색"
+              placeholder="버스 번호, 정류장 이름으로 검색"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
@@ -72,7 +72,7 @@ export default function BusPage() {
               key={v}
               onClick={() => setTab(v)}
               className={`pb-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                tab === v ? "border-maul-dark text-ink font-bold" : "border-transparent text-sub"
+                tab === v ? "border-maul text-maul font-bold" : "border-transparent text-sub"
               }`}
             >
               {l}
@@ -120,23 +120,20 @@ function BadgePill({ badge }) {
 }
 
 function RouteCard({ route, isFav, onFav, onClick }) {
+  const arrow = route.isBidirectional ? "↔" : "→";
   return (
     <div
       className="bg-white rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-sm cursor-pointer active:scale-[0.98] transition-transform"
       onClick={onClick}
     >
-      <div className="w-14 h-14 rounded-full bg-maul flex items-center justify-center flex-shrink-0">
-        <span className="text-lg font-extrabold text-ink leading-none">{route.id}</span>
-      </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 mb-0.5">
-          <span className="text-base font-bold text-ink">{route.id}번</span>
+          <span className="text-3xl font-extrabold text-maul leading-none">{route.id}</span>
           <BadgePill badge={route.badge} />
         </div>
-        <p className="text-xs text-sub truncate">
-          {route.origin} → {route.destination}
+        <p className="text-xs text-sub truncate mt-1">
+          {route.tripsPerDay} 운행 | {route.origin} {arrow} {route.destination}
         </p>
-        <p className="text-xs text-sub mt-0.5">{route.tripsPerDay}</p>
       </div>
       <button
         onClick={e => onFav(route.id, e)}
