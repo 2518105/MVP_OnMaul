@@ -113,14 +113,16 @@ export default function HanMadiPage() {
     setInterimText("");
   }
 
-  const canSubmit = !submitting && (
+  const hasContent = (
     (question?.type !== "media" && text.trim()) ||
     (question?.type !== "text" && mediaFile)
   );
+  const canSubmit = !submitting && (!user || hasContent);
 
   async function handleSubmit() {
     if (!user) { setShowLoginPrompt(true); return; }
-    if (!canSubmit) return;
+    if (!hasContent) { showToast("내용을 입력해주세요"); return; }
+    if (submitting) return;
     setSubmitting(true);
     try {
       const fd = new FormData();
