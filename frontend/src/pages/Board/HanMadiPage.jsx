@@ -44,11 +44,11 @@ export default function HanMadiPage() {
       .then(r => {
         setQuestion({ question_id: r.data.question_id, text: r.data.question_text, type: r.data.answer_type });
         const apiAnswers = r.data.answers || [];
-        setAnswers(apiAnswers.length > 0 ? apiAnswers : DUMMY_ANSWERS);
+        setAnswers(apiAnswers);
       })
       .catch(() => {
         setQuestion({ question_id: q.index, text: q.text, type: q.type });
-        setAnswers(DUMMY_ANSWERS);
+        setAnswers([]);
       });
   }, []);
 

@@ -60,6 +60,12 @@ def on_startup():
             "ALTER TABLE notices ADD COLUMN view_count INTEGER DEFAULT 0",
             "ALTER TABLE notices ADD COLUMN source_url VARCHAR(500)",
             "ALTER TABLE notices ADD COLUMN is_external BOOLEAN DEFAULT FALSE",
+            "ALTER TABLE bus_routes ADD COLUMN badge VARCHAR(20)",
+            "ALTER TABLE bus_routes ADD COLUMN origin VARCHAR(100)",
+            "ALTER TABLE bus_routes ADD COLUMN destination VARCHAR(100)",
+            "ALTER TABLE bus_routes ADD COLUMN is_bidirectional BOOLEAN DEFAULT TRUE",
+            "ALTER TABLE bus_routes ADD COLUMN trips_per_day INTEGER",
+            "ALTER TABLE bus_route_stops ADD COLUMN stop_code VARCHAR(20)",
         ]:
             try:
                 conn.execute(text(stmt))
