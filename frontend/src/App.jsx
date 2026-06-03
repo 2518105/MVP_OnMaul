@@ -28,31 +28,75 @@ function ScrollToTop() {
   return null;
 }
 
+function HomeIcon({ active }) {
+  const c = active ? "#4a7e52" : "#a0b8a4";
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+      <path d="M9 21V12h6v9"/>
+    </svg>
+  );
+}
+
+function BoardIcon({ active }) {
+  const c = active ? "#4a7e52" : "#a0b8a4";
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="3" width="16" height="18" rx="2"/>
+      <line x1="8" y1="8" x2="16" y2="8"/>
+      <line x1="8" y1="12" x2="16" y2="12"/>
+      <line x1="8" y1="16" x2="12" y2="16"/>
+    </svg>
+  );
+}
+
+function BusIcon({ active }) {
+  const c = active ? "#4a7e52" : "#a0b8a4";
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="5" width="18" height="13" rx="2"/>
+      <path d="M3 10h18"/>
+      <path d="M8 5V3M16 5V3"/>
+      <circle cx="7.5" cy="17.5" r="1.5"/>
+      <circle cx="16.5" cy="17.5" r="1.5"/>
+    </svg>
+  );
+}
+
+function CalendarIcon({ active }) {
+  const c = active ? "#4a7e52" : "#a0b8a4";
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2"/>
+      <line x1="3" y1="9" x2="21" y2="9"/>
+      <line x1="8" y1="2" x2="8" y2="6"/>
+      <line x1="16" y1="2" x2="16" y2="6"/>
+      <rect x="7" y="13" width="3" height="3" rx="0.5"/>
+    </svg>
+  );
+}
+
 function BottomNav() {
   const { pathname } = useLocation();
   const tabs = [
-    { to: "/home",   icon: "⌂", label: "홈" },
-    { to: "/board",  icon: "☷", label: "게시판" },
-    { to: "/bus",    icon: "◷", label: "버스" },
-    { to: "/admin",  icon: "▤", label: "행정" },
+    { to: "/home",  label: "홈",    Icon: HomeIcon },
+    { to: "/board", label: "게시판", Icon: BoardIcon },
+    { to: "/bus",   label: "버스",  Icon: BusIcon },
+    { to: "/admin", label: "행정",  Icon: CalendarIcon },
   ];
 
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] bg-white border-t border-gray-100 flex z-50 shadow-lg">
-      {tabs.map(({ to, icon, label }) => {
+      {tabs.map(({ to, label, Icon }) => {
         const active = pathname === to || (to !== "/home" && pathname.startsWith(to));
         return (
           <NavLink
             key={to}
             to={to}
-            className={`flex-1 flex flex-col items-center py-2.5 text-xs transition-colors ${
-              active ? "text-ink font-bold" : "text-sub"
-            }`}
+            aria-label={label}
+            className="flex-1 flex items-center justify-center py-3.5 transition-opacity"
           >
-            <span className={`text-xl leading-none ${active ? "text-maul-dark" : ""}`}>
-              {icon}
-            </span>
-            <span className="mt-0.5">{label}</span>
+            <Icon active={active} />
           </NavLink>
         );
       })}
