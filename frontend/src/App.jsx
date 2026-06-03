@@ -35,7 +35,6 @@ function BottomNav() {
     { to: "/board",  icon: "☷", label: "게시판" },
     { to: "/bus",    icon: "◷", label: "버스" },
     { to: "/admin",  icon: "▤", label: "행정" },
-    { to: "/mypage", icon: "👤", label: "내정보" },
   ];
 
   return (
