@@ -1,31 +1,48 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/client";
 import { getUser } from "../../api/auth";
-import { getTodayQuestion } from "../../constants/questions";
 import LoginPromptSheet from "../../components/LoginPromptSheet";
+
+function BellIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+      stroke="#639d6b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  );
+}
+
+function ProfileIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+      stroke="#639d6b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
 
 export default function HomePage() {
   const navigate = useNavigate();
   const currentUser = getUser();
-  const [todayQuestion] = useState(() => getTodayQuestion());
-  const [apiQuestionId, setApiQuestionId] = useState(null);
+
   const [showLoginSheet, setShowLoginSheet] = useState(false);
-  const [recentAnswers, setRecentAnswers] = useState([]);
-  const [answerText, setAnswerText] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [toast, setToast] = useState("");
-  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [questionText, setQuestionText] = useState("");
+  const [questionId, setQuestionId] = useState(null);
+  const [answers, setAnswers] = useState([]);
   const [recentPosts, setRecentPosts] = useState([]);
   const [popularPosts, setPopularPosts] = useState([]);
+  const [events, setEvents] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
-  const textareaRef = useRef(null);
 
   useEffect(() => {
     api.get("/hanmadi/today")
       .then(r => {
-        if (r.data.answers?.length > 0) setRecentAnswers(r.data.answers);
-        setApiQuestionId(r.data.question_id);
+        setQuestionText(r.data.question_text ?? "");
+        setQuestionId(r.data.question_id);
+        setAnswers(Array.isArray(r.data.answers) ? r.data.answers : []);
       })
       .catch(() => {});
 
@@ -36,148 +53,128 @@ export default function HomePage() {
           .filter(e => new Date(e.event_date) >= now)
           .sort((a, b) => new Date(a.event_date) - new Date(b.event_date))
           .slice(0, 3);
-        setUpcomingEvents(upcoming);
+        setEvents(upcoming);
       })
       .catch(() => {});
 
     Promise.all([
-      api.get("/posts", { params: { limit: 3 } }).catch(() => ({ data: [] })),
-      api.get("/posts", { params: { limit: 3, sort: "popular" } }).catch(() => ({ data: [] })),
+      api.get("/posts", { params: { limit: 2 } }).catch(() => ({ data: [] })),
+      api.get("/posts", { params: { limit: 2, sort: "popular" } }).catch(() => ({ data: [] })),
     ]).then(([recentRes, popularRes]) => {
-      setRecentPosts(Array.isArray(recentRes.data) ? recentRes.data.slice(0, 3) : []);
-      setPopularPosts(Array.isArray(popularRes.data) ? popularRes.data.slice(0, 3) : []);
+      setRecentPosts(Array.isArray(recentRes.data) ? recentRes.data.slice(0, 2) : []);
+      setPopularPosts(Array.isArray(popularRes.data) ? popularRes.data.slice(0, 2) : []);
     }).finally(() => setLoadingPosts(false));
   }, []);
 
-  function showToast(msg) {
-    setToast(msg);
-    setTimeout(() => setToast(""), 2500);
+  function handleBannerTap() {
+    if (!getUser()) { setShowLoginSheet(true); return; }
+    navigate("/hanmadi");
   }
 
-  async function handleSubmit(e) {
-    e.stopPropagation();
-    const user = getUser();
-    if (!user) { setShowLoginSheet(true); return; }
-    if (!answerText.trim() || submitting) return;
-    setSubmitting(true);
-    try {
-      const fd = new FormData();
-      fd.append("question_id", apiQuestionId ?? todayQuestion.index);
-      fd.append("content", answerText.trim());
-      const r = await api.post("/hanmadi/answers", fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      setRecentAnswers(prev => [r.data, ...prev].slice(0, 3));
-      setAnswerText("");
-      showToast("답변이 등록됐어요 🌿");
-    } catch {
-      showToast("등록에 실패했어요. 다시 시도해주세요.");
-    } finally {
-      setSubmitting(false);
-    }
+  function fmtDate(dateStr) {
+    const d = new Date(dateStr);
+    return `${d.getMonth() + 1}/${d.getDate()}`;
   }
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-screen bg-[#f1f1f1] pb-24">
       {showLoginSheet && <LoginPromptSheet onClose={() => setShowLoginSheet(false)} />}
-      {toast && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-ink text-white text-sm px-4 py-2.5 rounded-full shadow-lg z-50 fade-in">
-          {toast}
-        </div>
-      )}
 
-      {/* 초록 헤더 */}
-      <div className="bg-maul px-5 pt-14 pb-10 fade-in">
-        <p className="text-white/75 text-sm">안녕하세요,</p>
-        <h1 className="text-2xl font-bold text-white mt-0.5">
-          {currentUser?.nickname ?? "이웃"} 님 🌿
-        </h1>
-        <p className="text-white/65 text-xs mt-1">
-          청산면 {currentUser?.userType ?? "주민"}
-        </p>
+      {/* (1) 상단 바 */}
+      <div className="flex items-center justify-end px-5 pt-12 pb-2 gap-4">
+        <button aria-label="알림">
+          <BellIcon />
+        </button>
+        <button aria-label="내 정보" onClick={() => navigate("/mypage")}>
+          <ProfileIcon />
+        </button>
       </div>
 
-      {/* 카드 섹션 — 헤더에 -mt-5로 겹쳐 올라옴 */}
-      <div className="px-4 -mt-5 flex flex-col gap-3">
+      {/* (2) 헤더 — 닉네임 초록, 질문 굵게 */}
+      <div className="px-5 pt-1 pb-5 fade-in">
+        <p className="text-2xl font-bold leading-snug">
+          <span style={{ color: "#629c6b" }}>{currentUser?.nickname ?? "이웃"}</span>
+          <span className="text-ink"> 님</span>
+        </p>
+        {questionText ? (
+          <p className="text-xl font-bold text-ink mt-2 leading-snug">{questionText}</p>
+        ) : (
+          <p className="text-xl font-bold text-ink/30 mt-2">오늘의 질문을 불러오는 중…</p>
+        )}
+      </div>
 
-        {/* 오늘의 한마디 배너 */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden fade-in-1">
-          <div className="bg-maul px-4 py-2.5 flex items-center justify-between">
-            <span className="text-white text-xs font-semibold tracking-wide">오늘의 한마디</span>
-            <button
-              onClick={() => navigate("/hanmadi")}
-              className="text-white/80 text-xs underline underline-offset-2"
-            >
-              전체 보기
+      {/* (3) 초록 CTA 배너 */}
+      <div className="px-5 pb-4 fade-in-1">
+        <button
+          onClick={handleBannerTap}
+          className="w-full rounded-2xl px-5 py-4 text-left transition-opacity active:opacity-80"
+          style={{ backgroundColor: "#639d6b" }}
+        >
+          <p className="text-white font-semibold text-sm leading-relaxed">
+            이웃들에게 오늘의 이야기를<br />전해 주세요!
+          </p>
+          <span className="text-white/70 text-xs mt-1.5 inline-block">답변 남기기 →</span>
+        </button>
+      </div>
+
+      {/* (4) 이웃 답변 카드 */}
+      <div className="px-5 pb-4 fade-in-2">
+        <div className="bg-white rounded-2xl shadow-sm p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-bold text-ink">이웃 답변</span>
+            <button onClick={() => navigate("/hanmadi")} className="text-xs text-maul">
+              전체 보기 →
             </button>
           </div>
-          <div className="p-4">
-            <p className="text-base font-bold text-ink leading-snug mb-3">
-              {todayQuestion.text}
-            </p>
-
-            <div className="border border-gray-200 rounded-xl px-3 py-2.5 mb-3 bg-gray-50 focus-within:border-maul focus-within:bg-white transition-colors">
-              <textarea
-                ref={textareaRef}
-                className="w-full bg-transparent resize-none text-sm text-ink placeholder-sub/60 outline-none leading-relaxed"
-                rows={answerText ? 3 : 1}
-                maxLength={200}
-                value={answerText}
-                onChange={e => setAnswerText(e.target.value)}
-                placeholder="답변을 남겨주세요…"
-                onClick={e => e.stopPropagation()}
-              />
-              {answerText.trim() && (
-                <div className="flex items-center justify-between mt-1.5">
-                  <span className="text-xs text-sub">{answerText.length} / 200</span>
-                  <button
-                    onClick={handleSubmit}
-                    disabled={submitting}
-                    className="bg-maul text-white text-xs font-bold px-3 py-1 rounded-full disabled:opacity-50 transition-opacity"
-                  >
-                    {submitting ? "등록 중…" : "등록"}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {recentAnswers.length > 0 ? (
-              <div className="flex flex-col gap-1.5 border-t border-gray-100 pt-2.5">
-                {recentAnswers.slice(0, 2).map(a => (
-                  <div key={a.id} className="flex items-start gap-2">
-                    <div className="w-5 h-5 rounded-full bg-maul flex items-center justify-center text-xs font-bold text-white flex-shrink-0 mt-0.5">
-                      {a.author_nickname?.[0] ?? "?"}
-                    </div>
-                    <p className="text-xs text-sub truncate flex-1">
-                      {a.content || "📷 사진을 올렸어요"}
-                    </p>
+          {answers.length === 0 ? (
+            <p className="text-xs text-sub/60 text-center py-2">첫 번째 답변을 남겨보세요</p>
+          ) : (
+            <ul className="flex flex-col gap-3">
+              {answers.slice(0, 3).map(a => (
+                <li key={a.id} className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-maul flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                    {a.author_nickname?.[0] ?? "?"}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-sub/60 border-t border-gray-100 pt-2.5">
-                첫 번째 답변을 남겨보세요
-              </p>
-            )}
-          </div>
+                  <p className="text-sm text-ink flex-1 truncate">
+                    {a.content || "📷 사진을 올렸어요"}
+                  </p>
+                  {a.like_count > 0 && (
+                    <span className="bg-maul text-white text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
+                      {a.like_count}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
+      </div>
+
+      {/* 구분선 */}
+      <div className="mx-5 border-t border-gray-200 mb-4" />
+
+      {/* (5) 정보 카드 3개 */}
+      <div className="px-5 flex flex-col gap-4 fade-in-3">
 
         {/* 최근 게시글 */}
-        <div className="widget-card fade-in-2" onClick={() => navigate("/board")}>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-bold text-ink">최근 게시글</span>
-            <span className="text-xs text-maul font-medium">전체 보기 →</span>
-          </div>
+        <div className="bg-[#f8f8f8] rounded-2xl shadow-sm p-4">
+          <p className="text-base font-bold text-ink mb-3">최근 게시글</p>
           {loadingPosts ? (
             <p className="text-xs text-sub/60">불러오는 중…</p>
           ) : recentPosts.length === 0 ? (
             <p className="text-xs text-sub/60">아직 게시글이 없어요</p>
           ) : (
-            <ul className="flex flex-col divide-y divide-gray-50">
+            <ul className="flex flex-col gap-2.5">
               {recentPosts.map(p => (
-                <li key={p.id} className="flex items-center justify-between text-sm py-2 first:pt-0 last:pb-0">
-                  <span className="text-ink truncate flex-1">{p.title}</span>
-                  <span className="text-sub ml-2 text-xs whitespace-nowrap">💬 {p.comment_count}</span>
+                <li
+                  key={p.id}
+                  className="flex items-center justify-between cursor-pointer"
+                  onClick={() => navigate(`/board/${p.id}`)}
+                >
+                  <span className="text-sm text-ink truncate flex-1">{p.title}</span>
+                  <span className="ml-2 bg-maul text-white text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
+                    💬 {p.comment_count ?? 0}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -185,40 +182,43 @@ export default function HomePage() {
         </div>
 
         {/* 인기 게시글 */}
-        {!loadingPosts && popularPosts.length > 0 && (
-          <div className="widget-card fade-in-3" onClick={() => navigate("/board")}>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-bold text-ink">인기 게시글</span>
-              <span className="text-[10px] bg-cream text-maul-dark px-2 py-0.5 rounded-full font-semibold">HOT</span>
-            </div>
-            <ul className="flex flex-col divide-y divide-gray-50">
-              {popularPosts.map((p, i) => (
-                <li key={p.id} className="flex items-center gap-2 text-sm py-2 first:pt-0 last:pb-0">
-                  <span className="text-maul font-bold text-xs w-4 text-center shrink-0">{i + 1}</span>
-                  <span className="text-ink truncate flex-1">{p.title}</span>
-                  <span className="text-sub text-xs whitespace-nowrap">💬 {p.comment_count}</span>
+        <div className="bg-[#f8f8f8] rounded-2xl shadow-sm p-4">
+          <p className="text-base font-bold text-ink mb-3">인기 게시글</p>
+          {loadingPosts ? (
+            <p className="text-xs text-sub/60">불러오는 중…</p>
+          ) : popularPosts.length === 0 ? (
+            <p className="text-xs text-sub/60">아직 게시글이 없어요</p>
+          ) : (
+            <ul className="flex flex-col gap-2.5">
+              {popularPosts.map(p => (
+                <li
+                  key={p.id}
+                  className="flex items-center justify-between cursor-pointer"
+                  onClick={() => navigate(`/board/${p.id}`)}
+                >
+                  <span className="text-sm text-ink truncate flex-1">{p.title}</span>
+                  <span className="ml-2 bg-maul text-white text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
+                    ♡ {p.like_count ?? 0}
+                  </span>
                 </li>
               ))}
             </ul>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* 다가오는 일정 */}
-        <div className="widget-card fade-in-4" onClick={() => navigate("/admin")}>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-bold text-ink">다가오는 일정</span>
-            <span className="text-xs text-maul font-medium">전체 보기 →</span>
-          </div>
-          {upcomingEvents.length === 0 ? (
+        {/* 이번 주 일정 */}
+        <div className="bg-[#f8f8f8] rounded-2xl shadow-sm p-4">
+          <p className="text-base font-bold text-ink mb-3">이번 주 일정</p>
+          {events.length === 0 ? (
             <p className="text-xs text-sub/60">등록된 일정이 없어요</p>
           ) : (
-            <ul className="flex flex-col divide-y divide-gray-50">
-              {upcomingEvents.map(e => (
-                <li key={e.id} className="flex items-center gap-2 text-sm py-2 first:pt-0 last:pb-0">
-                  <span className="bg-cream text-maul-dark text-xs font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap">
-                    {new Date(e.event_date).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })}
+            <ul className="flex flex-col gap-2.5">
+              {events.map(e => (
+                <li key={e.id} className="flex items-center gap-3">
+                  <span className="bg-maul text-white text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap flex-shrink-0">
+                    {fmtDate(e.event_date)}
                   </span>
-                  <span className="truncate text-ink">{e.title}</span>
+                  <span className="text-sm text-ink truncate">{e.title}</span>
                 </li>
               ))}
             </ul>
