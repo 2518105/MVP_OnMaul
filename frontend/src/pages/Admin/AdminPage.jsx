@@ -103,9 +103,9 @@ export default function AdminPage() {
         <div className="px-4 pb-3">
           <div className="bg-gray-100 rounded-2xl flex overflow-hidden">
             {[
-              { key: "schedule", label: "📅 일정" },
-              { key: "notice", label: "📢 공지" },
-              { key: "minutes", label: "📋 회의록" },
+              { key: "schedule", label: "일정" },
+              { key: "notice", label: "공지" },
+              { key: "minutes", label: "회의록" },
             ].map(t => (
               <button
                 key={t.key}
@@ -193,7 +193,7 @@ export default function AdminPage() {
             rel="noopener noreferrer"
             className="flex items-center justify-between bg-maul rounded-2xl px-4 py-3 shadow-sm hover:shadow-md transition-shadow"
           >
-            <span className="text-sm font-bold text-ink">📋 청산면 회의록 바로가기</span>
+            <span className="text-sm font-bold text-ink">청산면 회의록 바로가기</span>
             <span className="text-xs text-sub">옥천군 홈페이지 →</span>
           </a>
           {meetings.map(m => (

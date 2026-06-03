@@ -45,7 +45,7 @@ export default function BusPage() {
         <header className="px-5 pt-14 pb-3">
           <h1 className="text-xl font-bold text-ink mb-3">버스</h1>
           <div className="flex items-center bg-white rounded-xl px-3 py-2.5 border border-gray-200">
-            <span className="text-sub mr-2 text-sm">🔍</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sub mr-2 flex-shrink-0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input
               className="flex-1 text-sm text-ink bg-transparent outline-none placeholder-sub"
               placeholder="노선번호, 지역명으로 검색"

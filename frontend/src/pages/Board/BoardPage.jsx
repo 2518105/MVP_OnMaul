@@ -33,7 +33,7 @@ function ApiFeedItem({ post }) {
       </div>
       <p className="text-sm font-semibold text-ink mb-2 leading-snug">{post.title}</p>
       <div className="flex items-center gap-3 text-xs text-sub">
-        <span>💬 {post.comment_count ?? 0}</span>
+        <span className="flex items-center gap-1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>{post.comment_count ?? 0}</span>
         <span>♡ {post.like_count ?? 0}</span>
       </div>
     </button>
@@ -67,7 +67,7 @@ export default function BoardPage() {
         <header className="px-5 pt-14 pb-3">
           <h1 className="text-xl font-bold text-ink mb-3">게시판</h1>
           <div className="flex items-center bg-gray-50 rounded-xl px-3 py-2.5 border border-gray-200">
-            <span className="text-sub mr-2 text-sm">🔍</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sub mr-2 flex-shrink-0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input
               ref={searchRef}
               className="flex-1 text-sm text-ink bg-transparent outline-none placeholder-sub"
