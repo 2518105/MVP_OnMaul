@@ -60,25 +60,32 @@ class ExternalNoticeCrawler:
                         continue
                     
                     # 각 셀에서 데이터 추출
-                    external_id = cells[0].text.strip()
-                    title = cells[1].text.strip()
+                    external_id = cells[0].text.strip().replace(',', '')
+                    lines = [l.strip() for l in cells[1].text.split('\n') if l.strip() and l.strip() != '새글']
+                    title = lines[0] if lines else ""
                     # cells[2] = 부서 (청산면)
                     date_str = cells[3].text.strip()
-                    view_count_str = cells[4].text.strip()
-                    
+                    view_count_str = cells[4].text.strip().replace(',', '')
+
+                    # 제목 셀의 링크에서 실제 nttNo 추출
+                    link_tag = cells[1].find('a')
+                    if link_tag and link_tag.get('href'):
+                        href = link_tag['href']
+                        source_url = "https://www.oc.go.kr/www/" + href.lstrip('./')
+                    else:
+                        source_url = f"{DETAIL_URL}{external_id}"
+
                     # 날짜 파싱 (YYYY-MM-DD 형식)
                     try:
                         published_at = datetime.strptime(date_str, '%Y-%m-%d')
                     except:
                         published_at = None
-                    
+
                     # 조회수 파싱
                     try:
                         view_count = int(view_count_str)
                     except:
                         view_count = 0
-                    
-                    source_url = f"{DETAIL_URL}{external_id}"
                     
                     notices.append({
                         'external_id': external_id,

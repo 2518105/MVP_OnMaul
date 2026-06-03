@@ -1,0 +1,25 @@
+name: 옥천군 공지사항 크롤링
+
+on:
+  schedule:
+    # 매일 새벽 6시(한국시간) = UTC 21시 실행
+    # (형식: 분 시간 일 월 요일)
+    - cron: '0 21 * * *'
+  
+  # 수동 실행 옵션 (GitHub Actions 페이지에서 수동 클릭)
+  workflow_dispatch:
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 옥천군 공지사항 크롤링 실행
+        run: |
+          curl -X 'POST' \
+            'https://mvp-on-maul.vercel.app/api/admin/trigger-crawl' \
+            -H 'accept: application/json' \
+            -H 'Content-Type: application/json' \
+            -d ''
+        
+        continue-on-error: true  # 실패해도 워크플로우 계속 진행

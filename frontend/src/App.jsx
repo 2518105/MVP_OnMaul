@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route, NavLink, Navigate, useLocation, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route, NavLink, useLocation, Outlet } from "react-router-dom";
 import BoardPage from "./pages/Board/BoardPage";
 import PostDetailPage from "./pages/Board/PostDetailPage";
 import PostCreatePage from "./pages/Board/PostCreatePage";
@@ -78,14 +78,6 @@ function FontSizeButton() {
   );
 }
 
-function OnboardingGuard() {
-  const token = localStorage.getItem("token");
-  const onboardingCompleted = localStorage.getItem("onboarding_completed") === "true";
-  if (token && !onboardingCompleted) {
-    return <Navigate to="/onboarding" replace />;
-  }
-  return <Outlet />;
-}
 
 function AppLayout() {
   return (
@@ -120,8 +112,7 @@ export default function App() {
           <Route path="/onboarding" element={<OnboardingScreen />} />
           <Route path="/bus/onboarding" element={<BusOnboarding />} />
 
-          {/* 바텀 네비 항상 표시 (온보딩 미완료 시 /onboarding 리다이렉트) */}
-          <Route element={<OnboardingGuard />}>
+          {/* 바텀 네비 항상 표시 */}
           <Route element={<AppLayout />}>
             <Route path="/home" element={<HomePage />} />
             <Route path="/board" element={<BoardPage />} />
@@ -137,7 +128,6 @@ export default function App() {
             <Route path="/mypage" element={<MyPage />} />
             <Route path="/board/external-notices" element={<ExternalNoticesPage />} />
             <Route path="/external-notices" element={<ExternalNoticesPage />} />
-          </Route>
           </Route>
         </Routes>
       </BrowserRouter>

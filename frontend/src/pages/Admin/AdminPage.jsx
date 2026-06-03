@@ -72,6 +72,7 @@ export default function AdminPage() {
   const [weekSelected, setWeekSelected] = useState(new Date());
   const [events, setEvents] = useState([]);
   const [notices, setNotices] = useState([]);
+  const [externalNotices, setExternalNotices] = useState([]);
   const [meetings, setMeetings] = useState([]);
   const [toast, setToast] = useState("");
 
@@ -79,6 +80,7 @@ export default function AdminPage() {
     logEvent("tab_view", { tab_name: "admin" });
     api.get("/admin/calendar").then(r => setEvents(Array.isArray(r.data) ? r.data : [])).catch(() => {});
     api.get("/admin/notices").then(r => setNotices(Array.isArray(r.data) ? r.data : [])).catch(() => {});
+    api.get("/admin/external-notices?page=1&limit=30").then(r => setExternalNotices(Array.isArray(r.data) ? r.data : [])).catch(() => {});
     api.get("/admin/meetings").then(r => setMeetings(Array.isArray(r.data) ? r.data : [])).catch(() => {});
   }, []);
 
@@ -160,27 +162,24 @@ export default function AdminPage() {
       {/* 공지 탭 */}
       {tab === "notice" && (
         <div className="px-4 space-y-3 fade-in pt-2">
-          {notices.length === 0 ? (
+          {externalNotices.length === 0 ? (
             <div className="bg-white rounded-2xl p-8 text-center text-sub text-sm shadow-sm">
               등록된 공지사항이 없어요
             </div>
           ) : (
-            notices.map(n => {
-              const style = SOURCE_STYLE[n.category] ?? { bg: "bg-white", badge: "bg-gray-100 text-gray-700" };
-              return (
-                <button
-                  key={n.id}
-                  onClick={() => navigate(`/admin/detail/${n.id}?type=notice`)}
-                  className={`w-full text-left rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow ${style.bg}`}
-                >
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${style.badge}`}>{n.category}</span>
-                    <span className="text-xs text-sub ml-auto">{new Date(n.created_at).toLocaleDateString("ko-KR")}</span>
-                  </div>
-                  <p className="text-sm font-bold text-ink leading-snug">{n.title}</p>
-                </button>
-              );
-            })
+            externalNotices.map(n => (
+              <button
+                key={n.id}
+                onClick={() => n.source_url && window.open(n.source_url, "_blank", "noopener,noreferrer")}
+                className="w-full text-left bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <p className="text-sm font-bold text-ink leading-snug mb-2">{n.title}</p>
+                <div className="flex items-center justify-between text-xs text-sub">
+                  <span>{n.published_at ? new Date(n.published_at.endsWith("Z") ? n.published_at : n.published_at + "Z").toLocaleDateString("ko-KR") : "-"}</span>
+                  <span>👁 {n.view_count}회</span>
+                </div>
+              </button>
+            ))
           )}
         </div>
       )}
