@@ -15,7 +15,7 @@ const VILLAGES = [
 function DiagramView() {
   const cx = 160, cy = 150;
   const lines = [
-    { x1: cx, y1: cy, x2: 30,  y2: 60,  color: "#3B82F6", label: "동이(503)",  pos: { x: 10, y: 55 } },
+    { x1: cx, y1: cy, x2: 30,  y2: 60,  color: "#639d6b", label: "동이(503)",  pos: { x: 10, y: 55 } },
     { x1: cx, y1: cy, x2: 290, y2: 60,  color: "#EF4444", label: "옥천(541)",  pos: { x: 255, y: 55 } },
     { x1: cx, y1: cy, x2: 30,  y2: 240, color: "#F97316", label: "순환(612~)", pos: { x: 0,  y: 255 } },
     { x1: cx, y1: cy, x2: 290, y2: 240, color: "#22C55E", label: "보은(610)",  pos: { x: 256, y: 255 } },
@@ -37,16 +37,16 @@ function DiagramView() {
           </g>
         ))}
         {/* 중앙 강조 원 */}
-        <circle cx={cx} cy={cy} r="28" fill="#F5C842" />
-        <text x={cx} y={cy - 5} textAnchor="middle" fontSize="9" fontWeight="700" fill="#1A1A1A">청산</text>
-        <text x={cx} y={cy + 8} textAnchor="middle" fontSize="9" fontWeight="700" fill="#1A1A1A">주차장</text>
+        <circle cx={cx} cy={cy} r="28" fill="#639d6b" />
+        <text x={cx} y={cy - 5} textAnchor="middle" fontSize="9" fontWeight="700" fill="#ffffff">청산</text>
+        <text x={cx} y={cy + 8} textAnchor="middle" fontSize="9" fontWeight="700" fill="#ffffff">주차장</text>
       </svg>
 
       {/* 범례 */}
       <div className="flex flex-wrap justify-center gap-3 mt-2 px-4">
         {[
           { color: "#EF4444", label: "541 급행" },
-          { color: "#3B82F6", label: "503 동이" },
+          { color: "#639d6b", label: "503 동이" },
           { color: "#22C55E", label: "610 보은" },
           { color: "#F97316", label: "612~ 순환" },
         ].map(({ color, label }) => (
@@ -74,14 +74,14 @@ function MapView({ navigate }) {
           <g key={v.label}>
             <circle
               cx={v.x} cy={v.y} r={v.label === "청산" ? 10 : 6}
-              fill={v.label === "청산" ? "#F5C842" : "#FFFFFF"}
-              stroke={v.label === "청산" ? "#D4A800" : "#6B6B6B"}
+              fill={v.label === "청산" ? "#639d6b" : "#FFFFFF"}
+              stroke={v.label === "청산" ? "#4a7e52" : "#6B6B6B"}
               strokeWidth="1.5"
             />
             <text
               x={v.x} y={v.y + (v.label === "청산" ? 20 : 18)}
               textAnchor="middle" fontSize="9"
-              fill="#1A1A1A" fontWeight={v.label === "청산" ? "700" : "400"}
+              fill="#3c3c3c" fontWeight={v.label === "청산" ? "700" : "400"}
             >
               {v.label}
             </text>

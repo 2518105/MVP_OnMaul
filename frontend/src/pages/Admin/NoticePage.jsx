@@ -6,7 +6,7 @@ const SOURCE_FILTERS = ["전체", "면사무소", "이장", "자치회"];
 
 const SOURCE_STYLE = {
   자치회:   { bg: "bg-[#FFE8E8]", badge: "bg-[#FFE8E8] text-[#C0392B]" },
-  면사무소: { bg: "bg-[#FFFAE8]", badge: "bg-[#F5C842] text-[#7A6A00]" },
+  면사무소: { bg: "bg-cream", badge: "bg-maul text-white" },
   이장:     { bg: "bg-[#E8F4E8]", badge: "bg-[#E8F4E8] text-[#2E7D32]" },
 };
 

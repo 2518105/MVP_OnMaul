@@ -7,8 +7,7 @@
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
     @apply text-ink;
     margin: 0;
-    background: linear-gradient(to bottom, #ffffff 0%, #ffffff 50%, #E3FFD7 100%);
-    background-attachment: fixed;
+    background-color: #f1f1f1;
   }
   #root {
     @apply max-w-[390px] mx-auto min-h-screen;
@@ -17,10 +16,10 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-blue-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 w-full;
+    @apply bg-maul text-white px-4 py-2 rounded-xl font-medium hover:bg-maul-dark transition-colors disabled:opacity-50 w-full;
   }
   .btn-maul {
-    @apply bg-maul text-ink px-4 py-3.5 rounded-xl font-bold hover:bg-maul-dark transition-colors disabled:opacity-50 w-full text-base;
+    @apply bg-maul text-white px-4 py-3.5 rounded-xl font-bold hover:bg-maul-dark transition-colors disabled:opacity-50 w-full text-base;
   }
   .btn-outline {
     @apply border-2 border-ink text-ink px-4 py-3.5 rounded-xl font-medium hover:bg-gray-100 transition-colors w-full text-base;

@@ -77,10 +77,10 @@ const ExternalNoticesPage = () => {
               <div
                 key={notice.id}
                 onClick={() => handleItemClick(notice.source_url)}
-                className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition cursor-pointer border-l-4 border-blue-500"
+                className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition cursor-pointer border-l-4 border-maul"
               >
                 {/* 제목 */}
-                <h3 className="text-lg font-semibold text-blue-600 hover:underline mb-2">
+                <h3 className="text-lg font-semibold text-maul hover:underline mb-2">
                   {notice.title}
                 </h3>
 
@@ -103,7 +103,7 @@ const ExternalNoticesPage = () => {
           <button
             onClick={() => setPage(Math.max(1, page - 1))}
             disabled={page === 1}
-            className="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-300"
+            className="px-4 py-2 bg-maul text-white rounded disabled:bg-gray-300"
           >
             이전
           </button>
@@ -113,7 +113,7 @@ const ExternalNoticesPage = () => {
           <button
             onClick={() => setPage(page + 1)}
             disabled={notices.length < limit}
-            className="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-300"
+            className="px-4 py-2 bg-maul text-white rounded disabled:bg-gray-300"
           >
             다음
           </button>

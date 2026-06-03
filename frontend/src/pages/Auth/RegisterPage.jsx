@@ -32,7 +32,7 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex flex-col justify-center px-6 bg-white">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-blue-600">온마을</h1>
+        <h1 className="text-3xl font-bold text-maul">온마을</h1>
         <p className="text-gray-500 text-sm mt-1">반갑습니다! 청산면 이웃이 되어주세요</p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -46,7 +46,7 @@ export default function RegisterPage() {
                 onClick={() => setForm(f => ({ ...f, userType: value }))}
                 className={`p-3 rounded-lg border-2 text-left transition-colors ${
                   form.userType === value
-                    ? "border-blue-600 bg-blue-50"
+                    ? "border-maul bg-cream"
                     : "border-gray-200 bg-white"
                 }`}
               >
@@ -95,7 +95,7 @@ export default function RegisterPage() {
       </form>
       <p className="text-center text-sm text-gray-500 mt-6">
         이미 계정이 있으신가요?{" "}
-        <Link to="/login" className="text-blue-600 font-medium">로그인</Link>
+        <Link to="/login" className="text-maul font-medium">로그인</Link>
       </p>
     </div>
   );

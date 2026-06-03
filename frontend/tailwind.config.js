@@ -4,12 +4,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "#2E75B6",
-        secondary: "#5BA4CF",
-        cream: "#F5F0E8",
-        maul: "#FAE48B",
-        "maul-dark": "#D4A800",
-        ink: "#1A1A1A",
+        primary: "#639d6b",
+        secondary: "#8bba91",
+        cream: "#E8F5E9",
+        maul: "#639d6b",
+        "maul-dark": "#4a7e52",
+        ink: "#3c3c3c",
         sub: "#6B6B6B",
       },
     },
