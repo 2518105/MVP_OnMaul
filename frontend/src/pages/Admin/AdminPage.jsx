@@ -39,12 +39,38 @@ function Toast({ msg }) {
   );
 }
 
-function WeekDateBar({ selected, onSelect, events }) {
-  const weekDates = getWeekDates(new Date());
+function WeekDateBar({ selected, onSelect, events, weekBase, onPrevWeek, onNextWeek }) {
+  const weekDates = getWeekDates(weekBase);
   const today = new Date();
+  const startMonth = weekDates[0].getMonth() + 1;
+  const endMonth = weekDates[6].getMonth() + 1;
+  const year = weekDates[0].getFullYear();
+  const monthLabel = startMonth === endMonth
+    ? `${year}년 ${startMonth}월`
+    : `${year}년 ${startMonth}월 ~ ${endMonth}월`;
+
   return (
-    <div className="overflow-x-auto px-4 pb-3">
-      <div className="flex gap-2 w-max">
+    <div className="px-4 pb-3">
+      <div className="flex items-center justify-between mb-2">
+        <button
+          onClick={onPrevWeek}
+          className="w-8 h-8 flex items-center justify-center text-maul rounded-full hover:bg-maul/10 transition-colors"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+        <span className="text-sm font-bold text-ink">{monthLabel}</span>
+        <button
+          onClick={onNextWeek}
+          className="w-8 h-8 flex items-center justify-center text-maul rounded-full hover:bg-maul/10 transition-colors"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      </div>
+      <div className="flex justify-between">
         {weekDates.map((d, i) => {
           const isToday = sameDay(d, today);
           const isSelected = sameDay(d, selected);
@@ -69,7 +95,15 @@ function WeekDateBar({ selected, onSelect, events }) {
 export default function AdminPage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState("schedule");
+  const [weekBase, setWeekBase] = useState(new Date());
   const [weekSelected, setWeekSelected] = useState(new Date());
+
+  function prevWeek() {
+    setWeekBase(d => { const n = new Date(d); n.setDate(n.getDate() - 7); return n; });
+  }
+  function nextWeek() {
+    setWeekBase(d => { const n = new Date(d); n.setDate(n.getDate() + 7); return n; });
+  }
   const [events, setEvents] = useState([]);
   const [notices, setNotices] = useState([]);
   const [externalNotices, setExternalNotices] = useState([]);
@@ -121,7 +155,7 @@ export default function AdminPage() {
         </div>
 
         {tab === "schedule" && (
-          <WeekDateBar selected={weekSelected} onSelect={setWeekSelected} events={events} />
+          <WeekDateBar selected={weekSelected} onSelect={setWeekSelected} events={events} weekBase={weekBase} onPrevWeek={prevWeek} onNextWeek={nextWeek} />
         )}
       </div>
 
