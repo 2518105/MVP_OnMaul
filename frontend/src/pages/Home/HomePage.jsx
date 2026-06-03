@@ -173,7 +173,7 @@ export default function HomePage() {
                 >
                   <span className="text-sm text-ink truncate flex-1">{p.title}</span>
                   <span className="ml-2 bg-maul text-white text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
-                    💬 {p.comment_count ?? 0}
+                    <svg style={{display:"inline",verticalAlign:"middle",marginRight:"2px"}} width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>{p.comment_count ?? 0}
                   </span>
                 </li>
               ))}
