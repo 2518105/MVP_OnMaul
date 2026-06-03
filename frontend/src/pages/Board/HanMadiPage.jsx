@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/client";
 import { getUser } from "../../api/auth";
@@ -6,42 +6,7 @@ import { getTodayQuestion } from "../../constants/questions";
 import AnswerCard from "../../components/AnswerCard";
 import LoginPromptSheet from "../../components/LoginPromptSheet";
 
-const DUMMY_ANSWERS = [
-  {
-    id: 1,
-    author_nickname: "이장 김씨",
-    author_type: "주민",
-    question_index: 0,
-    content: "오늘 아침엔 안개가 잔뜩 꼈는데 점심엔 해가 쨍쨍하더라고요. 청산면 날씨는 하루에도 몇 번씩 바뀌어요 😄",
-    media_url: null,
-    created_at: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
-    like_count: 8,
-    comment_count: 3,
-    is_liked: false,
-  },
-  {
-    id: 2,
-    author_nickname: "단풍나무",
-    author_type: "이주민",
-    content: "맑고 시원해요! 밭에 나가기 딱 좋은 날씨네요 🌿",
-    media_url: null,
-    created_at: new Date(Date.now() - 1000 * 60 * 55).toISOString(),
-    like_count: 4,
-    comment_count: 1,
-    is_liked: false,
-  },
-  {
-    id: 3,
-    author_nickname: "동이댁",
-    author_type: "주민",
-    content: "아침저녁으로 쌀쌀하니까 감기 조심하세요~",
-    media_url: null,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
-    like_count: 12,
-    comment_count: 5,
-    is_liked: true,
-  },
-];
+
 
 function Toast({ msg }) {
   return (
@@ -64,6 +29,11 @@ export default function HanMadiPage() {
   const [text, setText] = useState("");
   const [mediaFile, setMediaFile] = useState(null);
   const [mediaPreview, setMediaPreview] = useState(null);
+  const [isListening, setIsListening] = useState(false);
+  const [interimText, setInterimText] = useState("");
+  const [recordingTime, setRecordingTime] = useState(0);
+  const recognitionRef = useRef(null);
+  const timerRef = useRef(null);
   const [submitting, setSubmitting] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [toast, setToast] = useState("");
@@ -99,6 +69,50 @@ export default function HanMadiPage() {
     setMediaPreview(null);
   }
 
+  useEffect(() => {
+    if (isListening) {
+      timerRef.current = setInterval(() => setRecordingTime(t => t + 1), 1000);
+    } else {
+      clearInterval(timerRef.current);
+    }
+    return () => clearInterval(timerRef.current);
+  }, [isListening]);
+
+  function startListening() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { showToast("이 브라우저는 음성 인식을 지원하지 않아요"); return; }
+    const recognition = new SR();
+    recognition.lang = "ko-KR";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.onresult = (e) => {
+      let interim = "";
+      let final = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) final += e.results[i][0].transcript;
+        else interim += e.results[i][0].transcript;
+      }
+      if (final) setText(prev => prev + final);
+      setInterimText(interim);
+    };
+    recognition.onerror = (e) => {
+      if (e.error === "not-allowed") showToast("마이크 권한이 필요해요");
+      else if (e.error === "network") showToast("네트워크 연결을 확인해주세요");
+      // no-speech, aborted 등은 조용히 종료
+    };
+    recognition.onend = () => { setIsListening(false); setInterimText(""); };
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
+    setRecordingTime(0);
+  }
+
+  function stopListening() {
+    recognitionRef.current?.stop();
+    setIsListening(false);
+    setInterimText("");
+  }
+
   const canSubmit = !submitting && (
     (question?.type !== "media" && text.trim()) ||
     (question?.type !== "text" && mediaFile)
@@ -120,7 +134,7 @@ export default function HanMadiPage() {
       setText("");
       setMediaFile(null);
       setMediaPreview(null);
-      showToast("답변이 등록됐어요 🌿");
+      showToast("답변이 등록됐어요.");
     } catch {
       showToast("등록에 실패했어요. 다시 시도해주세요.");
     } finally {
@@ -177,11 +191,11 @@ export default function HanMadiPage() {
         </div>
 
         {/* 입력 영역 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm mb-6 fade-in-1">
+        <div className="bg-maul rounded-2xl p-4 shadow-sm mb-6 fade-in-1">
           {showText && (
             <>
               <textarea
-                className="w-full bg-transparent resize-none text-sm text-ink placeholder-sub/50 outline-none leading-relaxed"
+                className="w-full bg-transparent resize-none text-sm text-white placeholder-white/50 outline-none leading-relaxed"
                 rows={4}
                 maxLength={200}
                 value={text}
@@ -189,12 +203,12 @@ export default function HanMadiPage() {
                 placeholder="오늘의 답변을 남겨주세요…"
               />
               <div className="flex justify-end">
-                <span className="text-xs text-sub">{text.length} / 200</span>
+                <span className="text-xs text-white/60">{text.length} / 200</span>
               </div>
             </>
           )}
 
-          {showText && showMedia && <div className="border-t border-gray-100 my-3" />}
+          {showText && showMedia && <div className="border-t border-white/20 my-3" />}
 
           {showMedia && (
             mediaPreview ? (
@@ -208,15 +222,51 @@ export default function HanMadiPage() {
                 </button>
               </div>
             ) : (
-              <label className="flex items-center gap-3 cursor-pointer py-1 text-sub hover:text-ink transition-colors">
+              <label className="flex items-center gap-3 cursor-pointer py-1 text-white/80 hover:text-white transition-colors">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                 <div>
                   <p className="text-sm font-medium">사진 / 영상 올리기</p>
-                  <p className="text-xs text-sub/70">탭해서 파일 선택</p>
+                  <p className="text-xs text-white/50">탭해서 파일 선택</p>
                 </div>
-                <input type="file" accept="image/*,video/*" onChange={handleMedia} className="hidden" />
+                <input type="file" accept="image/*,video/*" capture="environment" onChange={handleMedia} className="hidden" />
               </label>
             )
+          )}
+
+          {showText && (
+            <>
+              <div className="border-t border-white/20 my-3" />
+              {isListening ? (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-3">
+                    <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse flex-shrink-0" />
+                    <span className="text-sm text-white font-medium flex-1">
+                      {String(Math.floor(recordingTime / 60)).padStart(2, "0")}:{String(recordingTime % 60).padStart(2, "0")} 인식 중…
+                    </span>
+                    <button
+                      onClick={stopListening}
+                      className="text-xs font-bold text-white border border-white/60 px-3 py-1 rounded-full flex-shrink-0"
+                    >
+                      중지
+                    </button>
+                  </div>
+                  {interimText && (
+                    <p className="text-xs text-white/60 pl-5 italic">{interimText}</p>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={startListening}
+                  className="flex items-center gap-3 cursor-pointer py-1 text-white/80 hover:text-white transition-colors w-full text-left"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                  <div>
+                    <p className="text-sm font-medium">음성으로 입력하기</p>
+                    <p className="text-xs text-white/50">탭해서 말씀하세요</p>
+                  </div>
+                </button>
+              )}
+            </>
           )}
         </div>
 
@@ -233,7 +283,7 @@ export default function HanMadiPage() {
           </div>
 
           {answers.length === 0 ? (
-            <p className="text-center py-8 text-sub text-sm">첫 번째 답변을 남겨보세요 🌿</p>
+            <p className="text-center py-8 text-sub text-sm">첫 번째 답변을 남겨보세요 </p>
           ) : (
             <div className="flex flex-col gap-3">
               {answers.map(a => (

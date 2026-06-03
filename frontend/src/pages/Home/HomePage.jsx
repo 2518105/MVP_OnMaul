@@ -96,7 +96,7 @@ export default function HomePage() {
       <div className="px-5 pt-1 pb-5 fade-in">
         <p className="font-bold leading-snug" style={{ fontSize: "28px" }}>
           <span style={{ color: "#629c6b" }}>{currentUser?.nickname ?? "이웃"}</span>
-          <span className="text-ink"> 님</span>
+          <span className="text-ink"> 님,</span>
         </p>
         {questionText ? (
           <p className="font-bold text-ink mt-2 leading-snug" style={{ fontSize: "28px", whiteSpace: "pre-line" }}>{questionText}</p>
@@ -120,9 +120,9 @@ export default function HomePage() {
       <div className="px-5 pb-4 fade-in-2">
         <div className="bg-white rounded-2xl shadow-sm p-4">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-bold text-ink">이웃 답변</span>
+            <span className="text-sm font-bold text-ink">이웃은 이렇게 생각해요</span>
             <button onClick={() => navigate("/hanmadi/list")} className="text-xs text-maul">
-              전체 보기 →
+              답변 모음 →
             </button>
           </div>
           {answers.length === 0 ? (
@@ -150,7 +150,7 @@ export default function HomePage() {
       </div>
 
       {/* 구분선 */}
-      <div className="mx-5 border-t border-gray-200 mb-4" />
+      <div className="mx-5 border-t-2 border-gray-200 mb-4" />
 
       {/* (5) 정보 카드 3개 */}
       <div className="px-5 flex flex-col gap-4 fade-in-3">
