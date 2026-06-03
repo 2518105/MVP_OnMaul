@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getRoute } from "../../constants/busData";
+import api from "../../api/client";
 
 const FAV_KEY = "bus_favorites";
 function getFavs() {
@@ -11,10 +11,26 @@ function getFavs() {
 export default function BusDetailPage() {
   const { routeId } = useParams();
   const navigate = useNavigate();
-  const route = getRoute(routeId);
+  const [route, setRoute] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("route");
   const [dir, setDir] = useState("down");
   const [favs, setFavs] = useState(getFavs);
+
+  useEffect(() => {
+    api.get(`/bus/routes/${routeId}`)
+      .then(res => setRoute(res.data))
+      .catch(() => setRoute(null))
+      .finally(() => setLoading(false));
+  }, [routeId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-cream flex items-center justify-center">
+        <p className="text-sub text-sm">노선 정보를 불러오는 중...</p>
+      </div>
+    );
+  }
 
   if (!route) {
     return (
@@ -137,22 +153,32 @@ function BadgePill({ badge }) {
   );
 }
 
+function getDuplicateNames(stops) {
+  const count = {};
+  stops.forEach(s => { count[s.name] = (count[s.name] || 0) + 1; });
+  return new Set(Object.keys(count).filter(n => count[n] > 1));
+}
+
 function RouteMap({ stops }) {
+  const dupNames = getDuplicateNames(stops);
   return (
     <div className="px-5 space-y-0">
       {stops.map((stop, i) => {
         const isFirst = i === 0;
         const isLast = i === stops.length - 1;
         const isTerminal = isFirst || isLast;
+        const isDup = dupNames.has(stop.name);
         return (
           <div key={i} className="flex gap-3">
             {/* Timeline column */}
             <div className="flex flex-col items-center w-7 flex-shrink-0">
               <div className={`w-0.5 ${isFirst ? "h-3 opacity-0" : "h-3 bg-maul-dark"}`} />
               <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold border-2 ${
-                isTerminal
-                  ? "bg-maul border-maul-dark text-ink"
-                  : "bg-white border-maul text-ink"
+                isDup
+                  ? "bg-red-100 border-red-400 text-red-600"
+                  : isTerminal
+                    ? "bg-maul border-maul-dark text-ink"
+                    : "bg-white border-maul text-ink"
               }`}>
                 {i + 1}
               </div>
@@ -160,9 +186,12 @@ function RouteMap({ stops }) {
             </div>
             {/* Stop info */}
             <div className={`pb-2 pt-1 flex-1 min-w-0 ${isLast ? "" : "border-b border-gray-100"}`}>
-              <p className={`text-sm leading-snug ${isTerminal ? "font-bold text-ink" : "text-ink"}`}>
+              <p className={`text-sm leading-snug ${isDup ? "font-bold text-red-500" : isTerminal ? "font-bold text-ink" : "text-ink"}`}>
                 {stop.name}
               </p>
+              {isDup && (
+                <p className="text-[10px] text-red-400 mt-0.5">동명 다른 위치</p>
+              )}
               {stop.note && (
                 <p className="text-xs text-sub mt-0.5">{stop.note}</p>
               )}
@@ -176,6 +205,8 @@ function RouteMap({ stops }) {
 
 function ScheduleTable({ stops }) {
   const tripCount = stops[0]?.times?.length ?? 0;
+  const dupNames = getDuplicateNames(stops);
+
   if (tripCount === 0) {
     return (
       <p className="text-center py-10 text-sub text-sm">시간표 정보가 없어요</p>
@@ -200,21 +231,23 @@ function ScheduleTable({ stops }) {
         <tbody>
           {stops.map((stop, i) => {
             const isTerminal = i === 0 || i === stops.length - 1;
+            const isDup = dupNames.has(stop.name);
             const rowBg = i % 2 === 0 ? "bg-white" : "bg-gray-50";
             return (
-              <tr key={i}>
-                <td className={`sticky left-0 z-10 px-3 py-2 text-left border-r border-gray-100 text-xs ${rowBg} ${
-                  isTerminal ? "font-bold text-ink" : "text-ink"
+              <tr key={i} className={isDup ? "bg-red-50" : ""}>
+                <td className={`sticky left-0 z-10 px-3 py-2 text-left border-r border-gray-100 text-xs ${isDup ? "bg-red-50" : rowBg} ${
+                  isDup ? "font-bold text-red-500" : isTerminal ? "font-bold text-ink" : "text-ink"
                 }`}>
                   <span>{stop.name}</span>
+                  {isDup && (
+                    <span className="block text-red-400 font-normal text-[10px] leading-tight">동명 다른 위치</span>
+                  )}
                   {stop.note && (
                     <span className="block text-sub font-normal text-[10px] leading-tight">{stop.note}</span>
                   )}
                 </td>
                 {stop.times.map((t, j) => (
-                  <td key={j} className={`text-center text-xs px-4 py-2 ${rowBg} ${
-                    isTerminal ? "font-bold text-ink" : "text-ink"
-                  }`}>
+                  <td key={j} className={`text-center text-xs px-4 py-2 ${isDup ? "bg-red-50 text-red-500 font-bold" : `${rowBg} ${isTerminal ? "font-bold text-ink" : "text-ink"}`}`}>
                     {t}
                   </td>
                 ))}

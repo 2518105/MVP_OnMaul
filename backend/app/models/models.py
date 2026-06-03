@@ -213,9 +213,32 @@ class BusRoute(Base):
     number = Column(String(20), nullable=False)
     name = Column(String(100), nullable=False)
     color = Column(String(10), default="#2E75B6")
-    stops = Column(Text, nullable=True)  # JSON array string
+    stops = Column(Text, nullable=True)  # JSON array string (레거시 — 롤백 대비 유지)
     duration = Column(String(50), nullable=True)
     daily_count = Column(Integer, nullable=True)
+    # 신규 컬럼
+    badge = Column(String(20), nullable=True)
+    origin = Column(String(100), nullable=True)
+    destination = Column(String(100), nullable=True)
+    is_bidirectional = Column(Boolean, default=True)
+    trips_per_day = Column(Integer, nullable=True)
+
+    route_stops = relationship("BusRouteStop", back_populates="route", order_by="BusRouteStop.stop_order")
+
+
+class BusRouteStop(Base):
+    __tablename__ = "bus_route_stops"
+
+    id = Column(Integer, primary_key=True, index=True)
+    route_number = Column(String(20), ForeignKey("bus_routes.number"), nullable=False, index=True)
+    direction = Column(String(10), nullable=False)       # 'down' or 'up'
+    direction_label = Column(String(100), nullable=True)
+    stop_order = Column(Integer, nullable=False)
+    stop_name = Column(String(100), nullable=False)
+    times = Column(Text, nullable=True)                  # JSON array string
+    note = Column(String(200), nullable=True)
+
+    route = relationship("BusRoute", back_populates="route_stops")
 
 
 class HanMadiQuestion(Base):

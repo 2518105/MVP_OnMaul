@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { BUS_ROUTES } from "../../constants/busData";
-import { logEvent } from "../../api/client";
+import api, { logEvent } from "../../api/client";
 
 const FAV_KEY = "bus_favorites";
 function getFavs() {
@@ -14,8 +13,17 @@ export default function BusPage() {
   const [tab, setTab] = useState("all");
   const [search, setSearch] = useState("");
   const [favs, setFavs] = useState(getFavs);
+  const [routes, setRoutes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useEffect(() => { logEvent("bus_tab_open"); }, []);
+  useEffect(() => {
+    logEvent("bus_tab_open");
+    api.get("/bus/routes")
+      .then(res => setRoutes(res.data))
+      .catch(err => setError("노선 정보를 불러오지 못했어요"))
+      .finally(() => setLoading(false));
+  }, []);
 
   function toggleFav(id, e) {
     e.stopPropagation();
@@ -26,7 +34,7 @@ export default function BusPage() {
     });
   }
 
-  const filtered = BUS_ROUTES.filter(r => {
+  const filtered = routes.filter(r => {
     if (tab === "fav" && !favs.includes(r.id)) return false;
     if (search.trim()) {
       const q = search.trim();
@@ -74,7 +82,11 @@ export default function BusPage() {
       </div>
 
       <div className="px-4 pt-2 pb-24 space-y-2">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <p className="text-center py-12 text-sub text-sm">노선 정보를 불러오는 중...</p>
+        ) : error ? (
+          <p className="text-center py-12 text-sub text-sm">{error}</p>
+        ) : filtered.length === 0 ? (
           <p className="text-center py-12 text-sub text-sm">
             {tab === "fav" ? "즐겨찾기한 노선이 없어요" : "검색 결과가 없어요"}
           </p>

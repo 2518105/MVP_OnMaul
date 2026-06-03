@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.models import BusStop, BusSchedule, BusVote, BusRoute, User
+from app.models.models import BusStop, BusSchedule, BusVote, BusRoute, BusRouteStop, User
 from app.auth import get_current_user, require_user
 
 router = APIRouter(prefix="/bus", tags=["버스"])
@@ -139,17 +139,60 @@ def vote(
 
 @router.get("/routes", summary="노선 목록")
 def get_routes(db: Session = Depends(get_db)):
-    import json
-    routes = db.query(BusRoute).all()
-    return [
-        {
-            "id": r.id,
-            "number": r.number,
-            "name": r.name,
-            "color": r.color,
-            "stops": json.loads(r.stops) if r.stops else [],
-            "duration": r.duration,
-            "daily_count": r.daily_count,
-        }
-        for r in routes
-    ]
+    routes = db.query(BusRoute).order_by(BusRoute.number).all()
+    result = []
+    for r in routes:
+        trips_label = f"1일 {r.trips_per_day}회" if r.trips_per_day else ""
+        result.append({
+            "id": r.number,
+            "badge": r.badge,
+            "tripsPerDay": trips_label,
+            "origin": r.origin or "",
+            "destination": r.destination or "",
+            "isBidirectional": r.is_bidirectional if r.is_bidirectional is not None else True,
+        })
+    return result
+
+
+@router.get("/routes/{number}", summary="노선 상세")
+def get_route_detail(number: str, db: Session = Depends(get_db)):
+    import json as _json
+
+    r = db.query(BusRoute).filter(BusRoute.number == number).first()
+    if not r:
+        raise HTTPException(status_code=404, detail="노선을 찾을 수 없습니다")
+
+    # bus_route_stops 에서 down/up 정류장 조회
+    stops_rows = (
+        db.query(BusRouteStop)
+        .filter(BusRouteStop.route_number == number)
+        .order_by(BusRouteStop.direction, BusRouteStop.stop_order)
+        .all()
+    )
+
+    def build_direction(direction: str):
+        rows = [s for s in stops_rows if s.direction == direction]
+        if not rows:
+            return None
+        label = rows[0].direction_label or ""
+        stops_out = []
+        for s in rows:
+            times = _json.loads(s.times) if s.times else []
+            stops_out.append({
+                "name": s.stop_name,
+                "times": times,
+                "note": s.note,
+            })
+        return {"label": label, "stops": stops_out}
+
+    trips_label = f"1일 {r.trips_per_day}회" if r.trips_per_day else ""
+    return {
+        "id": r.number,
+        "badge": r.badge,
+        "tripsPerDay": trips_label,
+        "origin": r.origin or "",
+        "destination": r.destination or "",
+        "isBidirectional": r.is_bidirectional if r.is_bidirectional is not None else True,
+        "down": build_direction("down"),
+        "up": build_direction("up"),
+    }
