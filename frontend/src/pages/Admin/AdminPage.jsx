@@ -228,7 +228,7 @@ export default function AdminPage() {
             className="flex items-center justify-between bg-maul rounded-2xl px-4 py-3 shadow-sm hover:shadow-md transition-shadow"
           >
             <span className="text-sm font-bold text-ink">청산면 회의록 바로가기</span>
-            <span className="text-xs text-sub">옥천군 홈페이지 →</span>
+            <span className="text-xs text-white">옥천군 홈페이지 →</span>
           </a>
           {meetings.map(m => (
             <button
