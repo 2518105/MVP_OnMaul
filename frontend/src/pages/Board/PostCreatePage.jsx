@@ -146,7 +146,7 @@ export default function PostCreatePage() {
         {/* 툴바 */}
         <div className="flex items-center gap-4 py-3 border-t border-gray-100">
           <label className="flex items-center gap-1.5 text-sub text-sm cursor-pointer">
-            <span className="text-lg">📷</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
             <span>{images.length}/5</span>
             <input
               type="file"
@@ -169,7 +169,7 @@ export default function PostCreatePage() {
             onClick={() => showToast("음성 녹음 기능은 준비 중입니다")}
             className="ml-auto flex items-center gap-1.5 text-sub text-sm"
           >
-            <span className="text-lg">🎤</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
             <span>음성 추가</span>
           </button>
         </div>

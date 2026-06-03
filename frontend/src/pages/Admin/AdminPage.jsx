@@ -176,7 +176,7 @@ export default function AdminPage() {
                 <p className="text-sm font-bold text-ink leading-snug mb-2">{n.title}</p>
                 <div className="flex items-center justify-between text-xs text-sub">
                   <span>{n.published_at ? new Date(n.published_at.endsWith("Z") ? n.published_at : n.published_at + "Z").toLocaleDateString("ko-KR") : "-"}</span>
-                  <span>👁 {n.view_count}회</span>
+                  <span className="flex items-center gap-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> {n.view_count}회</span>
                 </div>
               </button>
             ))

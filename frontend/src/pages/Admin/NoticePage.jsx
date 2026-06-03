@@ -55,7 +55,7 @@ export default function NoticePage() {
           <button onClick={() => navigate(-1)} className="text-ink text-xl font-light">←</button>
           <h1 className="text-base font-bold text-ink">{title}</h1>
         </div>
-        <button className="text-xl">🔍</button>
+        <button className="text-sub"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
       </header>
 
       {/* 출처 필터 칩 */}
@@ -104,7 +104,7 @@ export default function NoticePage() {
                 </p>
                 <div className="flex items-center gap-3 mt-2 text-xs text-sub">
                   <span>{isRead ? "읽음" : "아직 안 읽음"}</span>
-                  {n.attachments > 0 && <span>📎 {n.attachments}개</span>}
+                  {n.attachments > 0 && <span className="flex items-center gap-1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg> {n.attachments}개</span>}
                 </div>
               </button>
             );

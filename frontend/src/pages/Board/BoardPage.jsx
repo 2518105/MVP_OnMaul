@@ -34,7 +34,7 @@ function ApiFeedItem({ post }) {
       <p className="text-sm font-semibold text-ink mb-2 leading-snug">{post.title}</p>
       <div className="flex items-center gap-3 text-xs text-sub">
         <span className="flex items-center gap-1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>{post.comment_count ?? 0}</span>
-        <span>♡ {post.like_count ?? 0}</span>
+        <span className="flex items-center gap-1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>{post.like_count ?? 0}</span>
       </div>
     </button>
   );
@@ -113,9 +113,8 @@ export default function BoardPage() {
       {/* 플로팅 버튼 */}
       <button
         onClick={() => user ? navigate("/board/new") : setShowLoginPrompt(true)}
-        className="fixed bottom-36 right-4 w-14 h-14 bg-maul rounded-full shadow-lg text-2xl flex items-center justify-center hover:bg-maul-dark transition-colors z-20"
-      >
-        ✏️
+        className="fixed bottom-36 right-4 w-14 h-14 bg-maul rounded-full shadow-lg flex items-center justify-center hover:bg-maul-dark transition-colors z-20"
+      ><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       </button>
 
       {showLoginPrompt && <LoginPromptSheet onClose={() => setShowLoginPrompt(false)} />}

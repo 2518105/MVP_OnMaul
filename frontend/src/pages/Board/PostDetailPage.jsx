@@ -138,11 +138,11 @@ export default function PostDetailPage() {
             onClick={handleLike}
             className={`flex items-center gap-1.5 text-sm transition-colors ${liked ? "text-red-500 font-semibold" : "text-sub"}`}
           >
-            <span>{liked ? "♥" : "♡"}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill={liked ? "#EF4444" : "none"} stroke={liked ? "#EF4444" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             <span>{likeCount}</span>
           </button>
           <span className="flex items-center gap-1.5 text-sm text-sub">
-            <span>💬</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             <span>{comments.length}</span>
           </span>
           <button
@@ -183,9 +183,8 @@ export default function PostDetailPage() {
         />
         <button
           onClick={() => showToast("음성 녹음 기능은 준비 중입니다")}
-          className="text-xl"
-        >
-          🎤
+          className="text-sub"
+        ><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
         </button>
         <button
           onClick={handleComment}

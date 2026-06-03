@@ -72,7 +72,7 @@ export default function BusAlarmPage() {
       <div className="px-4 space-y-5 pb-10">
         {/* 정류장 카드 */}
         <div className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-3 fade-in">
-          <span className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-xl">🔴</span>
+          <span className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center"><span className="w-4 h-4 rounded-full bg-red-500 block" /></span>
           <div>
             <p className="text-sm font-bold text-ink">
               {stopId === "1" ? "청산주차장" : `정류장 ${stopId}`}

@@ -82,8 +82,7 @@ export default function MyPage() {
       {/* 프로필 */}
       <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-gray-100">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-maul-light flex items-center justify-center text-xl">
-            👤
+          <div className="w-12 h-12 rounded-full bg-maul-light flex items-center justify-center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#639d6b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           </div>
           <div className="flex-1">
             {editNickname ? (

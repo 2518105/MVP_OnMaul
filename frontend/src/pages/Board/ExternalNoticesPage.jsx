@@ -87,10 +87,10 @@ const ExternalNoticesPage = () => {
                 {/* 메타 정보 (날짜, 조회수) */}
                 <div className="flex justify-between text-sm text-gray-600">
                   <span className="text-gray-700 font-medium">
-                    📅 {formatDate(notice.published_at)}
+                    <span style={{display:"inline-flex",alignItems:"center",gap:"4px"}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>{formatDate(notice.published_at)}</span>
                   </span>
                   <span className="text-gray-600">
-                    👁️ {notice.view_count}회
+                    <span style={{display:"inline-flex",alignItems:"center",gap:"4px"}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>{notice.view_count}회</span>
                   </span>
                 </div>
               </div>

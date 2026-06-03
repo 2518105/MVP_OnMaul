@@ -131,7 +131,7 @@ function RouteCard({ route, isFav, onFav, onClick }) {
         className="text-xl leading-none flex-shrink-0 pl-2"
         aria-label={isFav ? "즐겨찾기 해제" : "즐겨찾기 추가"}
       >
-        {isFav ? "⭐" : "☆"}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill={isFav ? "#F59E0B" : "none"} stroke={isFav ? "#F59E0B" : "#9ca3af"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
       </button>
     </div>
   );

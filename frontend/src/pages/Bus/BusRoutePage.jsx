@@ -94,7 +94,7 @@ function MapView({ navigate }) {
         <div className="flex items-center justify-between mb-2">
           <div>
             <p className="text-sm font-bold text-ink">청산주차장</p>
-            <p className="text-xs text-sub">4개 노선 📍</p>
+            <p className="text-xs text-sub">4개 노선</p>
           </div>
           <div className="text-right">
             <span className="bg-maul text-ink text-xs font-bold px-2 py-0.5 rounded-full">7분 후</span>
@@ -128,8 +128,8 @@ export default function BusRoutePage() {
       <div className="px-4 mb-4">
         <div className="bg-white rounded-2xl flex overflow-hidden shadow-sm">
           {[
-            { value: "diagram", label: "🔵 다이어그램" },
-            { value: "map",     label: "🗺 지도" },
+            { value: "diagram", label: "다이어그램" },
+            { value: "map",     label: "지도" },
           ].map(t => (
             <button
               key={t.value}
