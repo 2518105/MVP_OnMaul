@@ -177,7 +177,7 @@ export default function HanMadiPage() {
 
   if (!question) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-[#f1f1f1] flex items-center justify-center">
         <p className="text-sub text-sm">불러오는 중…</p>
       </div>
     );
@@ -187,107 +187,110 @@ export default function HanMadiPage() {
   const showMedia = question.type === "media" || question.type === "both";
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#f1f1f1]">
       {toast && <Toast msg={toast} />}
       {showLoginPrompt && <LoginPromptSheet onClose={() => setShowLoginPrompt(false)} />}
 
-      {/* 헤더 */}
-      <header className="flex items-center justify-between px-5 pt-14 pb-3 bg-white sticky top-0 z-10">
+      {/* 헤더 — 뒤로가기만 */}
+      <header className="flex items-center px-5 pt-14 pb-3 bg-[#f1f1f1] sticky top-0 z-10">
         <button onClick={() => navigate(-1)} className="text-ink text-xl font-light">←</button>
-        <button
-          onClick={handleSubmit}
-          disabled={!canSubmit}
-          className="bg-maul text-ink text-sm font-bold px-4 py-1.5 rounded-full disabled:opacity-40 transition-opacity"
-        >
-          {submitting ? "등록 중…" : "등록"}
-        </button>
       </header>
 
       <div className="px-5 pb-8">
         {/* 오늘의 질문 */}
         <div className="mb-5 fade-in">
           <p className="text-xs text-sub mb-2">{formatDate(new Date())} · 오늘의 질문</p>
-          <h1 className="text-2xl font-bold text-ink leading-snug" style={{ whiteSpace: "pre-line" }}>{question.text}</h1>
+          <h1 className="text-2xl font-bold leading-snug" style={{ color: "#629c6b", whiteSpace: "pre-line" }}>
+            {question.text}
+          </h1>
         </div>
 
-        {/* 입력 영역 */}
-        <div className="bg-maul rounded-2xl p-4 shadow-sm mb-6 fade-in-1">
+        {/* 입력 박스 */}
+        <div className="bg-maul rounded-2xl p-4 shadow-sm mb-3 fade-in-1 focus-within:ring-2 focus-within:ring-blue-400">
           {showText && (
-            <>
-              <textarea
-                className="w-full bg-transparent resize-none text-sm text-white placeholder-white/50 outline-none leading-relaxed"
-                rows={4}
-                maxLength={200}
-                value={text}
-                onChange={e => setText(e.target.value)}
-                placeholder="오늘의 답변을 남겨주세요…"
-              />
-              <div className="flex justify-end">
-                <span className="text-xs text-white/60">{text.length} / 200</span>
-              </div>
-            </>
+            <textarea
+              className="w-full bg-transparent resize-none text-sm text-white placeholder-white/50 outline-none leading-relaxed"
+              rows={4}
+              maxLength={200}
+              value={text}
+              onChange={e => setText(e.target.value)}
+              placeholder="오늘의 답변을 남겨주세요…"
+            />
           )}
 
-          {showText && showMedia && <div className="border-t border-white/20 my-3" />}
-
-          {showMedia && (
-            mediaPreview ? (
-              <div className="relative w-full h-48 rounded-xl overflow-hidden">
-                <img src={mediaPreview} alt="" className="w-full h-full object-cover" />
-                <button
-                  onClick={removeMedia}
-                  className="absolute top-2 right-2 bg-black/50 text-white rounded-full w-7 h-7 text-xs flex items-center justify-center"
-                >
-                  ✕
-                </button>
-              </div>
-            ) : (
-              <label className="flex items-center gap-3 cursor-pointer py-1 text-white/80 hover:text-white transition-colors">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                <div>
-                  <p className="text-sm font-medium">사진 / 영상 올리기</p>
-                  <p className="text-xs text-white/50">탭해서 파일 선택</p>
-                </div>
-                <input type="file" accept="image/*,video/*" capture="environment" onChange={handleMedia} className="hidden" />
-              </label>
-            )
+          {/* 미디어 프리뷰 */}
+          {mediaPreview && (
+            <div className="relative w-full h-48 rounded-xl overflow-hidden mt-2">
+              <img src={mediaPreview} alt="" className="w-full h-full object-cover" />
+              <button
+                onClick={removeMedia}
+                className="absolute top-2 right-2 bg-black/50 text-white rounded-full w-7 h-7 text-xs flex items-center justify-center"
+              >
+                ✕
+              </button>
+            </div>
           )}
 
-          {showText && (
-            <>
-              <div className="border-t border-white/20 my-3" />
-              {isListening ? (
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-3">
-                    <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse flex-shrink-0" />
-                    <span className="text-sm text-white font-medium flex-1">
-                      {String(Math.floor(recordingTime / 60)).padStart(2, "0")}:{String(recordingTime % 60).padStart(2, "0")} 인식 중…
-                    </span>
-                    <button
-                      onClick={stopListening}
-                      className="text-xs font-bold text-white border border-white/60 px-3 py-1 rounded-full flex-shrink-0"
-                    >
-                      중지
-                    </button>
-                  </div>
-                  {interimText && (
-                    <p className="text-xs text-white/60 pl-5 italic">{interimText}</p>
-                  )}
-                </div>
-              ) : (
+          {/* 음성 인식 중 상태 */}
+          {isListening && (
+            <div className="flex items-center gap-2 mt-2">
+              <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse flex-shrink-0" />
+              <span className="text-xs text-white font-medium flex-1">
+                {String(Math.floor(recordingTime / 60)).padStart(2, "0")}:{String(recordingTime % 60).padStart(2, "0")} 인식 중…
+              </span>
+              {interimText && <span className="text-xs text-white/60 italic truncate">{interimText}</span>}
+              <button
+                onClick={stopListening}
+                className="text-xs font-bold text-white border border-white/60 px-3 py-1 rounded-full flex-shrink-0"
+              >
+                중지
+              </button>
+            </div>
+          )}
+
+          {/* 박스 하단 바: 글자수 카운터(좌) + 아이콘(우) */}
+          <div className="flex items-center justify-between mt-3">
+            {showText
+              ? <span className="text-xs text-white/60">{text.length} / 200</span>
+              : <span />
+            }
+            <div className="flex items-center gap-3">
+              {showText && (
                 <button
-                  onClick={startListening}
-                  className="flex items-center gap-3 cursor-pointer py-1 text-white/80 hover:text-white transition-colors w-full text-left"
+                  onClick={isListening ? stopListening : startListening}
+                  className={`transition-colors ${isListening ? "text-red-300" : "text-white/80 hover:text-white"}`}
+                  aria-label="음성 입력"
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-                  <div>
-                    <p className="text-sm font-medium">음성으로 입력하기</p>
-                    <p className="text-xs text-white/50">탭해서 말씀하세요</p>
-                  </div>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="23"/>
+                    <line x1="8" y1="23" x2="16" y2="23"/>
+                  </svg>
                 </button>
               )}
-            </>
-          )}
+              {showMedia && !mediaPreview && (
+                <label className="text-white/80 hover:text-white transition-colors cursor-pointer" aria-label="사진/영상 올리기">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                    <circle cx="12" cy="13" r="4"/>
+                  </svg>
+                  <input type="file" accept="image/*,video/*" capture="environment" onChange={handleMedia} className="hidden" />
+                </label>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 등록 버튼 — outline, 우측 정렬 */}
+        <div className="flex justify-end mb-6">
+          <button
+            onClick={handleSubmit}
+            disabled={!canSubmit}
+            className="border border-maul text-maul bg-white text-sm font-bold px-5 py-1.5 rounded-full disabled:opacity-40 transition-opacity"
+          >
+            {submitting ? "등록 중…" : "등록"}
+          </button>
         </div>
 
         {/* 최근 답변 */}
