@@ -182,6 +182,7 @@ def get_route_detail(number: str, db: Session = Depends(get_db)):
                 "name": s.stop_name,
                 "times": times,
                 "note": s.note,
+                "stop_code": s.stop_code,
             })
         return {"label": label, "stops": stops_out}
 

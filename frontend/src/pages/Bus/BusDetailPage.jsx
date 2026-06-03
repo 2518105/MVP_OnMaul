@@ -190,7 +190,9 @@ function RouteMap({ stops }) {
                 {stop.name}
               </p>
               {isDup && (
-                <p className="text-[10px] text-red-400 mt-0.5">동명 다른 위치</p>
+                <p className="text-[10px] text-red-400 mt-0.5">
+                  동명 다른 위치 {stop.stop_code ? `(${stop.stop_code})` : ""}
+                </p>
               )}
               {stop.note && (
                 <p className="text-xs text-sub mt-0.5">{stop.note}</p>
@@ -240,7 +242,9 @@ function ScheduleTable({ stops }) {
                 }`}>
                   <span>{stop.name}</span>
                   {isDup && (
-                    <span className="block text-red-400 font-normal text-[10px] leading-tight">동명 다른 위치</span>
+                    <span className="block text-red-400 font-normal text-[10px] leading-tight">
+                      동명 다른 위치 {stop.stop_code ? `(${stop.stop_code})` : ""}
+                    </span>
                   )}
                   {stop.note && (
                     <span className="block text-sub font-normal text-[10px] leading-tight">{stop.note}</span>

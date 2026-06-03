@@ -235,6 +235,7 @@ class BusRouteStop(Base):
     direction_label = Column(String(100), nullable=True)
     stop_order = Column(Integer, nullable=False)
     stop_name = Column(String(100), nullable=False)
+    stop_code = Column(String(20), nullable=True)
     times = Column(Text, nullable=True)                  # JSON array string
     note = Column(String(200), nullable=True)
 

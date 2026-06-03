@@ -29,6 +29,7 @@ ALTER_STMTS = [
     "ALTER TABLE bus_routes ADD COLUMN IF NOT EXISTS destination VARCHAR(100);",
     "ALTER TABLE bus_routes ADD COLUMN IF NOT EXISTS is_bidirectional BOOLEAN DEFAULT true;",
     "ALTER TABLE bus_routes ADD COLUMN IF NOT EXISTS trips_per_day INTEGER;",
+    "ALTER TABLE bus_route_stops ADD COLUMN IF NOT EXISTS stop_code VARCHAR(20);",
     # number 컬럼에 UNIQUE 제약 추가 (외래키 참조를 위해 필요, 이미 있으면 무시)
     """
     DO $$
