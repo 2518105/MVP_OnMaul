@@ -79,10 +79,10 @@ function BusIcon({ active }) {
 function BottomNav() {
   const { pathname } = useLocation();
   const tabs = [
-    { to: "/home",  label: "홈",    Icon: HomeIcon },
-    { to: "/board", label: "게시판", Icon: BoardIcon },
-    { to: "/admin", label: "행정",  Icon: CalendarIcon },
-    { to: "/bus",   label: "버스",  Icon: BusIcon },
+    { to: "/home",  label: "홈",      Icon: HomeIcon },
+    { to: "/board", label: "게시판",   Icon: BoardIcon },
+    { to: "/admin", label: "행정소식", Icon: CalendarIcon },
+    { to: "/bus",   label: "버스",    Icon: BusIcon },
   ];
 
   return (
@@ -94,9 +94,12 @@ function BottomNav() {
             key={to}
             to={to}
             aria-label={label}
-            className="flex-1 flex items-center justify-center py-4 transition-opacity"
+            className="flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 transition-opacity"
           >
             <Icon active={active} />
+            <span className="text-[10px] font-medium" style={{ color: active ? "#4a7e52" : "#639d6b" }}>
+              {label}
+            </span>
           </NavLink>
         );
       })}

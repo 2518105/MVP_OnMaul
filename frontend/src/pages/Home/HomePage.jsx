@@ -82,24 +82,26 @@ export default function HomePage() {
 
       {/* (1) 상단 바 */}
       <div className="flex items-center justify-end px-5 pt-12 pb-2 gap-4">
-        <button aria-label="알림">
+        <button aria-label="알림" className="flex flex-col items-center gap-0.5">
           <BellIcon />
+          <span className="text-[10px] font-bold" style={{ color: "#639d6b" }}>알림</span>
         </button>
-        <button aria-label="내 정보" onClick={() => navigate("/mypage")}>
+        <button aria-label="내 정보" onClick={() => navigate("/mypage")} className="flex flex-col items-center gap-0.5">
           <ProfileIcon />
+          <span className="text-[10px] font-bold" style={{ color: "#639d6b" }}>마이페이지</span>
         </button>
       </div>
 
       {/* (2) 헤더 — 닉네임 초록, 질문 굵게 */}
       <div className="px-5 pt-1 pb-5 fade-in">
-        <p className="text-2xl font-bold leading-snug">
+        <p className="font-bold leading-snug" style={{ fontSize: "28px" }}>
           <span style={{ color: "#629c6b" }}>{currentUser?.nickname ?? "이웃"}</span>
           <span className="text-ink"> 님</span>
         </p>
         {questionText ? (
-          <p className="text-xl font-bold text-ink mt-2 leading-snug">{questionText}</p>
+          <p className="font-bold text-ink mt-2 leading-snug" style={{ fontSize: "28px" }}>{questionText}</p>
         ) : (
-          <p className="text-xl font-bold text-ink/30 mt-2">오늘의 질문을 불러오는 중…</p>
+          <p className="font-bold text-ink/30 mt-2" style={{ fontSize: "28px" }}>오늘의 질문을 불러오는 중…</p>
         )}
       </div>
 
@@ -113,7 +115,7 @@ export default function HomePage() {
           <p className="text-white font-semibold text-sm leading-relaxed">
             이웃들에게 오늘의 이야기를<br />전해 주세요!
           </p>
-          <span className="text-white/70 text-xs mt-1.5 inline-block">답변 남기기 →</span>
+          <span className="text-white/70 text-xs mt-1.5 inline-block">한 마디 남기기 →</span>
         </button>
       </div>
 
