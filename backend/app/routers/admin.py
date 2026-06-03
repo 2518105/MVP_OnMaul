@@ -92,9 +92,9 @@ class ExternalNoticeListOut(BaseModel):
     id: int
     title: str
     published_at: Optional[datetime] = None
-    view_count: int
-    source_url: str
-    external_id: str
+    view_count: int = 0
+    source_url: Optional[str] = None
+    external_id: Optional[str] = None
 
     class Config:
         from_attributes = True

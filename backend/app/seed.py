@@ -28,9 +28,16 @@ def seed(db: Session):
         db.add(admin)
         db.commit()
         print("[OK] 관리자 계정 생성 (admin / onmaul2026!)")
-    elif not admin.onboarding_completed:
-        admin.onboarding_completed = True
-        db.commit()
+    else:
+        updated = False
+        if not admin.onboarding_completed:
+            admin.onboarding_completed = True
+            updated = True
+        if admin.user_type != UserType.admin:
+            admin.user_type = UserType.admin
+            updated = True
+        if updated:
+            db.commit()
 
     # 버스 시간표
     if db.query(BusStop).count() == 0:

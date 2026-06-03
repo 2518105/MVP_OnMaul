@@ -53,7 +53,7 @@ function WeekDateBar({ selected, onSelect, events }) {
             <button key={i} onClick={() => onSelect(d)} className="flex flex-col items-center w-10">
               <span className="text-xs text-sub mb-1">{KO_DAYS[d.getDay()]}</span>
               <span className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                isSelected ? "bg-maul text-ink font-bold" : isToday ? "bg-maul/30 text-ink" : "text-ink"
+                isSelected ? "bg-maul text-white font-bold" : isToday ? "bg-maul/30 text-ink" : "text-ink"
               }`}>
                 {d.getDate()}
               </span>
