@@ -9,8 +9,11 @@ if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
 elif SQLALCHEMY_DATABASE_URL.startswith("postgresql://"):
     SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 
-# SQLite는 check_same_thread 옵션 필요, PostgreSQL은 불필요
-connect_args = {"check_same_thread": False} if SQLALCHEMY_DATABASE_URL.startswith("sqlite") else {}
+# SQLite는 check_same_thread 옵션 필요, PostgreSQL(Supabase)은 SSL 필요
+if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+else:
+    connect_args = {"sslmode": "require"}
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

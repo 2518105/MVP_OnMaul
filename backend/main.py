@@ -13,7 +13,10 @@ from app.routers import auth, posts, bus, admin, events, hanmadi, users
 from app.seed import seed
 from app.database import SessionLocal
 
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"[WARNING] DB 테이블 생성 실패 (이미 존재하거나 연결 오류): {e}")
 
 app = FastAPI(
     title="온마을 API",
