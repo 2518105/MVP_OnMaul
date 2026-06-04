@@ -22,33 +22,20 @@ export default function KakaoCallback() {
     sessionStorage.setItem(key, "1");
 
     const redirectUri = `${window.location.origin}/auth/kakao/callback`;
-
-    // 네트워크 에러 시 최대 3회 재시도 (Render 슬립 대응)
-    async function tryLogin(retries = 3) {
-      for (let i = 0; i < retries; i++) {
-        try {
-          const data = await kakaoLogin(code, redirectUri);
-          sessionStorage.removeItem(key);
-          if (!data.onboarding_completed) {
-            navigate("/onboarding", { replace: true });
-          } else {
-            navigate("/home", { replace: true });
-          }
-          return;
-        } catch (err) {
-          const isNetwork = !err.response;
-          if (isNetwork && i < retries - 1) {
-            await new Promise(r => setTimeout(r, 3000));
-            continue;
-          }
-          sessionStorage.removeItem(key);
-          const msg = err.response?.data?.detail || err.message || "카카오 로그인 오류";
-          setErrorMsg(msg);
-          return;
+    kakaoLogin(code, redirectUri)
+      .then((data) => {
+        sessionStorage.removeItem(key);
+        if (!data.onboarding_completed) {
+          navigate("/onboarding", { replace: true });
+        } else {
+          navigate("/home", { replace: true });
         }
-      }
-    }
-    tryLogin();
+      })
+      .catch((err) => {
+        sessionStorage.removeItem(key);
+        const msg = err.response?.data?.detail || err.message || "카카오 로그인 오류";
+        setErrorMsg(msg);
+      });
   }, []);
 
   if (errorMsg) {
@@ -69,7 +56,7 @@ export default function KakaoCallback() {
         <span className="w-2.5 h-2.5 rounded-full bg-maul-dark dot-bounce" />
         <span className="w-2.5 h-2.5 rounded-full bg-maul-dark dot-bounce" />
       </div>
-      <p className="text-sub text-sm">카카오 로그인 중...</p>
+      <p className="text-sub text-sm">로그인 중입니다. 잠시만 기다려주세요...</p>
     </div>
   );
 }
