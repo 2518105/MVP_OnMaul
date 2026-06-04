@@ -21,23 +21,24 @@ export default function LoginPage() {
   const [params] = useSearchParams();
   const next = params.get("next") || "";
   const [serverReady, setServerReady] = useState(false);
+  const [serverError, setServerError] = useState(false);
 
-  // 백엔드가 준비될 때까지 카카오 버튼 비활성화
+  // 백엔드가 실제로 준비될 때까지 카카오 버튼 비활성화
   useEffect(() => {
     let cancelled = false;
     async function wakeServer() {
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 3; i++) {
         try {
-          await api.get("/health", { timeout: 15000 });
+          // 60초 대기 — Render 콜드 스타트 최대 소요시간
+          await api.get("/health", { timeout: 60000 });
           if (!cancelled) setServerReady(true);
           return;
         } catch {
           if (cancelled) return;
-          await new Promise(r => setTimeout(r, 3000));
+          if (i < 2) await new Promise(r => setTimeout(r, 2000));
         }
       }
-      // 5회 실패해도 일단 버튼 활성화
-      if (!cancelled) setServerReady(true);
+      if (!cancelled) setServerError(true);
     }
     wakeServer();
     return () => { cancelled = true; };
@@ -53,15 +54,21 @@ export default function LoginPage() {
       </div>
 
       <div className="flex-1 flex flex-col justify-center gap-4 fade-in-1">
-        <button
-          type="button"
-          onClick={initiateKakaoOAuth}
-          disabled={!serverReady}
-          className="w-full flex items-center justify-center gap-2 bg-[#FEE500] text-[#191919] font-semibold py-4 rounded-xl hover:bg-[#f5dc00] active:bg-[#e5d500] transition-colors text-base disabled:opacity-60"
-        >
-          <KakaoIcon />
-          {serverReady ? "카카오로 로그인" : "서버 연결 중..."}
-        </button>
+        {serverError ? (
+          <div className="w-full text-center py-4 rounded-xl bg-red-50 text-red-500 text-sm">
+            서버에 연결할 수 없어요.<br />잠시 후 새로고침 해주세요.
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={initiateKakaoOAuth}
+            disabled={!serverReady}
+            className="w-full flex items-center justify-center gap-2 bg-[#FEE500] text-[#191919] font-semibold py-4 rounded-xl hover:bg-[#f5dc00] active:bg-[#e5d500] transition-colors text-base disabled:opacity-60"
+          >
+            <KakaoIcon />
+            {serverReady ? "카카오로 로그인" : "서버 연결 중... (최대 1분)"}
+          </button>
+        )}
       </div>
 
       <div className="mt-6 text-center fade-in-2">
