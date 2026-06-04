@@ -5,7 +5,15 @@ export default function SplashScreen() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const timer = setTimeout(() => navigate("/home"), 1800);
+    const timer = setTimeout(() => {
+      const token = localStorage.getItem("token");
+      const onboardingDone = localStorage.getItem("onboarding_completed") === "true";
+      if (token && !onboardingDone) {
+        navigate("/onboarding");
+      } else {
+        navigate("/home");
+      }
+    }, 1800);
     return () => clearTimeout(timer);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

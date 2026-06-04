@@ -27,6 +27,8 @@ function ProfileIcon() {
 export default function HomePage() {
   const navigate = useNavigate();
   const currentUser = getUser();
+  const onboardingDone = localStorage.getItem("onboarding_completed") === "true";
+  const displayName = onboardingDone ? (currentUser?.nickname ?? "이웃") : "이웃";
 
   const [showLoginSheet, setShowLoginSheet] = useState(false);
   const [questionText, setQuestionText] = useState("");
@@ -95,7 +97,7 @@ export default function HomePage() {
       {/* (2) 헤더 — 닉네임 초록, 질문 굵게 */}
       <div className="px-5 pt-1 pb-5 fade-in">
         <p className="font-bold leading-snug" style={{ fontSize: "28px" }}>
-          <span style={{ color: "#629c6b" }}>{currentUser?.nickname ?? "이웃"}</span>
+          <span style={{ color: "#629c6b" }}>{displayName}</span>
           <span className="text-ink"> 님,</span>
         </p>
         {questionText ? (
