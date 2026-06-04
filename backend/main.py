@@ -51,36 +51,42 @@ app.include_router(users.router, prefix="/api")
 
 @app.on_event("startup")
 def on_startup():
-    # kakao_id 컬럼이 없는 기존 DB 자동 마이그레이션
-    with engine.connect() as conn:
-        for stmt in [
-            "ALTER TABLE users ADD COLUMN kakao_id VARCHAR(50)",
-            "ALTER TABLE users ADD COLUMN village_name VARCHAR(100)",
-            "ALTER TABLE users ADD COLUMN onboarding_completed BOOLEAN NOT NULL DEFAULT FALSE",
-            "ALTER TABLE notices ADD COLUMN external_id VARCHAR(200)",
-            "CREATE UNIQUE INDEX IF NOT EXISTS ix_notices_external_id ON notices(external_id)",
-            "ALTER TABLE notices ADD COLUMN published_at DATETIME",
-            "ALTER TABLE notices ADD COLUMN view_count INTEGER DEFAULT 0",
-            "ALTER TABLE notices ADD COLUMN source_url VARCHAR(500)",
-            "ALTER TABLE notices ADD COLUMN is_external BOOLEAN DEFAULT FALSE",
-            "ALTER TABLE bus_routes ADD COLUMN badge VARCHAR(20)",
-            "ALTER TABLE bus_routes ADD COLUMN origin VARCHAR(100)",
-            "ALTER TABLE bus_routes ADD COLUMN destination VARCHAR(100)",
-            "ALTER TABLE bus_routes ADD COLUMN is_bidirectional BOOLEAN DEFAULT TRUE",
-            "ALTER TABLE bus_routes ADD COLUMN trips_per_day INTEGER",
-            "ALTER TABLE bus_route_stops ADD COLUMN stop_code VARCHAR(20)",
-        ]:
-            try:
-                conn.execute(text(stmt))
-                conn.commit()
-            except Exception:
-                conn.rollback()
-
-    db = SessionLocal()
     try:
-        seed(db)
-    finally:
-        db.close()
+        # kakao_id 컬럼이 없는 기존 DB 자동 마이그레이션
+        with engine.connect() as conn:
+            for stmt in [
+                "ALTER TABLE users ADD COLUMN kakao_id VARCHAR(50)",
+                "ALTER TABLE users ADD COLUMN village_name VARCHAR(100)",
+                "ALTER TABLE users ADD COLUMN onboarding_completed BOOLEAN NOT NULL DEFAULT FALSE",
+                "ALTER TABLE notices ADD COLUMN external_id VARCHAR(200)",
+                "CREATE UNIQUE INDEX IF NOT EXISTS ix_notices_external_id ON notices(external_id)",
+                "ALTER TABLE notices ADD COLUMN published_at DATETIME",
+                "ALTER TABLE notices ADD COLUMN view_count INTEGER DEFAULT 0",
+                "ALTER TABLE notices ADD COLUMN source_url VARCHAR(500)",
+                "ALTER TABLE notices ADD COLUMN is_external BOOLEAN DEFAULT FALSE",
+                "ALTER TABLE bus_routes ADD COLUMN badge VARCHAR(20)",
+                "ALTER TABLE bus_routes ADD COLUMN origin VARCHAR(100)",
+                "ALTER TABLE bus_routes ADD COLUMN destination VARCHAR(100)",
+                "ALTER TABLE bus_routes ADD COLUMN is_bidirectional BOOLEAN DEFAULT TRUE",
+                "ALTER TABLE bus_routes ADD COLUMN trips_per_day INTEGER",
+                "ALTER TABLE bus_route_stops ADD COLUMN stop_code VARCHAR(20)",
+            ]:
+                try:
+                    conn.execute(text(stmt))
+                    conn.commit()
+                except Exception:
+                    conn.rollback()
+    except Exception as e:
+        print(f"[WARNING] 마이그레이션 실패: {e}")
+
+    try:
+        db = SessionLocal()
+        try:
+            seed(db)
+        finally:
+            db.close()
+    except Exception as e:
+        print(f"[WARNING] Seed 실패: {e}")
 
 
 @app.get("/api/health")
