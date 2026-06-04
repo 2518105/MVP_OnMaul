@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { initiateKakaoOAuth } from "../../api/auth";
+import api from "../../api/client";
 
 function KakaoIcon() {
   return (
@@ -18,6 +20,11 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = params.get("next") || "";
+
+  // Render 슬립 방지: 페이지 진입 시 백엔드 미리 깨움
+  useEffect(() => {
+    api.get("/health").catch(() => {});
+  }, []);
 
   return (
     <div className="min-h-screen bg-white flex flex-col px-6 pt-16 pb-10">
