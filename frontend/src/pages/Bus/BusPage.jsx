@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { logEvent } from "../../api/client";
+import { BUS_ROUTES } from "../../constants/busData";
 
 const FAV_KEY = "bus_favorites";
 function getFavs() {
@@ -21,7 +22,7 @@ export default function BusPage() {
     logEvent("bus_tab_open");
     api.get("/bus/routes")
       .then(res => setRoutes(res.data))
-      .catch(err => setError("노선 정보를 불러오지 못했어요"))
+      .catch(() => setRoutes(BUS_ROUTES))
       .finally(() => setLoading(false));
   }, []);
 

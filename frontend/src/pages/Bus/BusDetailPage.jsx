@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/client";
+import { BUS_ROUTES } from "../../constants/busData";
 
 const FAV_KEY = "bus_favorites";
 function getFavs() {
@@ -21,7 +22,7 @@ export default function BusDetailPage() {
   useEffect(() => {
     api.get(`/bus/routes/${routeId}`)
       .then(res => setRoute(res.data))
-      .catch(() => setRoute(null))
+      .catch(() => setRoute(BUS_ROUTES.find(r => r.id === routeId) ?? null))
       .finally(() => setLoading(false));
   }, [routeId]);
 
