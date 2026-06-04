@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { initiateKakaoOAuth } from "../../api/auth";
 import api from "../../api/client";
@@ -20,10 +20,27 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = params.get("next") || "";
+  const [serverReady, setServerReady] = useState(false);
 
-  // Render 슬립 방지: 페이지 진입 시 백엔드 미리 깨움
+  // 백엔드가 준비될 때까지 카카오 버튼 비활성화
   useEffect(() => {
-    api.get("/health").catch(() => {});
+    let cancelled = false;
+    async function wakeServer() {
+      for (let i = 0; i < 5; i++) {
+        try {
+          await api.get("/health", { timeout: 15000 });
+          if (!cancelled) setServerReady(true);
+          return;
+        } catch {
+          if (cancelled) return;
+          await new Promise(r => setTimeout(r, 3000));
+        }
+      }
+      // 5회 실패해도 일단 버튼 활성화
+      if (!cancelled) setServerReady(true);
+    }
+    wakeServer();
+    return () => { cancelled = true; };
   }, []);
 
   return (
@@ -39,10 +56,11 @@ export default function LoginPage() {
         <button
           type="button"
           onClick={initiateKakaoOAuth}
-          className="w-full flex items-center justify-center gap-2 bg-[#FEE500] text-[#191919] font-semibold py-4 rounded-xl hover:bg-[#f5dc00] active:bg-[#e5d500] transition-colors text-base"
+          disabled={!serverReady}
+          className="w-full flex items-center justify-center gap-2 bg-[#FEE500] text-[#191919] font-semibold py-4 rounded-xl hover:bg-[#f5dc00] active:bg-[#e5d500] transition-colors text-base disabled:opacity-60"
         >
           <KakaoIcon />
-          카카오로 로그인
+          {serverReady ? "카카오로 로그인" : "서버 연결 중..."}
         </button>
       </div>
 
