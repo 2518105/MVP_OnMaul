@@ -1,6 +1,10 @@
 import os
+import logging
+import traceback
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
+
+logger = logging.getLogger(__name__)
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from typing import Optional
@@ -102,45 +106,65 @@ def kakao_login(req: KakaoLoginRequest, db: Session = Depends(get_db)):
     if KAKAO_CLIENT_SECRET:
         token_payload["client_secret"] = KAKAO_CLIENT_SECRET
 
-    token_res = httpx.post(
-        "https://kauth.kakao.com/oauth/token",
-        data=token_payload,
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
-        timeout=10,
-    )
-    token_data = token_res.json()
+    try:
+        token_res = httpx.post(
+            "https://kauth.kakao.com/oauth/token",
+            data=token_payload,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            timeout=10,
+        )
+        token_data = token_res.json()
+    except Exception as e:
+        logger.error(f"[kakao] 토큰 요청 실패: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=502, detail=f"카카오 토큰 요청 실패: {str(e)}")
+
     kakao_access_token = token_data.get("access_token")
     if not kakao_access_token:
         err_code = token_data.get("error", "")
         err_desc = token_data.get("error_description", "알 수 없는 오류")
+        logger.warning(f"[kakao] 토큰 교환 실패: {err_code} - {err_desc}")
         raise HTTPException(status_code=400, detail=f"카카오 인증 실패 ({err_code}): {err_desc}")
 
     # 2. 사용자 프로필 조회
-    profile_res = httpx.get(
-        "https://kapi.kakao.com/v2/user/me",
-        headers={"Authorization": f"Bearer {kakao_access_token}"},
-        timeout=10,
-    )
-    profile = profile_res.json()
+    try:
+        profile_res = httpx.get(
+            "https://kapi.kakao.com/v2/user/me",
+            headers={"Authorization": f"Bearer {kakao_access_token}"},
+            timeout=10,
+        )
+        profile = profile_res.json()
+    except Exception as e:
+        logger.error(f"[kakao] 프로필 조회 실패: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=502, detail=f"카카오 프로필 조회 실패: {str(e)}")
+
     kakao_id = str(profile.get("id", ""))
+    if not kakao_id:
+        logger.error(f"[kakao] 프로필에 id 없음: {profile}")
+        raise HTTPException(status_code=502, detail="카카오 사용자 ID를 가져올 수 없습니다")
+
     kakao_account = profile.get("kakao_account", {})
     nickname = kakao_account.get("profile", {}).get("nickname") or f"카카오{kakao_id[-4:]}"
 
     # 3. DB에서 기존 사용자 조회 or 신규 생성
-    user = db.query(User).filter(User.kakao_id == kakao_id).first()
-    is_new = user is None
-    if is_new:
-        user = User(
-            username=f"kakao_{kakao_id}",
-            nickname=nickname,
-            hashed_password="",
-            kakao_id=kakao_id,
-            user_type=UserType.immigrant,
-            onboarding_completed=False,
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+    try:
+        user = db.query(User).filter(User.kakao_id == kakao_id).first()
+        is_new = user is None
+        if is_new:
+            user = User(
+                username=f"kakao_{kakao_id}",
+                nickname=nickname,
+                hashed_password="",
+                kakao_id=kakao_id,
+                user_type=UserType.immigrant,
+                onboarding_completed=False,
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+    except Exception as e:
+        db.rollback()
+        logger.error(f"[kakao] DB 저장 실패: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"사용자 저장 실패: {str(e)}")
 
     token = create_access_token({"sub": str(user.id)})
     return TokenResponse(
