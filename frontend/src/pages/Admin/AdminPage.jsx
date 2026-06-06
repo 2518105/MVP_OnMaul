@@ -214,15 +214,6 @@ export default function AdminPage() {
       {/* 공지 탭 */}
       {tab === "notice" && (
         <div className="px-4 space-y-3 fade-in pt-2">
-          {isAdmin && (
-            <button
-              onClick={handleCrawl}
-              disabled={crawling}
-              className="w-full py-2.5 rounded-xl bg-maul text-white text-sm font-semibold disabled:opacity-60"
-            >
-              {crawling ? "공지 수집 중..." : "🔄 옥천군 공지 새로고침 (관리자)"}
-            </button>
-          )}
           {externalNotices.length === 0 ? (
             <div className="bg-white rounded-2xl p-8 text-center text-sub text-sm shadow-sm">
               등록된 공지사항이 없어요

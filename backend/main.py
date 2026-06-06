@@ -88,6 +88,23 @@ def on_startup():
     except Exception as e:
         print(f"[WARNING] Seed 실패: {e}")
 
+    # 서버 시작 시 옥천군 공지 자동 크롤링
+    try:
+        from app.crawlers.external_notices import ExternalNoticeCrawler
+        from app.models.models import User, UserType
+        db = SessionLocal()
+        try:
+            admin = db.query(User).filter(User.user_type == UserType.admin).first()
+            if admin:
+                notices = ExternalNoticeCrawler.fetch_notices()
+                if notices:
+                    ExternalNoticeCrawler.upsert_to_db(notices, admin.id)
+                    print(f"[OK] 공지 크롤링 완료: {len(notices)}건")
+        finally:
+            db.close()
+    except Exception as e:
+        print(f"[WARNING] 공지 크롤링 실패: {e}")
+
 
 @app.get("/api/health")
 def health():
