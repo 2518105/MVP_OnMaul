@@ -58,7 +58,7 @@ export default function BusDetailPage() {
     setTab("schedule");
   }
 
-  const currentDir = (dir === "up" && route.up) ? route.up : route.down;
+  const currentDir = (dir === "up" && route.up?.stops?.length) ? route.up : (route.down ?? { label: "", stops: [] });
   const arrow = route.isBidirectional ? "↔" : "→";
 
   return (
@@ -120,7 +120,7 @@ export default function BusDetailPage() {
                 : "border-gray-300 text-sub bg-white"
             }`}
           >
-            {route.down.label}
+            {route.down?.label}
           </button>
           <button
             onClick={() => setDir("up")}
@@ -137,7 +137,9 @@ export default function BusDetailPage() {
 
       {/* Content */}
       <div className="pb-24 mt-4">
-        {tab === "route" ? (
+        {currentDir.stops.length === 0 ? (
+          <p className="text-center py-12 text-sub text-sm">노선 정보가 준비 중이에요</p>
+        ) : tab === "route" ? (
           <RouteMap stops={currentDir.stops} onStopClick={handleStopClick} />
         ) : (
           <ScheduleTable stops={currentDir.stops} highlightedStop={highlightedStop} />

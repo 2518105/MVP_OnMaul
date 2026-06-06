@@ -173,7 +173,7 @@ def get_route_detail(number: str, db: Session = Depends(get_db)):
     def build_direction(direction: str):
         rows = [s for s in stops_rows if s.direction == direction]
         if not rows:
-            return None
+            return {"label": "", "stops": []}
         label = rows[0].direction_label or ""
         stops_out = []
         for s in rows:
