@@ -21,9 +21,9 @@ function Toast({ msg }) {
 
 function ActionSheet({ onEdit, onDelete, onClose }) {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end">
+    <div className="fixed inset-0 z-[60] flex flex-col justify-end">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white rounded-t-3xl px-5 pt-4 pb-10 max-w-[390px] mx-auto w-full">
+      <div className="relative bg-white rounded-t-3xl px-5 pt-4 pb-24 max-w-[390px] mx-auto w-full">
         <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
         <button
           onClick={onEdit}
@@ -64,9 +64,9 @@ function PostEditSheet({ post, onClose, onSave }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end">
+    <div className="fixed inset-0 z-[60] flex flex-col justify-end">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white rounded-t-3xl px-5 pt-6 pb-10 max-w-[390px] mx-auto w-full max-h-[85vh] overflow-y-auto">
+      <div className="relative bg-white rounded-t-3xl px-5 pt-6 pb-24 max-w-[390px] mx-auto w-full max-h-[85vh] overflow-y-auto">
         <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
         <h2 className="text-base font-bold text-ink mb-4">게시글 수정</h2>
 
@@ -116,9 +116,9 @@ function PostEditSheet({ post, onClose, onSave }) {
 
 function DeleteConfirmSheet({ onClose, onConfirm, deleting }) {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end">
+    <div className="fixed inset-0 z-[60] flex flex-col justify-end">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white rounded-t-3xl px-5 pt-6 pb-10 max-w-[390px] mx-auto w-full">
+      <div className="relative bg-white rounded-t-3xl px-5 pt-6 pb-24 max-w-[390px] mx-auto w-full">
         <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
         <p className="text-base font-bold text-ink text-center">게시글을 삭제할까요?</p>
         <p className="text-xs text-sub text-center mt-1 mb-6">삭제된 게시글은 복구할 수 없어요</p>

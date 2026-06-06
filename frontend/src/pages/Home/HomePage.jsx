@@ -94,17 +94,20 @@ export default function HomePage() {
         </button>
       </div>
 
-      {/* (2) 헤더 — 닉네임 초록, 질문 굵게 */}
+      {/* (2) 헤더 — 닉네임 초록, 질문 굵게 (최대 3줄) */}
       <div className="px-5 pt-1 pb-5 fade-in">
-        <p className="font-bold leading-snug" style={{ fontSize: "28px" }}>
-          <span style={{ color: "#629c6b" }}>{displayName}</span>
-          <span className="text-ink"> 님,</span>
+        <p
+          className="font-bold text-ink leading-snug"
+          style={{
+            fontSize: "28px",
+            whiteSpace: "pre-line",
+            overflow: "hidden",
+            maxHeight: "calc(28px * 1.375 * 2)",
+          }}
+        >
+          <span style={{ color: "#629c6b" }}>{displayName} 님, </span>
+          {questionText || <span className="text-ink/30">오늘의 질문을 생각하고 있어요</span>}
         </p>
-        {questionText ? (
-          <p className="font-bold text-ink mt-2 leading-snug" style={{ fontSize: "28px", whiteSpace: "pre-line" }}>{questionText}</p>
-        ) : (
-          <p className="font-bold text-ink/30 mt-2" style={{ fontSize: "28px" }}>오늘의 질문을 불러오는 중…</p>
-        )}
       </div>
 
       {/* (3) 초록 CTA 배너 */}
