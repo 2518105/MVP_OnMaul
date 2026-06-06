@@ -1,14 +1,15 @@
+import os
 from datetime import datetime
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.models import (
     Notice, MeetingMinutes, CalendarEvent,
-    NoticeCategory, ScheduleType, User
+    NoticeCategory, ScheduleType, User, UserType
 )
 from app.auth import get_current_user, require_user, require_admin
 from app.crawlers.external_notices import ExternalNoticeCrawler
@@ -324,6 +325,62 @@ def trigger_crawl(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"크롤링 실패: {str(e)}")
+
+# ---------- GitHub Actions 크롤링 수신 ----------
+
+class CrawlNoticeItem(BaseModel):
+    external_id: str
+    title: str
+    published_at: Optional[datetime] = None
+    view_count: int = 0
+    source_url: str
+
+
+@router.post("/crawl-ingest", summary="GitHub Actions 크롤링 데이터 수신")
+def crawl_ingest(
+    notices: List[CrawlNoticeItem],
+    x_crawl_secret: Optional[str] = Header(None),
+    db: Session = Depends(get_db),
+):
+    """
+    GitHub Actions에서 크롤링한 공지를 수신해 DB에 업서트합니다.
+    X-Crawl-Secret 헤더로 인증합니다 (JWT 불필요).
+    """
+    crawl_secret = os.environ.get("CRAWL_SECRET")
+    if not crawl_secret or x_crawl_secret != crawl_secret:
+        raise HTTPException(status_code=401, detail="인증 실패")
+
+    admin = db.query(User).filter(User.user_type == UserType.admin).first()
+    if not admin:
+        raise HTTPException(status_code=500, detail="관리자 계정 없음")
+
+    created, updated = 0, 0
+    for item in notices:
+        existing = db.query(Notice).filter(Notice.external_id == item.external_id).first()
+        if existing:
+            existing.title = item.title
+            existing.published_at = item.published_at
+            existing.view_count = item.view_count
+            existing.source_url = item.source_url
+            existing.is_external = True
+            updated += 1
+        else:
+            db.add(Notice(
+                title=item.title,
+                content=f"원본: {item.source_url}",
+                category=NoticeCategory.town_office,
+                published_at=item.published_at,
+                view_count=item.view_count,
+                source_url=item.source_url,
+                external_id=item.external_id,
+                is_external=True,
+                author_id=admin.id,
+            ))
+            created += 1
+
+    db.commit()
+    return {"status": "success", "created": created, "updated": updated, "total": len(notices)}
+
 
 # ---------- Public External Notices API ----------
 
