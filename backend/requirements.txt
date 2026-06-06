@@ -9,5 +9,5 @@ Pillow
 httpx>=0.26,<0.28
 supabase==2.10.0
 python-dotenv==1.0.1
-psycopg2-binary==2.9.9
+psycopg[binary]
 beautifulsoup4==4.12.3
