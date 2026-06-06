@@ -1,4 +1,5 @@
 import httpx
+import logging
 from bs4 import BeautifulSoup
 from datetime import datetime
 from typing import List, Dict
@@ -6,6 +7,8 @@ from sqlalchemy.orm import Session
 
 from app.models.models import Notice, NoticeCategory
 from app.database import SessionLocal
+
+logger = logging.getLogger(__name__)
 
 
 BASE_URL = "https://www.oc.go.kr/www/selectBbsNttList.do?bbsNo=91&key=796"
@@ -78,13 +81,15 @@ class ExternalNoticeCrawler:
                     # 날짜 파싱 (YYYY-MM-DD 형식)
                     try:
                         published_at = datetime.strptime(date_str, '%Y-%m-%d')
-                    except:
+                    except ValueError as e:
+                        logger.warning("날짜 파싱 실패 (id=%s, raw=%r): %s", external_id, date_str, e)
                         published_at = None
 
                     # 조회수 파싱
                     try:
                         view_count = int(view_count_str)
-                    except:
+                    except ValueError as e:
+                        logger.warning("조회수 파싱 실패 (id=%s, raw=%r): %s", external_id, view_count_str, e)
                         view_count = 0
                     
                     notices.append({
@@ -95,13 +100,13 @@ class ExternalNoticeCrawler:
                         'source_url': source_url,
                     })
                 except Exception as e:
-                    print(f"행 파싱 실패: {e}")
+                    logger.error("행 파싱 실패: %s", e, exc_info=True)
                     continue
-            
+
             return notices
-            
+
         except Exception as e:
-            print(f"크롤링 실패: {e}")
+            logger.error("크롤링 실패: %s", e, exc_info=True)
             return []
     
     @staticmethod
@@ -151,7 +156,8 @@ class ExternalNoticeCrawler:
             
         except Exception as e:
             db.rollback()
-            print(f"DB 업서트 실패: {e}")
+            logger.error("DB 업서트 실패: %s", e, exc_info=True)
+            raise
         finally:
             db.close()
 
