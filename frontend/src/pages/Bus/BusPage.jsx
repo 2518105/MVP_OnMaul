@@ -21,7 +21,7 @@ export default function BusPage() {
   useEffect(() => {
     logEvent("bus_tab_open");
     api.get("/bus/routes")
-      .then(res => setRoutes(res.data))
+      .then(res => setRoutes(Array.isArray(res.data) && res.data.length > 0 ? res.data : BUS_ROUTES))
       .catch(() => setRoutes(BUS_ROUTES))
       .finally(() => setLoading(false));
   }, []);
