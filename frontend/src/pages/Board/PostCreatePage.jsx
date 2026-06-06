@@ -119,21 +119,12 @@ export default function PostCreatePage() {
       {toast && <Toast msg={toast} />}
 
       {/* 헤더 */}
-      <header className="flex items-center justify-between px-5 pt-14 pb-3 bg-white sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="text-ink text-xl font-light">←</button>
-          <h1 className="text-base font-bold text-ink">새 글 쓰기</h1>
-        </div>
-        <button
-          onClick={handleSubmit}
-          disabled={loading || !form.title.trim() || !form.content.trim()}
-          className="bg-maul text-ink text-sm font-bold px-4 py-1.5 rounded-full disabled:opacity-40"
-        >
-          {loading ? "등록 중" : "등록"}
-        </button>
+      <header className="flex items-center gap-3 px-5 pt-14 pb-3 bg-white sticky top-0 z-10">
+        <button onClick={() => navigate(-1)} className="text-ink text-xl font-light">←</button>
+        <h1 className="text-base font-bold text-ink">새 글 쓰기</h1>
       </header>
 
-      <div className="px-4 space-y-4">
+      <div className="px-4 space-y-4 pb-32">
         {/* 카테고리 칩 */}
         <div>
           <div className="overflow-x-auto pb-1">
@@ -168,7 +159,7 @@ export default function PostCreatePage() {
         {/* 본문 */}
         <textarea
           className="input resize-none text-sm leading-relaxed"
-          rows={8}
+          rows={5}
           value={form.content}
           onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
           placeholder="본문을 입력하세요… (최대 2,000자)"
@@ -242,11 +233,14 @@ export default function PostCreatePage() {
           <p className="text-xs text-sub italic px-1 -mt-2">{interimText}</p>
         )}
 
-        {/* 하단 CTA */}
+      </div>
+
+      {/* 하단 고정 등록 버튼 */}
+      <div className="fixed bottom-16 left-1/2 -translate-x-1/2 w-full max-w-[390px] px-4 pb-3 bg-white border-t border-gray-100">
         <button
           onClick={handleSubmit}
           disabled={loading || !form.title.trim() || !form.content.trim()}
-          className="btn-maul mb-8"
+          className="btn-maul w-full"
         >
           {loading ? "등록 중..." : "등록하기"}
         </button>

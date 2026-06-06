@@ -157,7 +157,6 @@ export default function AdminPage() {
             {[
               { key: "schedule", label: "일정" },
               { key: "notice", label: "공지" },
-              { key: "minutes", label: "회의록" },
             ].map(t => (
               <button
                 key={t.key}
@@ -179,7 +178,7 @@ export default function AdminPage() {
 
       {/* 일정 탭 */}
       {tab === "schedule" && (
-        <div className="px-4 space-y-2 fade-in pt-2">
+        <div className="px-4 space-y-2 fade-in pt-2 pb-20">
           <p className="text-xs text-sub font-medium">
             {weekSelected.getMonth() + 1}월 {weekSelected.getDate()}일 ({KO_DAYS[weekSelected.getDay()]})
             {sameDay(weekSelected, new Date()) ? " · 오늘" : ""}
@@ -236,34 +235,22 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* 회의록 탭 */}
-      {tab === "minutes" && (
-        <div className="px-4 space-y-3 fade-in pt-2">
+      <div className="h-8" />
+
+      {/* 회의록 바로가기 — 하단 고정 */}
+      {tab === "schedule" && (
+        <div className="fixed bottom-16 left-1/2 -translate-x-1/2 w-full max-w-[390px] px-4 pb-3 z-40">
           <a
             href="https://www.oc.go.kr/www/selectBbsNttList.do?bbsNo=379&key=4664"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-between bg-maul rounded-2xl px-4 py-3 shadow-sm hover:shadow-md transition-shadow"
+            className="flex items-center justify-between bg-maul rounded-2xl px-4 py-3 shadow-lg"
           >
-            <span className="text-sm font-bold text-ink">청산면 회의록 바로가기</span>
+            <span className="text-sm font-bold text-ink">청산면 주민자치회 회의록 바로가기</span>
             <span className="text-xs text-white">옥천군 홈페이지 →</span>
           </a>
-          {meetings.map(m => (
-            <button
-              key={m.id}
-              onClick={() => navigate(`/admin/detail/${m.id}?type=meeting`)}
-              className="w-full text-left bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-xs text-sub">{new Date(m.meeting_date).toLocaleDateString("ko-KR")}</span>
-              </div>
-              <p className="text-sm font-bold text-ink leading-snug">{m.title}</p>
-            </button>
-          ))}
         </div>
       )}
-
-      <div className="h-8" />
     </div>
   );
 }

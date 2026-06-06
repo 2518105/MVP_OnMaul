@@ -227,7 +227,7 @@ export default function PostDetailPage() {
       setComments(prev => [...prev, { id: r.data.id, author: user.nickname, type: user.user_type, text: comment }]);
       logEvent("comment_created", { post_id: Number(id) });
     } catch {
-      setComments(prev => [...prev, { id: Date.now(), author: user?.nickname ?? "나", type: "이주민", text: comment }]);
+      setComments(prev => [...prev, { id: Date.now(), author: user?.nickname ?? "나", type: "손님", text: comment }]);
     }
     if (apiPost) addMyComment({ postId: Number(id), postTitle: apiPost.title, content: comment.trim() });
     setComment("");

@@ -5,8 +5,8 @@ import { logout, getUser } from "../../api/auth";
 
 const PHOTO_KEY = "profile_photo";
 const USER_TYPES = [
-  { value: "이주민", label: "이주민" },
-  { value: "주민", label: "청산면 주민" },
+  { value: "손님", label: "손님" },
+  { value: "주민", label: "주민" },
 ];
 
 function Toast({ msg }) {
@@ -78,7 +78,7 @@ function ProfileEditSheet({ profile, onClose, onSave }) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white rounded-t-3xl px-5 pt-6 pb-10 max-w-[390px] mx-auto w-full">
+      <div className="relative bg-white rounded-t-3xl px-5 pt-6 pb-24 max-w-[390px] mx-auto w-full">
         <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
         <h2 className="text-base font-bold text-ink mb-6">프로필 수정</h2>
 
@@ -247,7 +247,7 @@ export default function MyPage() {
       ),
     },
     {
-      label: "좋아요 한 글",
+      label: "좋아요",
       action: () => navigate("/mypage/activity?type=likes"),
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

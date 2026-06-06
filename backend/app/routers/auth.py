@@ -34,7 +34,7 @@ class RegisterRequest(BaseModel):
     username: str
     nickname: str
     password: str
-    user_type: str = "이주민"
+    user_type: str = "손님"
 
 
 class LoginRequest(BaseModel):

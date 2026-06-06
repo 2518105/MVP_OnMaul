@@ -10,7 +10,7 @@ from app.database import Base
 
 
 class UserType(str, enum.Enum):
-    immigrant = "이주민"
+    immigrant = "손님"
     resident = "주민"
     admin = "관리자"
 

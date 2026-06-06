@@ -74,7 +74,7 @@ export default function BusDetailPage() {
         </button>
         <div className="flex-1 flex items-center gap-2 min-w-0">
           <span className="font-extrabold text-maul leading-none" style={{ fontSize: "27px" }}>{route.id}</span>
-          <BadgePill badge={route.badge} />
+          <BadgePill badge={["651","661","671","681"].includes(route.id) ? null : route.badge} />
         </div>
         <button
           onClick={toggleFav}
@@ -168,7 +168,7 @@ function getDuplicateNames(stops) {
 function RouteMap({ stops, onStopClick }) {
   const dupNames = getDuplicateNames(stops);
   return (
-    <div className="px-5 space-y-0">
+    <div className="px-5">
       {stops.map((stop, i) => {
         const isFirst = i === 0;
         const isLast = i === stops.length - 1;
@@ -176,12 +176,12 @@ function RouteMap({ stops, onStopClick }) {
         return (
           <div
             key={i}
-            className="flex gap-3 cursor-pointer active:opacity-70"
+            className="flex items-stretch gap-3 cursor-pointer active:opacity-70"
             onClick={() => onStopClick(i)}
           >
             {/* Timeline column */}
             <div className="flex flex-col items-center w-7 flex-shrink-0">
-              <div className={`w-0.5 ${isFirst ? "h-3 opacity-0" : "h-3 bg-maul-dark"}`} />
+              <div className={`w-0.5 flex-1 ${isFirst ? "opacity-0" : "bg-maul-dark"}`} />
               <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold border-2 ${
                 isDup
                   ? "bg-red-100 border-red-400 text-red-600"
@@ -189,20 +189,20 @@ function RouteMap({ stops, onStopClick }) {
               }`}>
                 {i + 1}
               </div>
-              <div className={`w-0.5 flex-1 ${isLast ? "opacity-0" : "bg-maul-dark"}`} style={{ minHeight: "12px" }} />
+              <div className={`w-0.5 flex-1 ${isLast ? "opacity-0" : "bg-maul-dark"}`} />
             </div>
-            {/* Stop info */}
-            <div className={`pb-2 pt-1 flex-1 min-w-0 ${isLast ? "" : "border-b border-gray-100"}`}>
-              <p className={`text-sm leading-snug ${isDup ? "font-bold text-red-500" : "text-ink"}`}>
+            {/* Stop info — 원과 수평 정렬 */}
+            <div className={`flex items-center gap-2 flex-1 min-w-0 py-3 ${isLast ? "" : "border-b border-gray-100"}`}>
+              <p className={`text-sm leading-none ${isDup ? "font-bold text-red-500" : "text-ink"}`}>
                 {stop.name}
               </p>
               {isDup && (
-                <p className="text-[10px] text-red-400 mt-0.5">
-                  동명 다른 위치 {stop.stop_code ? `(${stop.stop_code})` : ""}
-                </p>
+                <span className="text-[10px] text-red-400 flex-shrink-0">
+                  동명 다른 위치{stop.stop_code ? ` (${stop.stop_code})` : ""}
+                </span>
               )}
               {stop.note && (
-                <p className="text-xs text-sub mt-0.5">{stop.note}</p>
+                <span className="text-xs text-sub flex-shrink-0">{stop.note}</span>
               )}
             </div>
           </div>

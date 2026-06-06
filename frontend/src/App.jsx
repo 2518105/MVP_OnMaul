@@ -5,7 +5,6 @@ import PostDetailPage from "./pages/Board/PostDetailPage";
 import PostCreatePage from "./pages/Board/PostCreatePage";
 import BusPage from "./pages/Bus/BusPage";
 import BusDetailPage from "./pages/Bus/BusDetailPage";
-import BusOnboarding from "./pages/Bus/BusOnboarding";
 import AdminPage from "./pages/Admin/AdminPage";
 import NoticePage from "./pages/Admin/NoticePage";
 import AdminDetailPage from "./pages/Admin/AdminDetailPage";
@@ -157,7 +156,6 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
           <Route path="/onboarding" element={<OnboardingScreen />} />
-          <Route path="/bus/onboarding" element={<BusOnboarding />} />
 
           {/* 바텀 네비 항상 표시 */}
           <Route element={<AppLayout />}>

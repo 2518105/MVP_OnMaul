@@ -123,7 +123,7 @@ export default function HomePage() {
         <div className="bg-white rounded-2xl shadow-sm p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-bold text-ink">이웃은 이렇게 생각해요</span>
-            <button onClick={() => navigate("/hanmadi/list")} className="text-xs text-maul">
+            <button onClick={() => navigate(`/hanmadi/list${questionId ? `?q=${questionId}` : ""}`)} className="text-xs text-maul">
               답변 모음 →
             </button>
           </div>

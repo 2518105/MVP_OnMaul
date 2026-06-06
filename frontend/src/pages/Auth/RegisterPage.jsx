@@ -3,15 +3,15 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { register } from "../../api/auth";
 
 const USER_TYPES = [
-  { value: "이주민", label: "이주민", desc: "귀농·귀촌·생활 이주" },
-  { value: "주민", label: "기존 주민", desc: "청산면 토박이 주민" },
+  { value: "손님", label: "손님", desc: "아직 청산면에 안 사는 사람" },
+  { value: "주민", label: "주민", desc: "청산면에 사는 사람" },
 ];
 
 export default function RegisterPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = params.get("next") || "";
-  const [form, setForm] = useState({ username: "", nickname: "", password: "", userType: "이주민" });
+  const [form, setForm] = useState({ username: "", nickname: "", password: "", userType: "손님" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 

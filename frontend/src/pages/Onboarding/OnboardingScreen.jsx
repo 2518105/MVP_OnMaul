@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { checkNickname, completeOnboarding } from "../../api/auth";
 
 const RESIDENT_TYPES = [
-  { value: "이주민", label: "이주민", desc: "청산면으로 이사 온 주민" },
-  { value: "주민", label: "기존 주민", desc: "오래 전부터 살아온 주민" },
+  { value: "손님", label: "손님", desc: "아직 청산면에 안 사는 사람" },
+  { value: "주민", label: "주민", desc: "청산면에 사는 사람" },
 ];
 
 export default function OnboardingScreen() {
