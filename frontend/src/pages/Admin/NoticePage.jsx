@@ -112,7 +112,17 @@ export default function NoticePage() {
         )}
       </div>
 
-      <div className="h-8" />
+      <div className="px-4 pt-4 pb-6">
+        <a
+          href="https://www.oc.go.kr/www/selectBbsNttList.do?bbsNo=36&key=232&"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between bg-maul rounded-2xl px-4 py-3 shadow-lg"
+        >
+          <span className="text-sm font-bold text-ink">더 보고싶다면? →</span>
+          <span className="text-xs text-white">옥천군 홈페이지 →</span>
+        </a>
+      </div>
     </div>
   );
 }

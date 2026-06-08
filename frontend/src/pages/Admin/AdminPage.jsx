@@ -235,6 +235,21 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* 더 보고싶다면 — 공지 탭 하단 */}
+      {tab === "notice" && (
+        <div className="px-4 pt-3 pb-6">
+          <a
+            href="https://www.oc.go.kr/www/selectBbsNttList.do?bbsNo=36&key=232&"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between bg-maul rounded-2xl px-4 py-3 shadow-lg"
+          >
+            <span className="text-sm font-bold text-ink">더 보고싶다면?</span>
+            <span className="text-xs text-white">옥천군 홈페이지 →</span>
+          </a>
+        </div>
+      )}
+
       <div className="h-8" />
 
       {/* 회의록 바로가기 — 하단 고정 */}
