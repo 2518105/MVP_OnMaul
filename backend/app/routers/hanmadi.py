@@ -1,13 +1,14 @@
 import os
 import uuid
-import time
-from datetime import datetime
+from datetime import datetime, timezone, timedelta, date
 from typing import Optional, List
+
+KST = timezone(timedelta(hours=9))
 
 import aiofiles
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from pydantic import BaseModel
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.auth import get_current_user, require_user
 from app.database import get_db
@@ -23,7 +24,9 @@ def get_today_question(db) -> HanMadiQuestion:
     questions = db.query(HanMadiQuestion).filter(HanMadiQuestion.is_active == True).order_by(HanMadiQuestion.order_index).all()
     if not questions:
         return None
-    idx = int(time.time() / 86400) % len(questions)
+    today_kst = datetime.now(KST).date()
+    days_since_epoch = (today_kst - date(2024, 1, 1)).days
+    idx = days_since_epoch % len(questions)
     return questions[idx]
 
 
@@ -96,7 +99,7 @@ def get_today(
 
     answers = (
         db.query(DailyAnswer)
-        .options(joinedload(DailyAnswer.reactions), joinedload(DailyAnswer.user))
+        .options(selectinload(DailyAnswer.reactions), selectinload(DailyAnswer.user))
         .filter(DailyAnswer.question_index == q.id)
         .order_by(DailyAnswer.created_at.desc())
         .limit(3)
