@@ -150,7 +150,6 @@ export default function PostDetailPage() {
   const [saved, setSaved] = useState(() => isPostSaved(Number(id)));
   const [toast, setToast] = useState("");
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-  const [showActionSheet, setShowActionSheet] = useState(false);
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -282,7 +281,10 @@ export default function PostDetailPage() {
             </svg>
           </button>
           {isMine && (
-            <button onClick={() => setShowActionSheet(true)} className="text-sub text-lg px-1">···</button>
+            <div className="flex items-center gap-3">
+              <button onClick={() => setShowEditSheet(true)} className="text-xs text-maul font-medium">수정하기</button>
+              <button onClick={() => setShowDeleteConfirm(true)} className="text-xs text-red-400 font-medium">삭제하기</button>
+            </div>
           )}
         </div>
       </header>
@@ -348,14 +350,6 @@ export default function PostDetailPage() {
       </div>
 
       {showLoginPrompt && <LoginPromptSheet onClose={() => setShowLoginPrompt(false)} />}
-
-      {showActionSheet && (
-        <ActionSheet
-          onEdit={() => { setShowActionSheet(false); setShowEditSheet(true); }}
-          onDelete={() => { setShowActionSheet(false); setShowDeleteConfirm(true); }}
-          onClose={() => setShowActionSheet(false)}
-        />
-      )}
 
       {showEditSheet && apiPost && (
         <PostEditSheet
