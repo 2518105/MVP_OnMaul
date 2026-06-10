@@ -3,14 +3,19 @@ import { useState } from "react";
 function DefaultAvatar({ size }) {
   return (
     <svg viewBox="0 0 36 36" fill="none" width={size} height={size} className="flex-shrink-0">
-      <circle cx="18" cy="18" r="18" fill="#e8f5e9" />
-      <ellipse cx="18" cy="14" rx="6" ry="6.5" fill="#639d6b" />
-      <ellipse cx="18" cy="32" rx="11" ry="9" fill="#639d6b" />
+      <defs>
+        <clipPath id="circle-clip">
+          <circle cx="18" cy="18" r="18" />
+        </clipPath>
+      </defs>
+      <circle cx="18" cy="18" r="18" fill="#e8f5e9" clipPath="url(#circle-clip)" />
+      <ellipse cx="18" cy="14" rx="6" ry="6.5" fill="#639d6b" clipPath="url(#circle-clip)" />
+      <ellipse cx="18" cy="32" rx="11" ry="9" fill="#639d6b" clipPath="url(#circle-clip)" />
     </svg>
   );
 }
 
-export default function UserAvatar({ nickname, photoUrl, size = 32 }) {
+export default function UserAvatar({ nickname, photoUrl, size = 26 }) {
   const [failed, setFailed] = useState(false);
 
   if (photoUrl && !failed) {
