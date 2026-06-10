@@ -75,7 +75,7 @@ function WeekDateBar({ selected, onSelect, events, weekBase, onPrevWeek, onNextW
         {weekDates.map((d, i) => {
           const isToday = sameDay(d, today);
           const isSelected = sameDay(d, selected);
-          const hasDot = events.some(e => sameDay(new Date(e.event_date), d));
+          const hasDot = events.some(e => sameDay(new Date(e.event_date + "T00:00:00"), d));
           return (
             <button key={i} onClick={() => onSelect(d)} className="flex flex-col items-center w-10">
               <span className="text-xs text-sub mb-1">{KO_DAYS[d.getDay()]}</span>
@@ -116,7 +116,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     logEvent("tab_view", { tab_name: "admin" });
-    api.get("/admin/calendar").then(r => setEvents(Array.isArray(r.data) ? r.data : [])).catch(() => {});
+    api.get("/admin-events").then(r => setEvents(Array.isArray(r.data) ? r.data : [])).catch(() => {});
     api.get("/admin/notices").then(r => setNotices(Array.isArray(r.data) ? r.data : [])).catch(() => {});
     api.get("/admin/external-notices?page=1&limit=30").then(r => setExternalNotices(Array.isArray(r.data) ? r.data : [])).catch(() => {});
     api.get("/admin/meetings").then(r => setMeetings(Array.isArray(r.data) ? r.data : [])).catch(() => {});
@@ -141,7 +141,7 @@ export default function AdminPage() {
     }
   }
 
-  const dayEvents = events.filter(e => sameDay(new Date(e.event_date), weekSelected));
+  const dayEvents = events.filter(e => sameDay(new Date(e.event_date + "T00:00:00"), weekSelected));
 
   return (
     <div className="min-h-screen">
@@ -189,22 +189,22 @@ export default function AdminPage() {
             </div>
           ) : (
             dayEvents.map(ev => (
-              <button
+              <div
                 key={ev.id}
-                onClick={() => navigate(`/admin/detail/${ev.id}?type=event`)}
-                className="w-full text-left bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition-shadow"
+                className="w-full text-left bg-white rounded-2xl shadow-sm p-4"
               >
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${HOST_COLOR[ev.event_type] ?? "bg-gray-100 text-gray-700"}`}>
-                    {ev.event_type}
-                  </span>
-                  <span className="text-xs text-sub ml-auto">
-                    {new Date(ev.event_date).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}
-                  </span>
+                  {ev.department && (
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${HOST_COLOR[ev.department] ?? "bg-gray-100 text-gray-700"}`}>
+                      {ev.department}
+                    </span>
+                  )}
+                  <span className="text-xs text-sub ml-auto">{ev.event_time}</span>
                 </div>
                 <p className="text-sm font-bold text-ink">{ev.title}</p>
-                {ev.description && <p className="text-xs text-sub mt-1">{ev.description}</p>}
-              </button>
+                {ev.place && <p className="text-xs text-sub mt-1">장소: {ev.place}</p>}
+                {ev.attendees != null && <p className="text-xs text-sub">참석: {ev.attendees}명</p>}
+              </div>
             ))
           )}
         </div>

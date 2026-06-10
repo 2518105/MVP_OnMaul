@@ -107,3 +107,20 @@ INSERT INTO daily_questions (text, answer_type, sort_order) VALUES
 ('청산면에서 꼭 가봐야 할 곳은?',                     'both', 28),
 ('오늘 어떤 일을 하셨나요?',                          'both', 29)
 ON CONFLICT DO NOTHING;
+
+-- ============================================================
+-- 행정 일정 (주요행사계획)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS admin_events (
+    id          BIGSERIAL PRIMARY KEY,
+    event_date  DATE        NOT NULL,
+    event_time  TEXT        NOT NULL,
+    title       TEXT        NOT NULL,
+    place       TEXT,
+    attendees   INTEGER,
+    department  TEXT,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_admin_events_date ON admin_events(event_date);
+ALTER TABLE admin_events ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "공개 읽기" ON admin_events FOR SELECT USING (true);
