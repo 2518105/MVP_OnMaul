@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import UserAvatar from "./UserAvatar";
+import { getAuthorPhoto } from "../api/auth";
 
 function DeleteConfirmModal({ onConfirm, onCancel }) {
   return createPortal(
@@ -69,7 +70,7 @@ export default function AnswerCard({ answer, onLike, onEdit, onDelete }) {
     <div className="bg-white rounded-2xl p-4 shadow-sm">
       {/* 헤더 */}
       <div className="flex items-center gap-2 mb-2">
-        <UserAvatar nickname={answer.author_nickname} photoUrl={answer.author_photo ?? null} size={32} />
+        <UserAvatar nickname={answer.author_nickname} photoUrl={getAuthorPhoto(answer.author_nickname)} size={32} />
         <div className="flex-1 min-w-0">
           <span className="text-sm font-semibold text-ink">{answer.author_nickname}</span>
           <span className="text-xs text-sub ml-1.5">{answer.author_type}</span>
