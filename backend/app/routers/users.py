@@ -276,6 +276,7 @@ def delete_account(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_user),
 ):
+    import os
     from app.models.models import (
         Post, Comment, PostLike, BusVote,
         DailyAnswer, AnswerReaction, Notice,
@@ -283,8 +284,19 @@ def delete_account(
     )
     uid = current_user.id
 
+    # 삭제할 파일 URL 수집 (DB 삭제 전에 먼저 모아둠)
+    file_urls = []
+    posts = db.query(Post).filter(Post.author_id == uid).all()
+    for post in posts:
+        if post.image_url:
+            file_urls.append(post.image_url)
+    answers = db.query(DailyAnswer).filter(DailyAnswer.user_id == uid).all()
+    for ans in answers:
+        if ans.media_url:
+            file_urls.append(ans.media_url)
+
     # 내가 쓴 게시글의 댓글·좋아요 (다른 사람 것 포함) 먼저 삭제
-    for post in db.query(Post).filter(Post.author_id == uid).all():
+    for post in posts:
         db.query(Comment).filter(Comment.post_id == post.id).delete()
         db.query(PostLike).filter(PostLike.post_id == post.id).delete()
         db.delete(post)
@@ -298,7 +310,7 @@ def delete_account(
     # 한마디 반응 (다른 사람 답변에 단 것)
     db.query(AnswerReaction).filter(AnswerReaction.user_id == uid).delete()
     # 내 한마디 답변 + 그 반응
-    for ans in db.query(DailyAnswer).filter(DailyAnswer.user_id == uid).all():
+    for ans in answers:
         db.query(AnswerReaction).filter(AnswerReaction.answer_id == ans.id).delete()
         db.delete(ans)
     # 공지·일정·회의록
@@ -310,4 +322,14 @@ def delete_account(
 
     db.delete(current_user)
     db.commit()
+
+    # DB 커밋 후 실제 파일 삭제 (/uploads/filename → uploads/filename)
+    for url in file_urls:
+        try:
+            rel = url.lstrip("/")  # "/uploads/abc.jpg" → "uploads/abc.jpg"
+            if os.path.isfile(rel):
+                os.remove(rel)
+        except Exception:
+            pass
+
     return {"ok": True}
