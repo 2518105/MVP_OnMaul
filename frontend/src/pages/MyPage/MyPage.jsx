@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import api from "../../api/client";
 import { logout, getUser } from "../../api/auth";
+import UserAvatar from "../../components/UserAvatar";
 
 const PHOTO_KEY = "profile_photo";
 const USER_TYPES = [
@@ -335,18 +336,12 @@ export default function MyPage() {
         {/* 프로필 카드 */}
         <div className="bg-white rounded-2xl p-5 shadow-sm">
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowEdit(true)}
-              className="w-20 h-20 rounded-full overflow-hidden bg-[#e8f5e9] flex-shrink-0 flex items-center justify-center"
-            >
-              {photo ? (
-                <img src={photo} alt="프로필" className="w-full h-full object-cover" />
-              ) : (
-                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#639d6b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-                </svg>
-              )}
+            <button onClick={() => setShowEdit(true)} className="flex-shrink-0">
+              <UserAvatar
+                nickname={profile?.nickname ?? ""}
+                photoUrl={profile?.photo_url || localStorage.getItem(PHOTO_KEY)}
+                size={80}
+              />
             </button>
             <div className="flex-1 min-w-0">
               <p className="text-xl font-bold text-maul leading-tight">{profile?.nickname}</p>

@@ -30,7 +30,7 @@ function ApiFeedItem({ post }) {
       <p className="text-sm font-semibold text-ink mb-2 leading-snug">{post.title}</p>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <UserAvatar nickname={post.author_nickname} photoUrl={post.author_photo ?? null} size={32} />
+          <UserAvatar nickname={post.author_nickname} photoUrl={post.author_photo} size={32} />
           <span className="text-xs text-sub">{post.author_nickname}</span>
           {post.author_type && (
             <span className="bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded text-[10px]">{post.author_type}</span>
