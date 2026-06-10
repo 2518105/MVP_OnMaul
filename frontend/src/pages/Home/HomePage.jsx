@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../../api/client";
 import { getUser } from "../../api/auth";
 import LoginPromptSheet from "../../components/LoginPromptSheet";
+import UserAvatar from "../../components/UserAvatar";
 
 function BellIcon() {
   return (
@@ -134,7 +135,7 @@ export default function HomePage() {
 
       {/* (4) 이웃 답변 카드 */}
       <div className="px-5 pb-4 fade-in-2">
-        <div className="bg-white rounded-2xl shadow-sm p-4">
+        <div className="bg-white rounded-2xl shadow-sm p-4 cursor-pointer" onClick={() => navigate(`/hanmadi/list${questionId ? `?q=${questionId}` : ""}`)}>
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-bold text-ink">이웃은 이렇게 생각해요</span>
             <button onClick={() => navigate(`/hanmadi/list${questionId ? `?q=${questionId}` : ""}`)} className="text-xs text-maul">
@@ -147,9 +148,7 @@ export default function HomePage() {
             <ul className="flex flex-col gap-3">
               {answers.slice(0, 3).map(a => (
                 <li key={a.id} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-maul flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                    {a.author_nickname?.[0] ?? "?"}
-                  </div>
+                  <UserAvatar nickname={a.author_nickname ?? "?"} photoUrl={a.author_photo ?? null} size={32} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-0.5">
                       <span className="text-xs font-semibold text-ink">{a.author_nickname}</span>

@@ -93,4 +93,4 @@ def on_startup():
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "app": "온마을"}
+    return {"status": "ok", "app": "온마을", "version": "1.1.0"}
