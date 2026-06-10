@@ -31,6 +31,7 @@ export default function HomePage() {
   const displayName = onboardingDone ? (currentUser?.nickname ?? "이웃") : "이웃";
 
   const [showLoginSheet, setShowLoginSheet] = useState(false);
+  const [bellToast, setBellToast] = useState(false);
   const [questionText, setQuestionText] = useState("");
   const [questionId, setQuestionId] = useState(null);
   const [answers, setAnswers] = useState([]);
@@ -51,8 +52,9 @@ export default function HomePage() {
     api.get("/admin/calendar")
       .then(r => {
         const now = new Date();
+        const in7days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
         const upcoming = (Array.isArray(r.data) ? r.data : [])
-          .filter(e => new Date(e.event_date) >= now)
+          .filter(e => { const d = new Date(e.event_date); return d >= now && d <= in7days; })
           .sort((a, b) => new Date(a.event_date) - new Date(b.event_date))
           .slice(0, 3);
         setEvents(upcoming);
@@ -81,10 +83,19 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#f1f1f1] pb-24">
       {showLoginSheet && <LoginPromptSheet onClose={() => setShowLoginSheet(false)} />}
+      {bellToast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-ink text-white text-sm px-4 py-2.5 rounded-full shadow-lg z-50 whitespace-nowrap">
+          알림 기능은 곧 추가될 예정이에요 😊
+        </div>
+      )}
 
       {/* (1) 상단 바 */}
       <div className="flex items-center justify-end px-5 pt-12 pb-2 gap-4">
-        <button aria-label="알림" className="flex flex-col items-center gap-0.5">
+        <button
+          aria-label="알림"
+          className="flex flex-col items-center gap-0.5"
+          onClick={() => { setBellToast(true); setTimeout(() => setBellToast(false), 2000); }}
+        >
           <BellIcon />
           <span className="text-[10px] font-bold" style={{ color: "#639d6b" }}>알림</span>
         </button>
@@ -214,7 +225,7 @@ export default function HomePage() {
         <div className="bg-[#f8f8f8] rounded-2xl shadow-sm p-4">
           <p className="text-base font-bold text-ink mb-3">이번 주 일정</p>
           {events.length === 0 ? (
-            <p className="text-xs text-sub/60">등록된 일정이 없어요</p>
+            <p className="text-xs text-sub/60">이번 주 등록된 일정이 없어요</p>
           ) : (
             <ul className="flex flex-col gap-2.5">
               {events.map(e => (

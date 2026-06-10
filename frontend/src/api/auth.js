@@ -63,6 +63,7 @@ export async function completeOnboarding({ nickname, residentType, villageName }
 }
 
 export function getUser() {
+  if (!localStorage.getItem("token")) return null;
   const u = localStorage.getItem("user");
   return u ? JSON.parse(u) : null;
 }

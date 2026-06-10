@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import api, { logEvent } from "../../api/client";
 import { getUser } from "../../api/auth";
 import LoginPromptSheet from "../../components/LoginPromptSheet";
+import { formatTimeAgo } from "../../utils/time";
 
 const CATEGORIES = [
   { value: "", label: "전체" },
@@ -16,14 +17,6 @@ const CATEGORIES = [
 
 function ApiFeedItem({ post }) {
   const navigate = useNavigate();
-  const timeAgo = (dateStr) => {
-    const utc = dateStr.endsWith("Z") ? dateStr : dateStr + "Z";
-    const diff = Date.now() - new Date(utc);
-    const h = Math.floor(diff / 3600000);
-    if (h < 1) return "방금 전";
-    if (h < 24) return `${h}시간 전`;
-    return `${Math.floor(h / 24)}일 전`;
-  };
   return (
     <button
       onClick={() => navigate(`/board/${post.id}`)}
@@ -31,7 +24,7 @@ function ApiFeedItem({ post }) {
     >
       <div className="flex items-center gap-2 mb-1">
         <span className="text-xs text-sub">{post.category}</span>
-        <span className="text-xs text-sub ml-auto">{timeAgo(post.created_at)}</span>
+        <span className="text-xs text-sub ml-auto">{formatTimeAgo(post.created_at)}</span>
       </div>
       <p className="text-sm font-semibold text-ink mb-2 leading-snug">{post.title}</p>
       <div className="flex items-center gap-3 text-xs text-sub">

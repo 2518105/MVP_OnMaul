@@ -87,6 +87,7 @@ def _post_out(post: Post, current_user: Optional[User], db: Session) -> PostOut:
 @router.get("", response_model=List[PostOut], summary="게시글 목록")
 def list_posts(
     category: Optional[str] = Query(None),
+    sort: Optional[str] = Query(None),
     skip: int = 0,
     limit: int = 20,
     db: Session = Depends(get_db),
@@ -95,7 +96,8 @@ def list_posts(
     q = db.query(Post).options(joinedload(Post.author), joinedload(Post.comments), joinedload(Post.likes))
     if category:
         q = q.filter(Post.category == category)
-    posts = q.order_by(Post.created_at.desc()).offset(skip).limit(limit).all()
+    order = Post.like_count.desc() if sort == "popular" else Post.created_at.desc()
+    posts = q.order_by(order).offset(skip).limit(limit).all()
     return [_post_out(p, current_user, db) for p in posts]
 
 

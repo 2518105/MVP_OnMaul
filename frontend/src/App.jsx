@@ -161,8 +161,8 @@ export default function App() {
           <Route element={<AppLayout />}>
             <Route path="/home" element={<HomePage />} />
             <Route path="/board" element={<BoardPage />} />
-            <Route path="/board/:id" element={<PostDetailPage />} />
             <Route path="/board/new" element={<PostCreatePage />} />
+            <Route path="/board/:id" element={<PostDetailPage />} />
             <Route path="/hanmadi" element={<HanMadiPage />} />
             <Route path="/hanmadi/list" element={<HanMadiListPage />} />
             <Route path="/bus" element={<BusPage />} />

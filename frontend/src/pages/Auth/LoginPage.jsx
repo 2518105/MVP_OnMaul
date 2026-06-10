@@ -59,15 +59,27 @@ export default function LoginPage() {
             서버에 연결할 수 없어요.<br />잠시 후 새로고침 해주세요.
           </div>
         ) : (
-          <button
-            type="button"
-            onClick={initiateKakaoOAuth}
-            disabled={!serverReady}
-            className="w-full flex items-center justify-center gap-2 bg-[#FEE500] text-[#191919] font-semibold py-4 rounded-xl hover:bg-[#f5dc00] active:bg-[#e5d500] transition-colors text-base disabled:opacity-60"
-          >
-            <KakaoIcon />
-            {serverReady ? "카카오로 로그인" : "서버 연결 중... (최대 1분)"}
-          </button>
+          <div className="flex flex-col gap-2">
+            {!serverReady && (
+              <div className="w-full h-1 rounded-full bg-yellow-100 overflow-hidden">
+                <div className="h-full bg-[#FEE500] rounded-full animate-pulse w-2/3" />
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={initiateKakaoOAuth}
+              disabled={!serverReady}
+              className="w-full flex items-center justify-center gap-2 bg-[#FEE500] text-[#191919] font-semibold py-4 rounded-xl hover:bg-[#f5dc00] active:bg-[#e5d500] transition-colors text-base disabled:opacity-60"
+            >
+              <KakaoIcon />
+              {serverReady ? "카카오로 로그인" : "서버 깨우는 중이에요 (최대 1분)"}
+            </button>
+            {!serverReady && (
+              <p className="text-center text-xs text-gray-400">
+                Render 무료 플랜은 첫 접속 시 잠시 기다려야 해요
+              </p>
+            )}
+          </div>
         )}
       </div>
 
