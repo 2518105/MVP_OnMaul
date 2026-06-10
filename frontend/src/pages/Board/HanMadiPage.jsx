@@ -35,6 +35,7 @@ export default function HanMadiPage() {
   const recognitionRef = useRef(null);
   const timerRef = useRef(null);
   const [submitting, setSubmitting] = useState(false);
+  const [likingIds, setLikingIds] = useState(new Set());
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [toast, setToast] = useState("");
 
@@ -150,6 +151,8 @@ export default function HanMadiPage() {
 
   async function handleLike(answerId) {
     if (!user) { setShowLoginPrompt(true); return; }
+    if (likingIds.has(answerId)) return;
+    setLikingIds(prev => new Set(prev).add(answerId));
     try {
       const r = await api.post(`/hanmadi/answers/${answerId}/like`);
       setAnswers(prev =>
@@ -158,7 +161,9 @@ export default function HanMadiPage() {
           : a
         )
       );
-    } catch {}
+    } catch {} finally {
+      setLikingIds(prev => { const s = new Set(prev); s.delete(answerId); return s; });
+    }
   }
 
   async function handleEdit(answerId, newContent) {

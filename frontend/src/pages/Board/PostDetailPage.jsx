@@ -149,6 +149,7 @@ export default function PostDetailPage() {
   const [comments, setComments] = useState([]);
   const [saved, setSaved] = useState(() => isPostSaved(Number(id)));
   const [toast, setToast] = useState("");
+  const [liking, setLiking] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -190,14 +191,19 @@ export default function PostDetailPage() {
 
   async function handleLike() {
     if (!user) { setShowLoginPrompt(true); return; }
-    const nowLiked = liked;
-    try { await api.post(`/posts/${id}/like`); } catch {}
-    setLiked(!nowLiked);
-    setLikeCount(v => nowLiked ? v - 1 : v + 1);
-    const snap = postSnapshot();
-    if (snap) {
-      if (!nowLiked) addLikedPost(snap);
-      else removeLikedPost(snap.id);
+    if (liking) return;
+    setLiking(true);
+    try {
+      const r = await api.post(`/posts/${id}/like`);
+      setLiked(r.data.liked);
+      setLikeCount(r.data.like_count);
+      const snap = postSnapshot();
+      if (snap) {
+        if (r.data.liked) addLikedPost(snap);
+        else removeLikedPost(snap.id);
+      }
+    } catch {} finally {
+      setLiking(false);
     }
   }
 
