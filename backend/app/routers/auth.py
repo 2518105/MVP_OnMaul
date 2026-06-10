@@ -165,7 +165,8 @@ def kakao_login(req: KakaoLoginRequest, db: Session = Depends(get_db)):
             db.commit()
             db.refresh(user)
         else:
-            user.photo_url = photo_url
+            if not user.photo_url:
+                user.photo_url = photo_url
             db.commit()
     except Exception as e:
         db.rollback()

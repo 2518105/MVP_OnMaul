@@ -67,14 +67,12 @@ function ProfileEditSheet({ profile, onClose, onSave }) {
   const [nickname, setNickname] = useState(profile.nickname);
   const [userType, setUserType] = useState(profile.user_type);
   const [photo, setPhoto] = useState(profile.photo_url || localStorage.getItem(PHOTO_KEY) || null);
-  const [photoFile, setPhotoFile] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   function handlePhoto(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setPhotoFile(file);
     const reader = new FileReader();
     reader.onload = ev => setPhoto(ev.target.result);
     reader.readAsDataURL(file);
@@ -89,7 +87,7 @@ function ProfileEditSheet({ profile, onClose, onSave }) {
     setError("");
     try {
       let photoUrl = photo;
-      if (photoFile) {
+      if (photo?.startsWith("data:")) {
         const { data: uploadData } = await api.patch("/users/me/photo", { photo_url: photo });
         photoUrl = uploadData.photo_url;
       }
