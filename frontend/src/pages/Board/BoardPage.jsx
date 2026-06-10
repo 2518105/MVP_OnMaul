@@ -32,6 +32,9 @@ function ApiFeedItem({ post }) {
         <div className="flex items-center gap-1.5">
           <UserAvatar nickname={post.author_nickname} photoUrl={post.author_photo ?? null} size={32} />
           <span className="text-xs text-sub">{post.author_nickname}</span>
+          {post.author_type && (
+            <span className="bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded text-[10px]">{post.author_type}</span>
+          )}
         </div>
         <div className="flex items-center gap-3 text-xs text-sub">
           <span className="flex items-center gap-1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>{post.comment_count ?? 0}</span>
