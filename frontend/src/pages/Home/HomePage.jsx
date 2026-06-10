@@ -150,9 +150,17 @@ export default function HomePage() {
                   <div className="w-8 h-8 rounded-full bg-maul flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                     {a.author_nickname?.[0] ?? "?"}
                   </div>
-                  <p className="text-sm text-ink flex-1 truncate">
-                    {a.content || "사진을 올렸어요"}
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <span className="text-xs font-semibold text-ink">{a.author_nickname}</span>
+                      {a.author_type && (
+                        <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{a.author_type}</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-ink/80 truncate">
+                      {a.content || "사진을 올렸어요"}
+                    </p>
+                  </div>
                   {a.like_count > 0 && (
                     <span className="bg-maul text-white text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
                       {a.like_count}
