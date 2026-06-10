@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api, { logEvent } from "../../api/client";
 import { getUser } from "../../api/auth";
 import LoginPromptSheet from "../../components/LoginPromptSheet";
+import UserAvatar from "../../components/UserAvatar";
 import {
   isPostSaved, savePost, unsavePost,
   addLikedPost, removeLikedPost,
@@ -164,7 +165,7 @@ export default function PostDetailPage() {
         const rawComments = r.data.comments;
         if (Array.isArray(rawComments) && rawComments.length) {
           setComments(rawComments.map(c => ({
-            id: c.id, author: c.author_nickname, type: c.author_type, text: c.content
+            id: c.id, author: c.author_nickname, type: c.author_type, text: c.content, author_photo: c.author_photo ?? null
           })));
         }
         logEvent("post_viewed", { post_id: Number(id), category: r.data.category });
@@ -229,10 +230,10 @@ export default function PostDetailPage() {
     setSubmitting(true);
     try {
       const r = await api.post(`/posts/${id}/comments`, { content: comment });
-      setComments(prev => [...prev, { id: r.data.id, author: user.nickname, type: user.user_type, text: comment }]);
+      setComments(prev => [...prev, { id: r.data.id, author: user.nickname, type: user.user_type, text: comment, author_photo: user.photo_url ?? null }]);
       logEvent("comment_created", { post_id: Number(id) });
     } catch {
-      setComments(prev => [...prev, { id: Date.now(), author: user?.nickname ?? "나", type: "손님", text: comment }]);
+      setComments(prev => [...prev, { id: Date.now(), author: user?.nickname ?? "나", type: "손님", text: comment, author_photo: user?.photo_url ?? null }]);
     }
     if (apiPost) addMyComment({ postId: Number(id), postTitle: apiPost.title, content: comment.trim() });
     setComment("");
@@ -298,9 +299,7 @@ export default function PostDetailPage() {
       <div className="px-5 pb-32">
         {/* 작성자 */}
         <div className="flex items-center gap-3 mb-4 fade-in">
-          <div className="w-10 h-10 rounded-full bg-maul flex items-center justify-center text-lg font-bold">
-            {apiPost.author_nickname[0]}
-          </div>
+          <UserAvatar nickname={apiPost.author_nickname} photoUrl={apiPost.author_photo ?? null} size={36} />
           <div>
             <span className="text-sm font-bold text-ink">{apiPost.author_nickname}</span>
             <p className="text-xs text-sub">{apiPost.author_type}</p>
@@ -343,9 +342,7 @@ export default function PostDetailPage() {
           {comments.map(c => (
             <div key={c.id} className="bg-white rounded-2xl p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-1.5">
-                <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-xs font-bold text-sub">
-                  {c.author[0]}
-                </div>
+                <UserAvatar nickname={c.author} photoUrl={c.author_photo ?? null} size={28} />
                 <span className="text-sm font-semibold text-ink">{c.author}</span>
                 <span className="text-xs text-sub">{c.type}</span>
               </div>
