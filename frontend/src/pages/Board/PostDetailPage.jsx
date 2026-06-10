@@ -10,7 +10,7 @@ import {
   addMyComment,
 } from "../../utils/activity";
 
-const CATEGORIES = ["동네 정보", "구인·구직", "나눔·거래", "질문"];
+const CATEGORIES = ["자유게시판", "동네 정보", "구인·구직", "나눔·거래", "질문"];
 
 function Toast({ msg }) {
   return (

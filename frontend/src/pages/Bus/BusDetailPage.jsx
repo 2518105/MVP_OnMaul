@@ -253,13 +253,19 @@ function ScheduleTable({ stops, highlightedStop }) {
               : isDup
                 ? "bg-red-50"
                 : i % 2 === 0 ? "bg-white" : "bg-gray-50";
+            // sticky 열은 스크롤 시 투명 배경이 겹치므로 반드시 불투명 색상 사용
+            const stickyBg = isHighlighted
+              ? "bg-green-100"
+              : isDup
+                ? "bg-red-50"
+                : i % 2 === 0 ? "bg-white" : "bg-gray-50";
             return (
               <tr
                 key={i}
                 ref={isHighlighted ? highlightRef : null}
                 className={rowBg}
               >
-                <td className={`sticky left-0 z-10 px-3 py-2 text-left border-r border-gray-100 text-xs ${rowBg} ${
+                <td className={`sticky left-0 z-10 px-3 py-2 text-left border-r border-gray-100 text-xs ${stickyBg} ${
                   isDup ? "font-bold text-red-500" : isHighlighted ? "font-bold text-maul" : "text-ink"
                 }`}>
                   <span>{stop.name}</span>

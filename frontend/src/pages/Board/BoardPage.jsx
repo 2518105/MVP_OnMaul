@@ -8,11 +8,11 @@ import UserAvatar from "../../components/UserAvatar";
 
 const CATEGORIES = [
   { value: "", label: "전체" },
+  { value: "자유게시판", label: "자유게시판" },
   { value: "동네 정보", label: "동네 정보" },
   { value: "질문", label: "질문" },
   { value: "구인·구직", label: "구인·구직" },
-  { value: "나눔·거래", label: "나눔·거래" },
-  { value: "자유게시판", label: "자유게시판" },
+  { value: "나눔·거래", label: "나눔·거래" }
 ];
 
 
