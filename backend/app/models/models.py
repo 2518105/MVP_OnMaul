@@ -27,7 +27,7 @@ class User(Base):
     village_name = Column(String(100), nullable=True)
     onboarding_completed = Column(Boolean, default=False, nullable=False)
     is_active = Column(Boolean, default=True)
-    photo_url = Column(String(500), nullable=True)
+    photo_url = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     posts = relationship("Post", back_populates="author")
