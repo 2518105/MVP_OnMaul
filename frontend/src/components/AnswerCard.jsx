@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
+import UserAvatar from "./UserAvatar";
 
 function DeleteConfirmModal({ onConfirm, onCancel }) {
   return createPortal(
@@ -68,9 +69,7 @@ export default function AnswerCard({ answer, onLike, onEdit, onDelete }) {
     <div className="bg-white rounded-2xl p-4 shadow-sm">
       {/* 헤더 */}
       <div className="flex items-center gap-2 mb-2">
-        <div className="w-8 h-8 rounded-full bg-maul flex items-center justify-center text-sm font-bold text-ink flex-shrink-0">
-          {answer.author_nickname[0]}
-        </div>
+        <UserAvatar nickname={answer.author_nickname} photoUrl={answer.author_photo ?? null} size={32} />
         <div className="flex-1 min-w-0">
           <span className="text-sm font-semibold text-ink">{answer.author_nickname}</span>
           <span className="text-xs text-sub ml-1.5">{answer.author_type}</span>
