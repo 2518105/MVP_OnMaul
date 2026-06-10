@@ -143,7 +143,9 @@ def kakao_login(req: KakaoLoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=502, detail="카카오 사용자 ID를 가져올 수 없습니다")
 
     kakao_account = profile.get("kakao_account", {})
-    nickname = kakao_account.get("profile", {}).get("nickname") or f"카카오{kakao_id[-4:]}"
+    kakao_profile = kakao_account.get("profile", {})
+    nickname = kakao_profile.get("nickname") or f"카카오{kakao_id[-4:]}"
+    photo_url = kakao_profile.get("thumbnail_image_url") or None
 
     # 3. DB에서 기존 사용자 조회 or 신규 생성
     try:
@@ -157,10 +159,14 @@ def kakao_login(req: KakaoLoginRequest, db: Session = Depends(get_db)):
                 kakao_id=kakao_id,
                 user_type=UserType.immigrant,
                 onboarding_completed=False,
+                photo_url=photo_url,
             )
             db.add(user)
             db.commit()
             db.refresh(user)
+        else:
+            user.photo_url = photo_url
+            db.commit()
     except Exception as e:
         db.rollback()
         logger.error(f"[kakao] DB 저장 실패: {e}\n{traceback.format_exc()}")

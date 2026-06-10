@@ -67,13 +67,3 @@ export function getUser() {
   const u = localStorage.getItem("user");
   return u ? JSON.parse(u) : null;
 }
-
-// 현재 로그인한 사용자의 프사만 localStorage에서 꺼낼 수 있음.
-// 다른 사람의 사진은 백엔드에 저장되지 않아 null 반환.
-export function getAuthorPhoto(nickname) {
-  const user = getUser();
-  if (user && user.nickname === nickname) {
-    return localStorage.getItem("profile_photo") || null;
-  }
-  return null;
-}

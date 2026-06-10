@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/client";
-import { getUser, getAuthorPhoto } from "../../api/auth";
+import { getUser } from "../../api/auth";
 import LoginPromptSheet from "../../components/LoginPromptSheet";
 import UserAvatar from "../../components/UserAvatar";
 
@@ -148,7 +148,7 @@ export default function HomePage() {
             <ul className="flex flex-col gap-3">
               {answers.slice(0, 3).map(a => (
                 <li key={a.id} className="flex items-center gap-3">
-                  <UserAvatar nickname={a.author_nickname ?? "?"} photoUrl={getAuthorPhoto(a.author_nickname)} size={32} />
+                  <UserAvatar nickname={a.author_nickname ?? "?"} photoUrl={a.author_photo ?? null} size={32} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-0.5">
                       <span className="text-xs font-semibold text-ink">{a.author_nickname}</span>

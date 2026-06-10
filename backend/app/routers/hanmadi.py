@@ -37,6 +37,7 @@ class AnswerOut(BaseModel):
     question_id: int
     author_nickname: str
     author_type: str
+    author_photo: Optional[str] = None
     content: Optional[str]
     media_url: Optional[str]
     created_at: datetime
@@ -76,6 +77,7 @@ def _build_answer_out(answer: DailyAnswer, current_user: Optional[User]) -> Answ
         question_id=answer.question_index,
         author_nickname=answer.user.nickname,
         author_type=answer.user.user_type.value,
+        author_photo=answer.user.photo_url,
         content=answer.content,
         media_url=answer.media_url,
         created_at=answer.created_at,
@@ -166,6 +168,7 @@ async def create_answer(
         question_id=answer.question_index,
         author_nickname=current_user.nickname,
         author_type=current_user.user_type.value,
+        author_photo=current_user.photo_url,
         content=answer.content,
         media_url=answer.media_url,
         created_at=answer.created_at,

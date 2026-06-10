@@ -65,13 +65,15 @@ function ProfileEditSheet({ profile, onClose, onSave }) {
   const fileRef = useRef(null);
   const [nickname, setNickname] = useState(profile.nickname);
   const [userType, setUserType] = useState(profile.user_type);
-  const [photo, setPhoto] = useState(localStorage.getItem(PHOTO_KEY) || null);
+  const [photo, setPhoto] = useState(profile.photo_url || localStorage.getItem(PHOTO_KEY) || null);
+  const [photoFile, setPhotoFile] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   function handlePhoto(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    setPhotoFile(file);
     const reader = new FileReader();
     reader.onload = ev => setPhoto(ev.target.result);
     reader.readAsDataURL(file);
@@ -85,15 +87,24 @@ function ProfileEditSheet({ profile, onClose, onSave }) {
     setSaving(true);
     setError("");
     try {
+      let photoUrl = photo;
+      if (photoFile) {
+        const fd = new FormData();
+        fd.append("file", photoFile);
+        const { data: uploadData } = await api.post("/users/me/photo/upload", fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        photoUrl = uploadData.photo_url;
+      }
       const { data } = await api.patch("/users/me/profile", {
         nickname: nickname.trim(),
         user_type: userType,
       });
-      if (photo) localStorage.setItem(PHOTO_KEY, photo);
+      if (photoUrl) localStorage.setItem(PHOTO_KEY, photoUrl);
       else localStorage.removeItem(PHOTO_KEY);
       const user = getUser();
       localStorage.setItem("user", JSON.stringify({ ...user, nickname: data.nickname }));
-      onSave(data, photo);
+      onSave({ ...data, photo_url: photoUrl }, photoUrl);
     } catch (err) {
       setError(err.response?.data?.detail || "저장 실패. 다시 시도해주세요.");
     } finally {
@@ -204,6 +215,10 @@ export default function MyPage() {
     try {
       const { data } = await api.get("/users/me");
       setProfile(data);
+      if (data.photo_url) {
+        setPhoto(data.photo_url);
+        localStorage.setItem(PHOTO_KEY, data.photo_url);
+      }
 
       api.get("/admin/calendar")
         .then(r => {

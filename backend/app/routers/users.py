@@ -1,13 +1,19 @@
+import os
+import uuid
 from datetime import datetime
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+import aiofiles
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
 from app.models.models import User, UserType, Post, PostLike, DailyAnswer, AnswerReaction
 from app.auth import require_user, hash_password, verify_password
+
+UPLOAD_DIR = "uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 router = APIRouter(prefix="/users", tags=["사용자"])
 
@@ -16,6 +22,7 @@ class UserProfile(BaseModel):
     id: int
     nickname: str
     user_type: str
+    photo_url: Optional[str] = None
     created_at: datetime
 
     class Config:
@@ -53,6 +60,10 @@ class ProfileUpdateRequest(BaseModel):
 class PasswordUpdateRequest(BaseModel):
     current_password: str
     new_password: str
+
+
+class PhotoUpdateRequest(BaseModel):
+    photo_url: str
 
 
 class OnboardingRequest(BaseModel):
@@ -117,6 +128,7 @@ def get_my_profile(current_user: User = Depends(require_user)):
         id=current_user.id,
         nickname=current_user.nickname,
         user_type=current_user.user_type.value,
+        photo_url=current_user.photo_url,
         created_at=current_user.created_at,
     )
 
@@ -166,6 +178,34 @@ def update_nickname(
         user_type=current_user.user_type.value,
         created_at=current_user.created_at,
     )
+
+
+@router.patch("/me/photo", summary="프로필 사진 URL 업데이트")
+def update_photo(
+    req: PhotoUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_user),
+):
+    current_user.photo_url = req.photo_url or None
+    db.commit()
+    return {"photo_url": current_user.photo_url}
+
+
+@router.post("/me/photo/upload", summary="프로필 사진 파일 업로드")
+async def upload_photo(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_user),
+):
+    ext = os.path.splitext(file.filename)[1] if file.filename else ".jpg"
+    filename = f"profile_{uuid.uuid4()}{ext}"
+    path = os.path.join(UPLOAD_DIR, filename)
+    async with aiofiles.open(path, "wb") as f:
+        await f.write(await file.read())
+    photo_url = f"/uploads/{filename}"
+    current_user.photo_url = photo_url
+    db.commit()
+    return {"photo_url": photo_url}
 
 
 @router.patch("/me/password", summary="비밀번호 변경")

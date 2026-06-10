@@ -25,6 +25,7 @@ class CommentOut(BaseModel):
     content: str
     author_nickname: str
     author_type: str
+    author_photo: Optional[str] = None
     created_at: datetime
 
     class Config:
@@ -39,6 +40,7 @@ class PostOut(BaseModel):
     image_url: Optional[str]
     author_nickname: str
     author_type: str
+    author_photo: Optional[str] = None
     like_count: int
     view_count: int
     comment_count: int
@@ -73,6 +75,7 @@ def _post_out(post: Post, current_user: Optional[User], db: Session) -> PostOut:
         image_url=post.image_url,
         author_nickname=post.author.nickname,
         author_type=post.author.user_type.value,
+        author_photo=post.author.photo_url,
         like_count=post.like_count,
         view_count=post.view_count,
         comment_count=len(post.comments),
@@ -123,6 +126,7 @@ def get_post(
             content=c.content,
             author_nickname=c.author.nickname,
             author_type=c.author.user_type.value,
+            author_photo=c.author.photo_url,
             created_at=c.created_at,
         )
         for c in post.comments
@@ -258,5 +262,6 @@ def create_comment(
         content=comment.content,
         author_nickname=comment.author.nickname,
         author_type=comment.author.user_type.value,
+        author_photo=comment.author.photo_url,
         created_at=comment.created_at,
     )
