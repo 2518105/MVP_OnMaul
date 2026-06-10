@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../../api/client";
 import { getUser } from "../../api/auth";
 import LoginPromptSheet from "../../components/LoginPromptSheet";
+import UserAvatar from "../../components/UserAvatar";
 
 function BellIcon() {
   return (
@@ -147,9 +148,7 @@ export default function HomePage() {
             <ul className="flex flex-col gap-3">
               {answers.slice(0, 3).map(a => (
                 <li key={a.id} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-maul flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                    {a.author_nickname?.[0] ?? "?"}
-                  </div>
+                  <UserAvatar nickname={a.author_nickname ?? "?"} photoUrl={a.author_photo ?? null} size={32} />
                   <p className="text-sm text-ink flex-1 truncate">
                     {a.content || "사진을 올렸어요"}
                   </p>
