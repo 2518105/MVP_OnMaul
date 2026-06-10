@@ -194,8 +194,8 @@ export default function HanMadiPage() {
     );
   }
 
-  const showText = question.type === "text" || question.type === "both";
-  const showMedia = question.type === "media" || question.type === "both";
+  const showText = true;
+  const showMedia = true;
 
   return (
     <div className="min-h-screen bg-[#f1f1f1]">
