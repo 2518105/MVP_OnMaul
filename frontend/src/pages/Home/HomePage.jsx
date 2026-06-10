@@ -134,7 +134,7 @@ export default function HomePage() {
 
       {/* (4) 이웃 답변 카드 */}
       <div className="px-5 pb-4 fade-in-2">
-        <div className="bg-white rounded-2xl shadow-sm p-4">
+        <div className="bg-white rounded-2xl shadow-sm p-4 cursor-pointer" onClick={() => navigate(`/hanmadi/list${questionId ? `?q=${questionId}` : ""}`)}>
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-bold text-ink">이웃은 이렇게 생각해요</span>
             <button onClick={() => navigate(`/hanmadi/list${questionId ? `?q=${questionId}` : ""}`)} className="text-xs text-maul">
