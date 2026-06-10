@@ -117,7 +117,7 @@ export default function HomePage() {
           }}
         >
           <span style={{ color: "#629c6b" }}>{displayName} 님, </span>
-          {questionText || <span className="text-ink/30">오늘의 질문을 생각하고 있어요</span>}
+          {questionText || <span className="text-ink/30">오늘의 질문을 생각하고 있어요!</span>}
         </p>
       </div>
 
