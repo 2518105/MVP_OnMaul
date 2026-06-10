@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route, NavLink, useLocation, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route, NavLink, Navigate, useLocation, Outlet } from "react-router-dom";
 import BoardPage from "./pages/Board/BoardPage";
 import PostDetailPage from "./pages/Board/PostDetailPage";
 import PostCreatePage from "./pages/Board/PostCreatePage";
@@ -10,7 +10,6 @@ import NoticePage from "./pages/Admin/NoticePage";
 import AdminDetailPage from "./pages/Admin/AdminDetailPage";
 import LoginPage from "./pages/Auth/LoginPage";
 import KakaoCallback from "./pages/Auth/KakaoCallback";
-import SplashPage from "./pages/Splash/SplashScreen";
 import SplashScreen from "./components/SplashScreen";
 import OnboardingScreen from "./pages/Onboarding/OnboardingScreen";
 import HomePage from "./pages/Home/HomePage";
@@ -137,6 +136,13 @@ function AppLayout() {
   );
 }
 
+function InitialRedirect() {
+  const token = localStorage.getItem("token");
+  const onboardingDone = localStorage.getItem("onboarding_completed") === "true";
+  if (token && !onboardingDone) return <Navigate to="/onboarding" replace />;
+  return <Navigate to="/home" replace />;
+}
+
 export default function App() {
   const [splashDone, setSplashDone] = useState(false);
   const [large, setLarge] = useState(() => localStorage.getItem("largeText") === "1");
@@ -157,7 +163,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           {/* 바텀 네비 없는 페이지 */}
-          <Route path="/" element={<SplashPage />} />
+          <Route path="/" element={<InitialRedirect />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
