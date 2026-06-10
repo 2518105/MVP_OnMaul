@@ -114,10 +114,7 @@ export default function HanMadiPage() {
     setInterimText("");
   }
 
-  const hasContent = (
-    (question?.type !== "media" && text.trim()) ||
-    (question?.type !== "text" && mediaFile)
-  );
+  const hasContent = text.trim() || mediaFile;
   const canSubmit = !submitting && (!user || hasContent);
 
   async function handleSubmit() {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { createPortal } from "react-dom";
 import api from "../../api/client";
 import { logout, getUser } from "../../api/auth";
 
@@ -32,6 +33,40 @@ function ProfileCircleIcon() {
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
       <circle cx="12" cy="7" r="4" />
     </svg>
+  );
+}
+
+function DeleteAccountModal({ onConfirm, onCancel, loading }) {
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+      onClick={onCancel}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-xl px-7 py-6 mx-4 w-full max-w-xs flex flex-col items-center gap-4"
+        onClick={e => e.stopPropagation()}
+      >
+        <p className="text-base font-semibold text-ink text-center">정말 탈퇴하시겠습니까?</p>
+        <p className="text-xs text-sub text-center -mt-2">탈퇴 시 모든 데이터가 삭제되며 복구할 수 없어요.</p>
+        <div className="flex gap-3 w-full">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-sub font-medium"
+          >
+            취소
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="flex-1 py-2.5 rounded-xl bg-red-500 text-sm text-white font-semibold disabled:opacity-50"
+          >
+            {loading ? "처리 중…" : "탈퇴"}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
   );
 }
 
@@ -158,6 +193,8 @@ export default function MyPage() {
   const [profile, setProfile] = useState(null);
   const [events, setEvents] = useState([]);
   const [showEdit, setShowEdit] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [photo, setPhoto] = useState(localStorage.getItem(PHOTO_KEY) || null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState("");
@@ -203,6 +240,20 @@ export default function MyPage() {
   function handleLogout() {
     logout();
     navigate("/login");
+  }
+
+  async function handleDeleteAccount() {
+    setDeleting(true);
+    try {
+      await api.delete("/users/me");
+      logout();
+      navigate("/login");
+    } catch {
+      showToast("탈퇴 처리 중 오류가 발생했어요. 다시 시도해주세요.");
+      setShowDeleteModal(false);
+    } finally {
+      setDeleting(false);
+    }
   }
 
   function fmtDate(dateStr) {
@@ -311,6 +362,13 @@ export default function MyPage() {
                 >
                   로그아웃
                 </button>
+                <span className="text-gray-300 text-xs">·</span>
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="text-xs text-gray-400 underline underline-offset-2"
+                >
+                  탈퇴하기
+                </button>
               </div>
             </div>
           </div>
@@ -366,6 +424,14 @@ export default function MyPage() {
           profile={profile}
           onClose={() => setShowEdit(false)}
           onSave={handleSave}
+        />
+      )}
+
+      {showDeleteModal && (
+        <DeleteAccountModal
+          onConfirm={handleDeleteAccount}
+          onCancel={() => setShowDeleteModal(false)}
+          loading={deleting}
         />
       )}
     </div>

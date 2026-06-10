@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../api/client";
 import { getUser } from "../../api/auth";
-import { getSavedPosts, getLikedPosts, getMyComments } from "../../utils/activity";
+import { getSavedPosts, getMyComments } from "../../utils/activity";
 
 const TYPE_LABELS = {
   posts: "내가 쓴 글",
@@ -32,7 +32,8 @@ export default function MyActivityPage() {
       } else if (type === "saves") {
         setItems(getSavedPosts());
       } else if (type === "likes") {
-        setItems(getLikedPosts());
+        const { data } = await api.get("/users/me/liked-posts");
+        setItems(Array.isArray(data) ? data : []);
       } else if (type === "comments") {
         setItems(getMyComments());
       }
