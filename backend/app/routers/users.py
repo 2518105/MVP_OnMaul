@@ -1,9 +1,6 @@
-import os
-import uuid
 from datetime import datetime
 from typing import List, Optional
 
-import aiofiles
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
@@ -11,9 +8,6 @@ from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models.models import User, UserType, Post, PostLike, DailyAnswer, AnswerReaction
 from app.auth import require_user, hash_password, verify_password
-
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 router = APIRouter(prefix="/users", tags=["사용자"])
 
@@ -191,21 +185,20 @@ def update_photo(
     return {"photo_url": current_user.photo_url}
 
 
-@router.post("/me/photo/upload", summary="프로필 사진 파일 업로드")
+@router.post("/me/photo/upload", summary="프로필 사진 파일 업로드 (Base64)")
 async def upload_photo(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_user),
 ):
-    ext = os.path.splitext(file.filename)[1] if file.filename else ".jpg"
-    filename = f"profile_{uuid.uuid4()}{ext}"
-    path = os.path.join(UPLOAD_DIR, filename)
-    async with aiofiles.open(path, "wb") as f:
-        await f.write(await file.read())
-    photo_url = f"/uploads/{filename}"
-    current_user.photo_url = photo_url
+    import base64
+    content = await file.read()
+    mime_type = file.content_type or "image/jpeg"
+    encoded = base64.b64encode(content).decode("utf-8")
+    data_url = f"data:{mime_type};base64,{encoded}"
+    current_user.photo_url = data_url
     db.commit()
-    return {"photo_url": photo_url}
+    return {"photo_url": data_url}
 
 
 @router.patch("/me/password", summary="비밀번호 변경")

@@ -90,11 +90,7 @@ function ProfileEditSheet({ profile, onClose, onSave }) {
     try {
       let photoUrl = photo;
       if (photoFile) {
-        const fd = new FormData();
-        fd.append("file", photoFile);
-        const { data: uploadData } = await api.post("/users/me/photo/upload", fd, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        const { data: uploadData } = await api.patch("/users/me/photo", { photo_url: photo });
         photoUrl = uploadData.photo_url;
       }
       const { data } = await api.patch("/users/me/profile", {
