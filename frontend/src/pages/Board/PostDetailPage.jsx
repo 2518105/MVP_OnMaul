@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api, { logEvent } from "../../api/client";
-import { getUser } from "../../api/auth";
+import { getUser, getAuthorPhoto } from "../../api/auth";
 import LoginPromptSheet from "../../components/LoginPromptSheet";
 import UserAvatar from "../../components/UserAvatar";
 import {
@@ -299,7 +299,7 @@ export default function PostDetailPage() {
       <div className="px-5 pb-32">
         {/* 작성자 */}
         <div className="flex items-center gap-3 mb-4 fade-in">
-          <UserAvatar nickname={apiPost.author_nickname} photoUrl={apiPost.author_photo ?? null} size={36} />
+          <UserAvatar nickname={apiPost.author_nickname} photoUrl={getAuthorPhoto(apiPost.author_nickname)} size={36} />
           <div>
             <span className="text-sm font-bold text-ink">{apiPost.author_nickname}</span>
             <p className="text-xs text-sub">{apiPost.author_type}</p>
@@ -342,7 +342,7 @@ export default function PostDetailPage() {
           {comments.map(c => (
             <div key={c.id} className="bg-white rounded-2xl p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-1.5">
-                <UserAvatar nickname={c.author} photoUrl={c.author_photo ?? null} size={28} />
+                <UserAvatar nickname={c.author} photoUrl={getAuthorPhoto(c.author)} size={28} />
                 <span className="text-sm font-semibold text-ink">{c.author}</span>
                 <span className="text-xs text-sub">{c.type}</span>
               </div>

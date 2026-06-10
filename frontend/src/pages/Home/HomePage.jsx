@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/client";
-import { getUser } from "../../api/auth";
+import { getUser, getAuthorPhoto } from "../../api/auth";
 import LoginPromptSheet from "../../components/LoginPromptSheet";
 import UserAvatar from "../../components/UserAvatar";
 
