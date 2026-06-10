@@ -93,7 +93,7 @@ def complete_onboarding(
         raise HTTPException(status_code=400, detail="올바른 주민 유형을 선택해주세요")
 
     village = req.village_name.strip()
-    if not village:
+    if req.resident_type == "주민" and not village:
         raise HTTPException(status_code=400, detail="마을 이름을 입력해주세요")
 
     current_user.nickname = nickname

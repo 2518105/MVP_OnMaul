@@ -10,7 +10,8 @@ import NoticePage from "./pages/Admin/NoticePage";
 import AdminDetailPage from "./pages/Admin/AdminDetailPage";
 import LoginPage from "./pages/Auth/LoginPage";
 import KakaoCallback from "./pages/Auth/KakaoCallback";
-import SplashScreen from "./pages/Splash/SplashScreen";
+import SplashPage from "./pages/Splash/SplashScreen";
+import SplashScreen from "./components/SplashScreen";
 import OnboardingScreen from "./pages/Onboarding/OnboardingScreen";
 import HomePage from "./pages/Home/HomePage";
 import HanMadiPage from "./pages/Board/HanMadiPage";
@@ -137,6 +138,7 @@ function AppLayout() {
 }
 
 export default function App() {
+  const [splashDone, setSplashDone] = useState(false);
   const [large, setLarge] = useState(() => localStorage.getItem("largeText") === "1");
 
   useEffect(() => {
@@ -146,12 +148,16 @@ export default function App() {
     localStorage.setItem("largeText", large ? "1" : "0");
   }, [large]);
 
+  if (!splashDone) {
+    return <SplashScreen onFinish={() => setSplashDone(true)} />;
+  }
+
   return (
     <FontSizeCtx.Provider value={{ large, toggle: () => setLarge(v => !v) }}>
       <BrowserRouter>
         <Routes>
           {/* 바텀 네비 없는 페이지 */}
-          <Route path="/" element={<SplashScreen />} />
+          <Route path="/" element={<SplashPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/auth/kakao/callback" element={<KakaoCallback />} />

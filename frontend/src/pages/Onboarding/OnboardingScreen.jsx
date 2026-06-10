@@ -43,7 +43,7 @@ export default function OnboardingScreen() {
       setError("주민 유형을 선택해주세요");
       return;
     }
-    if (!villageName.trim()) {
+    if (residentType === "주민" && !villageName.trim()) {
       setError("마을 이름을 입력해주세요");
       return;
     }
@@ -63,7 +63,7 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col px-6 pt-14 pb-10">
+    <div className="min-h-screen bg-white flex flex-col px-6 pt-14 pb-10" style={{ width: "100%", overflowX: "hidden" }}>
       {/* 헤더 */}
       <div className="mb-8 fade-in">
         <h2 className="text-2xl font-bold text-ink">온마을에 오신 것을<br />환영합니다</h2>
@@ -76,9 +76,10 @@ export default function OnboardingScreen() {
           <label className="block text-sm font-semibold text-ink mb-2">
             닉네임 <span className="text-red-400">*</span>
           </label>
-          <div className="flex gap-2">
+          <div className="flex gap-2" style={{ width: "100%", overflow: "hidden" }}>
             <input
               className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-ink placeholder:text-sub outline-none focus:border-maul-dark transition-colors"
+              style={{ minWidth: 0 }}
               placeholder="2~10자로 입력해주세요"
               value={nickname}
               onChange={(e) => {
@@ -91,6 +92,7 @@ export default function OnboardingScreen() {
               onClick={handleCheckNickname}
               disabled={nicknameStatus === "checking"}
               className="shrink-0 rounded-xl bg-maul px-4 py-3 text-sm font-semibold text-ink disabled:opacity-60"
+              style={{ flexShrink: 0 }}
             >
               {nicknameStatus === "checking" ? "확인 중" : "중복확인"}
             </button>
@@ -115,7 +117,10 @@ export default function OnboardingScreen() {
             {RESIDENT_TYPES.map((type) => (
               <button
                 key={type.value}
-                onClick={() => setResidentType(type.value)}
+                onClick={() => {
+                  setResidentType(type.value);
+                  if (type.value !== "주민") setVillageName("");
+                }}
                 className={`flex-1 rounded-2xl p-4 text-left border-2 transition-colors ${
                   residentType === type.value
                     ? "border-maul-dark bg-maul"
@@ -129,18 +134,20 @@ export default function OnboardingScreen() {
           </div>
         </div>
 
-        {/* 마을 이름 */}
-        <div className="fade-in-3">
-          <label className="block text-sm font-semibold text-ink mb-2">
-            마을 이름 <span className="text-red-400">*</span>
-          </label>
-          <input
-            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-ink placeholder:text-sub outline-none focus:border-maul-dark transition-colors"
-            placeholder="예: 청산리, 합금리, 서정리..."
-            value={villageName}
-            onChange={(e) => setVillageName(e.target.value)}
-          />
-        </div>
+        {/* 마을 이름 — 주민만 표시 */}
+        {residentType === "주민" && (
+          <div className="fade-in-3">
+            <label className="block text-sm font-semibold text-ink mb-2">
+              마을 이름 <span className="text-red-400">*</span>
+            </label>
+            <input
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-ink placeholder:text-sub outline-none focus:border-maul-dark transition-colors"
+              placeholder="예: 청산리, 합금리, 서정리..."
+              value={villageName}
+              onChange={(e) => setVillageName(e.target.value)}
+            />
+          </div>
+        )}
       </div>
 
       {error && (
