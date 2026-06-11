@@ -119,7 +119,7 @@ export default function BoardPage() {
       <button
         onClick={() => {
           if (!user) { setShowLoginPrompt(true); return; }
-          const writeCategory = (!category || category === "자유게시판") ? "자유" : category;
+          const writeCategory = category || "자유게시판";
           navigate(`/board/new?category=${encodeURIComponent(writeCategory)}`);
         }}
         className="fixed bottom-36 right-4 w-14 h-14 bg-maul rounded-full shadow-lg flex items-center justify-center hover:bg-maul-dark transition-colors z-20"
