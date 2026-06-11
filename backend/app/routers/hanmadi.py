@@ -20,14 +20,17 @@ UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
-def get_today_question(db) -> HanMadiQuestion:
-    questions = db.query(HanMadiQuestion).filter(HanMadiQuestion.is_active == True).order_by(HanMadiQuestion.order_index).all()
+def get_question_for_date(questions: list, target_date: date) -> HanMadiQuestion:
     if not questions:
         return None
-    today_kst = datetime.now(KST).date()
-    days_since_epoch = (today_kst - date(2024, 1, 1)).days
+    days_since_epoch = (target_date - date(2024, 1, 1)).days
     idx = days_since_epoch % len(questions)
     return questions[idx]
+
+
+def get_today_question(db) -> HanMadiQuestion:
+    questions = db.query(HanMadiQuestion).filter(HanMadiQuestion.is_active == True).order_by(HanMadiQuestion.order_index).all()
+    return get_question_for_date(questions, datetime.now(KST).date())
 
 
 # ---------- Schemas ----------
@@ -55,6 +58,15 @@ class TodayOut(BaseModel):
     question_text: str
     answer_type: str
     answers: List[AnswerOut]
+
+
+class WeeklyQuestionItem(BaseModel):
+    date: str
+    weekday: str
+    question_id: int
+    question_text: str
+    answer_count: int
+    is_today: bool
 
 
 class CommentReq(BaseModel):
@@ -89,6 +101,32 @@ def _build_answer_out(answer: DailyAnswer, current_user: Optional[User]) -> Answ
 
 
 # ---------- Endpoints ----------
+
+@router.get("/weekly", response_model=List[WeeklyQuestionItem], summary="이번 주 질문 목록")
+def get_weekly(db: Session = Depends(get_db)):
+    questions = db.query(HanMadiQuestion).filter(HanMadiQuestion.is_active == True).order_by(HanMadiQuestion.order_index).all()
+    if not questions:
+        return []
+
+    today_kst = datetime.now(KST).date()
+    monday = today_kst - timedelta(days=today_kst.weekday())
+    weekday_names = ["월", "화", "수", "목", "금", "토", "일"]
+
+    result = []
+    for i in range(7):
+        d = monday + timedelta(days=i)
+        q = get_question_for_date(questions, d)
+        answer_count = db.query(DailyAnswer).filter(DailyAnswer.question_index == q.id).count()
+        result.append(WeeklyQuestionItem(
+            date=d.isoformat(),
+            weekday=weekday_names[i],
+            question_id=q.id,
+            question_text=q.text,
+            answer_count=answer_count,
+            is_today=(d == today_kst),
+        ))
+    return result
+
 
 @router.get("/today", response_model=TodayOut, summary="오늘의 질문 + 최근 답변 3개")
 def get_today(

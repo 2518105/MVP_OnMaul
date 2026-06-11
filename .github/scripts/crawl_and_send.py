@@ -89,13 +89,23 @@ def parse_notices(html: bytes) -> list[dict]:
     return notices
 
 
+def wake_up_server() -> None:
+    print("서버 예열 중...")
+    try:
+        httpx.get(f"{API_URL}/api/health", timeout=90, follow_redirects=True)
+        print("서버 응답 확인")
+    except Exception:
+        pass
+    time.sleep(2)
+
+
 def send_to_backend(notices: list[dict]) -> dict:
     url = f"{API_URL}/api/admin/crawl-ingest"
     headers = {
         "Content-Type": "application/json",
         "X-Crawl-Secret": CRAWL_SECRET,
     }
-    response = httpx.post(url, json=notices, headers=headers, timeout=30)
+    response = httpx.post(url, json=notices, headers=headers, timeout=90)
     response.raise_for_status()
     return response.json()
 
@@ -114,6 +124,7 @@ def main():
         print("수집된 공지가 없습니다")
         sys.exit(0)
 
+    wake_up_server()
     print(f"백엔드 전송 중: {API_URL}")
     result = send_to_backend(notices)
     print(f"전송 완료: {json.dumps(result, ensure_ascii=False)}")
