@@ -117,7 +117,11 @@ export default function BoardPage() {
 
       {/* 플로팅 버튼 */}
       <button
-        onClick={() => user ? navigate("/board/new") : setShowLoginPrompt(true)}
+        onClick={() => {
+          if (!user) { setShowLoginPrompt(true); return; }
+          const writeCategory = (!category || category === "자유게시판") ? "자유" : category;
+          navigate(`/board/new?category=${encodeURIComponent(writeCategory)}`);
+        }}
         className="fixed bottom-36 right-4 w-14 h-14 bg-maul rounded-full shadow-lg flex items-center justify-center hover:bg-maul-dark transition-colors z-20"
       ><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       </button>

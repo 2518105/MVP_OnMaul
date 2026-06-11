@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api, { logEvent } from "../../api/client";
 import { getUser } from "../../api/auth";
 import LoginPromptSheet from "../../components/LoginPromptSheet";
@@ -22,8 +22,10 @@ function Toast({ msg }) {
 
 export default function PostCreatePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const user = getUser();
-  const [form, setForm] = useState({ title: "", content: "", category: "동네 정보" });
+  const initialCategory = CATEGORIES.find(c => c.value === searchParams.get("category"))?.value ?? "자유";
+  const [form, setForm] = useState({ title: "", content: "", category: initialCategory });
   const [previews, setPreviews] = useState([]);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
