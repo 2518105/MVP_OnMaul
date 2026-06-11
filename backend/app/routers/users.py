@@ -151,6 +151,7 @@ def update_profile(
         id=current_user.id,
         nickname=current_user.nickname,
         user_type=current_user.user_type.value,
+        photo_url=current_user.photo_url,
         created_at=current_user.created_at,
     )
 
