@@ -25,6 +25,9 @@ api.interceptors.response.use(
 export default api;
 
 export async function logEvent(eventKey, properties = {}) {
+  if (typeof window.gtag === "function") {
+    window.gtag("event", eventKey, properties);
+  }
   try {
     await api.post("/events", { event_key: eventKey, properties });
   } catch {}
