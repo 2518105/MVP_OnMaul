@@ -2,10 +2,10 @@
 #   전체 목록: curl https://onmaeul.onrender.com/api/admin-events
 #   날짜 범위: curl "https://onmaeul.onrender.com/api/admin-events?start=2026-01-01&end=2026-12-31"
 
-from typing import Optional, List, Any
+from typing import Optional, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_user, require_user
@@ -26,11 +26,6 @@ class AdminEventOut(BaseModel):
     department: Optional[str] = None
     created_at: Optional[str] = None
 
-    @field_validator("event_date", "event_time", "created_at", mode="before")
-    @classmethod
-    def coerce_to_str(cls, v: Any) -> Optional[str]:
-        return str(v) if v is not None else None
-
 
 class AdminEventIn(BaseModel):
     event_date: str
@@ -49,18 +44,13 @@ class SaveEventRequest(BaseModel):
     department: Optional[str] = None
 
 
-@router.get("", response_model=List[AdminEventOut], summary="행정 일정 목록")
+@router.get("", summary="행정 일정 목록")
 def list_admin_events(
     start: Optional[str] = Query(None, description="YYYY-MM-DD"),
     end: Optional[str] = Query(None, description="YYYY-MM-DD"),
 ):
     sb = get_supabase()
-    q = (
-        sb.table("admin_events")
-        .select("*")
-        .order("event_date", desc=False)
-        .order("event_time", desc=False)
-    )
+    q = sb.table("admin_events").select("*").order("event_date").order("event_time")
     if start:
         q = q.gte("event_date", start)
     if end:
@@ -68,7 +58,19 @@ def list_admin_events(
     result = q.execute()
     rows = result.data or []
     print(f"[admin-events] 조회 결과: {len(rows)}건 (start={start}, end={end})")
-    return rows
+    return [
+        {
+            "id": r.get("id"),
+            "event_date": str(r["event_date"]) if r.get("event_date") else "",
+            "event_time": str(r["event_time"]) if r.get("event_time") else None,
+            "title": r.get("title", ""),
+            "place": r.get("place"),
+            "attendees": r.get("attendees"),
+            "department": r.get("department"),
+            "created_at": str(r["created_at"]) if r.get("created_at") else None,
+        }
+        for r in rows
+    ]
 
 
 @router.post("", response_model=AdminEventOut, summary="행정 일정 등록 (관리자)")
