@@ -6,9 +6,9 @@ import { getSavedPosts, getMyComments } from "../../utils/activity";
 
 const TYPE_LABELS = {
   hanmadi: "내가 쓴 한마디",
-  posts: "내가 쓴 글",
-  saves: "저장한 글",
-  likes: "좋아요 한 글",
+  posts: "내가 쓴 게시글",
+  saves: "저장한 게시글",
+  likes: "좋아요 한 게시글",
   comments: "내 댓글",
 };
 

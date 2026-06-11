@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../api/client";
+import api, { logEvent } from "../../api/client";
 import { getUser } from "../../api/auth";
 import LoginPromptSheet from "../../components/LoginPromptSheet";
 import UserAvatar from "../../components/UserAvatar";
@@ -42,6 +42,14 @@ export default function HomePage() {
   const [loadingPosts, setLoadingPosts] = useState(true);
 
   useEffect(() => {
+    if (currentUser) {
+      const todayKey = `daily_visit_${new Date().toISOString().slice(0, 10)}`;
+      if (!sessionStorage.getItem(todayKey)) {
+        logEvent("daily_visit", {});
+        sessionStorage.setItem(todayKey, "1");
+      }
+    }
+
     api.get("/hanmadi/today")
       .then(r => {
         setQuestionText(r.data.question_text ?? "");
@@ -247,9 +255,9 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* 이번 주 일정 */}
+        {/* 이번 주 나의 일정 */}
         <div className="bg-[#f8f8f8] rounded-2xl shadow-sm p-4">
-          <p className="text-base font-bold text-ink mb-3">이번 주 일정</p>
+          <p className="text-base font-bold text-ink mb-3">이번 주 나의 일정</p>
           {events.length === 0 ? (
             <p className="text-xs text-sub/60">이번 주 등록된 일정이 없어요</p>
           ) : (

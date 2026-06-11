@@ -412,12 +412,18 @@ export default function MyPage() {
         </div>
 
         {/* 나의 마을 메달 */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <h2 className="text-base font-bold text-ink mb-3">나의 마을 메달</h2>
-          <div className="h-20 flex items-center justify-center">
-            <p className="text-xs text-sub/50">활동하면 메달을 받을 수 있어요</p>
+        <button
+          onClick={() => navigate("/mypage/medals")}
+          className="bg-white rounded-2xl p-5 shadow-sm flex items-center justify-between w-full text-left"
+        >
+          <div>
+            <h2 className="text-base font-bold text-ink">나의 마을 메달</h2>
+            <p className="text-xs text-sub mt-0.5">활동하면 메달을 받을 수 있어요</p>
           </div>
-        </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a0b8a4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
       </div>
 
       {showEdit && profile && (

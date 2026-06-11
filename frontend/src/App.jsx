@@ -16,6 +16,7 @@ import HanMadiPage from "./pages/Board/HanMadiPage";
 import HanMadiListPage from "./pages/Board/HanMadiListPage";
 import MyPage from "./pages/MyPage/MyPage";
 import MyActivityPage from "./pages/MyPage/MyActivityPage";
+import MedalPage from "./pages/MyPage/MedalPage";
 import RegisterPage from "./pages/Auth/RegisterPage";
 import ExternalNoticesPage from "./pages/Board/ExternalNoticesPage";
 
@@ -182,6 +183,7 @@ export default function App() {
             <Route path="/admin/detail/:id" element={<AdminDetailPage />} />
             <Route path="/mypage" element={<MyPage />} />
             <Route path="/mypage/activity" element={<MyActivityPage />} />
+            <Route path="/mypage/medals" element={<MedalPage />} />
             <Route path="/board/external-notices" element={<ExternalNoticesPage />} />
             <Route path="/external-notices" element={<ExternalNoticesPage />} />
           </Route>

@@ -5,8 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
 
+from sqlalchemy import func, distinct
 from app.database import get_db
-from app.models.models import User, UserType, Post, PostLike, DailyAnswer, AnswerReaction, UserSavedEvent
+from app.models.models import User, UserType, Post, PostLike, DailyAnswer, AnswerReaction, UserSavedEvent, Comment, EventLog
 from app.auth import require_user, hash_password, verify_password
 
 router = APIRouter(prefix="/users", tags=["사용자"])
@@ -335,6 +336,98 @@ def get_saved_events(
         )
         for r in rows
     ]
+
+
+class MedalOut(BaseModel):
+    key: str
+    name: str
+    sprite_key: str
+    level: Optional[str]  # null | "bronze" | "silver" | "gold"
+    count: int
+    thresholds: List[int]
+
+
+class MedalsResponse(BaseModel):
+    medals: List[MedalOut]
+    is_mvp: bool
+
+
+def _get_level(count: int, thresholds: List[int]) -> Optional[str]:
+    if count >= thresholds[2]:
+        return "gold"
+    if count >= thresholds[1]:
+        return "silver"
+    if count >= thresholds[0]:
+        return "bronze"
+    return None
+
+
+@router.get("/me/medals", response_model=MedalsResponse, summary="나의 마을 메달")
+def get_my_medals(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_user),
+):
+    uid = current_user.id
+
+    attendance = db.query(func.count(distinct(func.date(EventLog.created_at)))).filter(
+        EventLog.user_id == uid,
+        EventLog.event_key == "daily_visit",
+    ).scalar() or 0
+
+    comment_count = db.query(func.count(Comment.id)).filter(
+        Comment.author_id == uid
+    ).scalar() or 0
+
+    info_post_count = db.query(func.count(Post.id)).filter(
+        Post.author_id == uid,
+        Post.category == "동네 정보",
+    ).scalar() or 0
+
+    photo_post_count = db.query(func.count(Post.id)).filter(
+        Post.author_id == uid,
+        Post.image_url.isnot(None),
+    ).scalar() or 0
+
+    question_count = db.query(func.count(Post.id)).filter(
+        Post.author_id == uid,
+        Post.category == "질문",
+    ).scalar() or 0
+
+    share_count = db.query(func.count(Post.id)).filter(
+        Post.author_id == uid,
+        Post.category == "나눔·거래",
+    ).scalar() or 0
+
+    hanmadi_count = db.query(func.count(DailyAnswer.id)).filter(
+        DailyAnswer.user_id == uid
+    ).scalar() or 0
+
+    MEDALS = [
+        {"key": "탐구왕",    "name": "청산 탐구왕",         "sprite_key": "탐구왕",    "count": question_count,   "thresholds": [3, 5, 10]},
+        {"key": "이야기보따리","name": "청산 이야기 보따리",   "sprite_key": "이야기보따리","count": hanmadi_count,    "thresholds": [3, 5, 10]},
+        {"key": "순간포착장인","name": "청산 순간포착 장인",   "sprite_key": "순간포착장인","count": photo_post_count, "thresholds": [3, 5, 10]},
+        {"key": "박사",      "name": "청산 박사",           "sprite_key": "박사",      "count": info_post_count,  "thresholds": [3, 5, 10]},
+        {"key": "사랑꾼",    "name": "청산 사랑꾼",         "sprite_key": "사랑꾼",    "count": attendance,       "thresholds": [5, 10, 15]},
+        {"key": "말벗",      "name": "청산 말벗",           "sprite_key": "말벗",      "count": comment_count,    "thresholds": [3, 7, 15]},
+        {"key": "나눔꾼",    "name": "청산 나눔꾼",         "sprite_key": "나눔꾼",    "count": share_count,      "thresholds": [3, 5, 10]},
+    ]
+
+    result = []
+    gold_count = 0
+    for m in MEDALS:
+        level = _get_level(m["count"], m["thresholds"])
+        if level == "gold":
+            gold_count += 1
+        result.append(MedalOut(
+            key=m["key"],
+            name=m["name"],
+            sprite_key=m["sprite_key"],
+            level=level,
+            count=m["count"],
+            thresholds=m["thresholds"],
+        ))
+
+    return MedalsResponse(medals=result, is_mvp=(gold_count == 7))
 
 
 @router.delete("/me", summary="회원 탈퇴")
