@@ -189,6 +189,7 @@ export default function MyPage() {
   const localUser = getUser();
   const [profile, setProfile] = useState(null);
   const [events, setEvents] = useState([]);
+  const [earnedMedals, setEarnedMedals] = useState([]);
   const [showEdit, setShowEdit] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -215,11 +216,18 @@ export default function MyPage() {
         localStorage.setItem(PHOTO_KEY, data.photo_url);
       }
 
-      api.get("/admin/calendar")
+      api.get("/users/me/medals")
         .then(r => {
-          const now = new Date();
+          const list = Array.isArray(r.data?.medals) ? r.data.medals : [];
+          setEarnedMedals(list.filter(m => m.level));
+        })
+        .catch(() => {});
+
+      api.get("/users/me/saved-events")
+        .then(r => {
+          const nowStr = new Date().toISOString().slice(0, 10);
           const upcoming = (Array.isArray(r.data) ? r.data : [])
-            .filter(e => new Date(e.event_date) >= now)
+            .filter(e => e.event_date >= nowStr)
             .sort((a, b) => new Date(a.event_date) - new Date(b.event_date))
             .slice(0, 5);
           setEvents(upcoming);
@@ -281,7 +289,7 @@ export default function MyPage() {
       ),
     },
     {
-      label: "내가 쓴 글",
+      label: "내가 쓴 게시글",
       action: () => navigate("/mypage/activity?type=posts"),
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -299,7 +307,7 @@ export default function MyPage() {
       ),
     },
     {
-      label: "저장한 글",
+      label: "저장한 게시글",
       action: () => navigate("/mypage/activity?type=saves"),
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -308,7 +316,7 @@ export default function MyPage() {
       ),
     },
     {
-      label: "좋아요",
+      label: "좋아요 한 게시글",
       action: () => navigate("/mypage/activity?type=likes"),
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -375,6 +383,42 @@ export default function MyPage() {
           </div>
         </div>
 
+        {/* 나의 마을 메달 */}
+        <button
+          onClick={() => navigate("/mypage/medals")}
+          className="bg-white rounded-2xl p-5 shadow-sm flex items-center justify-between w-full text-left"
+        >
+          <div className="flex-1 min-w-0">
+            <h2 className="text-base font-bold text-ink mb-1.5">나의 마을 메달</h2>
+            {earnedMedals.length === 0 ? (
+              <p className="text-xs text-sub">활동하면 메달을 받을 수 있어요</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {earnedMedals.map(m => {
+                  const LEVEL = {
+                    bronze: { bg: "#f5e6d3", color: "#a0522d" },
+                    silver: { bg: "#e8e8f0", color: "#607080" },
+                    gold:   { bg: "#fff3cd", color: "#b8860b" },
+                  };
+                  const s = LEVEL[m.level] ?? LEVEL.bronze;
+                  return (
+                    <span
+                      key={m.key}
+                      className="inline-flex items-center text-base font-bold px-3 py-1.5 rounded-full"
+                      style={{ backgroundColor: s.bg, color: s.color }}
+                    >
+                      {m.key}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a0b8a4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 ml-2">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+
         {/* 나의 활동 */}
         <div className="bg-white rounded-2xl p-5 shadow-sm">
           <h2 className="text-base font-bold text-ink mb-2">나의 활동</h2>
@@ -392,38 +436,31 @@ export default function MyPage() {
           </div>
         </div>
 
-        {/* 저장한 일정 */}
+        {/* 저장한 나의 일정 */}
         <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <h2 className="text-base font-bold text-ink mb-3">저장한 일정</h2>
+          <h2 className="text-base font-bold text-ink mb-3">저장한 나의 일정</h2>
           {events.length === 0 ? (
-            <p className="text-xs text-sub/60 py-1">예정된 일정이 없어요</p>
+            <p className="text-xs text-sub/60 py-1">저장한 일정이 없어요</p>
           ) : (
             <ul className="flex flex-col gap-2.5">
               {events.map(e => (
-                <li key={e.id} className="flex items-center gap-3">
-                  <span className="bg-maul text-white text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap flex-shrink-0">
+                <li
+                  key={e.id}
+                  className="flex items-center gap-2 cursor-pointer active:opacity-70"
+                  onClick={() => navigate(`/admin?date=${e.event_date}`)}
+                >
+                  <span className="text-xs font-bold whitespace-nowrap flex-shrink-0" style={{ color: "#4a7e52" }}>
                     {fmtDate(e.event_date)}
                   </span>
-                  <span className="text-sm text-ink">{e.title}</span>
+                  <span className="text-sm text-ink truncate flex-1">{e.title}</span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="#4a7e52" stroke="#4a7e52" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                  </svg>
                 </li>
               ))}
             </ul>
           )}
         </div>
-
-        {/* 나의 마을 메달 */}
-        <button
-          onClick={() => navigate("/mypage/medals")}
-          className="bg-white rounded-2xl p-5 shadow-sm flex items-center justify-between w-full text-left"
-        >
-          <div>
-            <h2 className="text-base font-bold text-ink">나의 마을 메달</h2>
-            <p className="text-xs text-sub mt-0.5">활동하면 메달을 받을 수 있어요</p>
-          </div>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a0b8a4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </button>
       </div>
 
       {showEdit && profile && (

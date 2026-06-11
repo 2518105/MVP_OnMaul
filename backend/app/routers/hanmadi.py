@@ -87,6 +87,17 @@ class CommentReq(BaseModel):
     content: str
 
 
+class CommentOut(BaseModel):
+    id: int
+    author_nickname: str
+    author_photo: Optional[str] = None
+    content: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class AnswerUpdateReq(BaseModel):
     content: Optional[str] = None
 
@@ -351,7 +362,31 @@ def toggle_like(
     return {"liked": liked, "like_count": like_count}
 
 
-@router.post("/answers/{answer_id}/comments", summary="댓글 달기")
+@router.get("/answers/{answer_id}/comments", response_model=List[CommentOut], summary="댓글 목록")
+def get_comments(
+    answer_id: int,
+    db: Session = Depends(get_db),
+):
+    comments = (
+        db.query(AnswerReaction)
+        .options(joinedload(AnswerReaction.user))
+        .filter(AnswerReaction.answer_id == answer_id, AnswerReaction.type == "comment")
+        .order_by(AnswerReaction.created_at.asc())
+        .all()
+    )
+    return [
+        CommentOut(
+            id=c.id,
+            author_nickname=c.user.nickname,
+            author_photo=c.user.photo_url,
+            content=c.content,
+            created_at=c.created_at,
+        )
+        for c in comments
+    ]
+
+
+@router.post("/answers/{answer_id}/comments", response_model=CommentOut, summary="댓글 달기")
 def add_comment(
     answer_id: int,
     req: CommentReq,
@@ -372,9 +407,10 @@ def add_comment(
     db.commit()
     db.refresh(reaction)
 
-    return {
-        "id": reaction.id,
-        "author_nickname": current_user.nickname,
-        "content": reaction.content,
-        "created_at": reaction.created_at,
-    }
+    return CommentOut(
+        id=reaction.id,
+        author_nickname=current_user.nickname,
+        author_photo=current_user.photo_url,
+        content=reaction.content,
+        created_at=reaction.created_at,
+    )

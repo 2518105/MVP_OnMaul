@@ -122,6 +122,7 @@ export default function HanMadiListPage() {
                 onLike={() => handleLike(a.id)}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onRequireLogin={() => { if (!user) { setShowLoginPrompt(true); return false; } return true; }}
               />
             ))}
           </div>

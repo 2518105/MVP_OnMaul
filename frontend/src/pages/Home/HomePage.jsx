@@ -71,11 +71,11 @@ export default function HomePage() {
     ]).then(([calRes, savedRes]) => {
       const calEvents = (Array.isArray(calRes.data) ? calRes.data : [])
         .filter(e => { const d = new Date(e.event_date); return d >= now && d <= in7days; })
-        .map(e => ({ id: `cal-${e.id}`, title: e.title, event_date: e.event_date, source: "cal" }));
+        .map(e => ({ id: `cal-${e.id}`, adminEventId: e.id, title: e.title, event_date: e.event_date, source: "cal" }));
 
       const savedEvents = (Array.isArray(savedRes.data) ? savedRes.data : [])
         .filter(e => e.event_date >= nowStr && e.event_date <= in7Str)
-        .map(e => ({ id: `saved-${e.id}`, title: e.title, event_date: e.event_date + "T00:00:00", department: e.department, source: "saved" }));
+        .map(e => ({ id: `saved-${e.id}`, adminEventId: e.admin_event_id, title: e.title, event_date: e.event_date + "T00:00:00", department: e.department, source: "saved" }));
 
       const merged = [...calEvents, ...savedEvents]
         .sort((a, b) => new Date(a.event_date) - new Date(b.event_date))
@@ -181,11 +181,6 @@ export default function HomePage() {
                       {a.content || "사진을 올렸어요"}
                     </p>
                   </div>
-                  {a.like_count > 0 && (
-                    <span className="bg-maul text-white text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
-                      {a.like_count}
-                    </span>
-                  )}
                 </li>
               ))}
             </ul>
@@ -263,8 +258,12 @@ export default function HomePage() {
           ) : (
             <ul className="flex flex-col gap-2.5">
               {events.map(e => (
-                <li key={e.id} className="flex items-center gap-2">
-                  <span className="bg-maul text-white text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap flex-shrink-0">
+                <li
+                  key={e.id}
+                  className="flex items-center gap-2 cursor-pointer active:opacity-70"
+                  onClick={() => navigate(`/admin?date=${e.event_date.slice(0, 10)}`)}
+                >
+                  <span className="text-xs font-bold whitespace-nowrap flex-shrink-0" style={{ color: "#4a7e52" }}>
                     {fmtDate(e.event_date)}
                   </span>
                   <span className="text-sm text-ink truncate flex-1">{e.title}</span>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api, { logEvent } from "../../api/client";
 import { getUser } from "../../api/auth";
 
@@ -95,11 +95,19 @@ function WeekDateBar({ selected, onSelect, events, weekBase, onPrevWeek, onNextW
 
 export default function AdminPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const currentUser = getUser();
   const isAdmin = currentUser?.userType === "관리자";
   const [tab, setTab] = useState("schedule");
-  const [weekBase, setWeekBase] = useState(new Date());
-  const [weekSelected, setWeekSelected] = useState(new Date());
+
+  const _initialDate = (() => {
+    const d = searchParams.get("date");
+    if (d) { const p = new Date(d); if (!isNaN(p)) return p; }
+    return new Date();
+  })();
+
+  const [weekBase, setWeekBase] = useState(_initialDate);
+  const [weekSelected, setWeekSelected] = useState(_initialDate);
   const [crawling, setCrawling] = useState(false);
 
   function prevWeek() {
