@@ -126,7 +126,13 @@ export default function AdminPage() {
 
   useEffect(() => {
     logEvent("tab_view", { tab_name: "admin" });
-    api.get("/admin-events").then(r => setEvents(Array.isArray(r.data) ? r.data : [])).catch(() => {});
+    api.get("/admin-events")
+      .then(r => {
+        const data = Array.isArray(r.data) ? r.data : [];
+        console.log("[admin-events] 수신:", data.length, "건", data.slice(0, 2));
+        setEvents(data);
+      })
+      .catch(e => console.warn("[admin-events] 로드 실패:", e?.response?.status, e?.message));
     api.get("/admin/notices").then(r => setNotices(Array.isArray(r.data) ? r.data : [])).catch(() => {});
     api.get("/admin/external-notices?page=1&limit=30").then(r => setExternalNotices(Array.isArray(r.data) ? r.data : [])).catch(() => {});
     api.get("/admin/meetings").then(r => setMeetings(Array.isArray(r.data) ? r.data : [])).catch(() => {});

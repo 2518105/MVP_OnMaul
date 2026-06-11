@@ -1,7 +1,11 @@
-from typing import Optional, List
+# curl 테스트:
+#   전체 목록: curl https://onmaeul.onrender.com/api/admin-events
+#   날짜 범위: curl "https://onmaeul.onrender.com/api/admin-events?start=2026-01-01&end=2026-12-31"
+
+from typing import Optional, List, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_user, require_user
@@ -15,12 +19,17 @@ router = APIRouter(prefix="/admin-events", tags=["admin_events"])
 class AdminEventOut(BaseModel):
     id: int
     event_date: str
-    event_time: str
+    event_time: Optional[str] = None
     title: str
     place: Optional[str] = None
     attendees: Optional[int] = None
     department: Optional[str] = None
-    created_at: str
+    created_at: Optional[str] = None
+
+    @field_validator("event_date", "event_time", "created_at", mode="before")
+    @classmethod
+    def coerce_to_str(cls, v: Any) -> Optional[str]:
+        return str(v) if v is not None else None
 
 
 class AdminEventIn(BaseModel):
@@ -46,13 +55,20 @@ def list_admin_events(
     end: Optional[str] = Query(None, description="YYYY-MM-DD"),
 ):
     sb = get_supabase()
-    q = sb.table("admin_events").select("*").order("event_date").order("event_time")
+    q = (
+        sb.table("admin_events")
+        .select("*")
+        .order("event_date", desc=False)
+        .order("event_time", desc=False)
+    )
     if start:
         q = q.gte("event_date", start)
     if end:
         q = q.lte("event_date", end)
     result = q.execute()
-    return result.data
+    rows = result.data or []
+    print(f"[admin-events] 조회 결과: {len(rows)}건 (start={start}, end={end})")
+    return rows
 
 
 @router.post("", response_model=AdminEventOut, summary="행정 일정 등록 (관리자)")
