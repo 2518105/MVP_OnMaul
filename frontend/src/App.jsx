@@ -6,7 +6,6 @@ import PostCreatePage from "./pages/Board/PostCreatePage";
 import BusPage from "./pages/Bus/BusPage";
 import BusDetailPage from "./pages/Bus/BusDetailPage";
 import AdminPage from "./pages/Admin/AdminPage";
-import NoticePage from "./pages/Admin/NoticePage";
 import AdminDetailPage from "./pages/Admin/AdminDetailPage";
 import LoginPage from "./pages/Auth/LoginPage";
 import KakaoCallback from "./pages/Auth/KakaoCallback";
@@ -180,7 +179,6 @@ export default function App() {
             <Route path="/bus" element={<BusPage />} />
             <Route path="/bus/:routeId" element={<BusDetailPage />} />
             <Route path="/admin" element={<AdminPage />} />
-            <Route path="/admin/notices" element={<NoticePage />} />
             <Route path="/admin/detail/:id" element={<AdminDetailPage />} />
             <Route path="/mypage" element={<MyPage />} />
             <Route path="/mypage/activity" element={<MyActivityPage />} />

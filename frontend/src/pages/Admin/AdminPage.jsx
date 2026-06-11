@@ -244,7 +244,7 @@ export default function AdminPage() {
             rel="noopener noreferrer"
             className="flex items-center justify-between bg-maul rounded-2xl px-4 py-3 shadow-lg"
           >
-            <span className="text-sm font-bold text-ink">더 보고싶다면?</span>
+            <span className="text-sm font-bold text-ink">청산면 공지사항 바로가기</span>
             <span className="text-xs text-white">옥천군 홈페이지 →</span>
           </a>
         </div>
