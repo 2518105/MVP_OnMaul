@@ -22,10 +22,17 @@ jobs:
           python-version: '3.11'
 
       - name: 의존성 설치
-        run: pip install httpx beautifulsoup4
+        run: pip install "httpx[socks]" beautifulsoup4
+
+      - name: Tor 설치 및 시작
+        run: |
+          sudo apt-get install -y tor
+          sudo service tor start
+          sleep 5
 
       - name: 옥천군 공지사항 크롤링 및 Render 전송
         env:
           CRAWL_SECRET: ${{ secrets.CRAWL_SECRET }}
           API_URL: https://onmaeul.onrender.com
+          USE_TOR: "1"
         run: python .github/scripts/crawl_and_send.py

@@ -17,6 +17,7 @@ DETAIL_URL_PREFIX = "https://www.oc.go.kr/www/selectBbsNttView.do?bbsNo=91&key=7
 
 API_URL = os.environ.get("API_URL", "https://onmaeul.onrender.com")
 CRAWL_SECRET = os.environ.get("CRAWL_SECRET", "")
+USE_TOR = os.environ.get("USE_TOR", "") == "1"
 
 FETCH_HEADERS = {
     "User-Agent": (
@@ -32,7 +33,12 @@ FETCH_HEADERS = {
 
 def fetch_page(url: str) -> bytes:
     time.sleep(random.uniform(1, 2))
-    response = httpx.get(url, headers=FETCH_HEADERS, timeout=15, follow_redirects=True)
+    kwargs = dict(headers=FETCH_HEADERS, timeout=30, follow_redirects=True)
+    if USE_TOR:
+        with httpx.Client(proxies={"all://": "socks5://127.0.0.1:9050"}) as client:
+            response = client.get(url, **kwargs)
+    else:
+        response = httpx.get(url, **kwargs)
     response.raise_for_status()
     return response.content
 

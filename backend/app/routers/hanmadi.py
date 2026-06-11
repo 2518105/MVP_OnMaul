@@ -60,6 +60,20 @@ class TodayOut(BaseModel):
     answers: List[AnswerOut]
 
 
+class MyAnswerItem(BaseModel):
+    id: int
+    content: Optional[str]
+    media_url: Optional[str]
+    created_at: datetime
+    like_count: int
+
+
+class MyAnswerGroup(BaseModel):
+    question_id: int
+    question_text: str
+    answers: List[MyAnswerItem]
+
+
 class WeeklyQuestionItem(BaseModel):
     date: str
     weekday: str
@@ -101,6 +115,46 @@ def _build_answer_out(answer: DailyAnswer, current_user: Optional[User]) -> Answ
 
 
 # ---------- Endpoints ----------
+
+@router.get("/my-answers", response_model=List[MyAnswerGroup], summary="내 답변 목록 (질문별 그룹)")
+def get_my_answers(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_user),
+):
+    from collections import defaultdict
+    answers = (
+        db.query(DailyAnswer)
+        .options(selectinload(DailyAnswer.reactions))
+        .filter(DailyAnswer.user_id == current_user.id)
+        .order_by(DailyAnswer.created_at.desc())
+        .all()
+    )
+
+    groups: dict = defaultdict(list)
+    for a in answers:
+        groups[a.question_index].append(a)
+
+    result = []
+    for question_id, ans_list in groups.items():
+        q = db.query(HanMadiQuestion).filter(HanMadiQuestion.id == question_id).first()
+        if not q:
+            continue
+        result.append(MyAnswerGroup(
+            question_id=question_id,
+            question_text=q.text,
+            answers=[
+                MyAnswerItem(
+                    id=a.id,
+                    content=a.content,
+                    media_url=a.media_url,
+                    created_at=a.created_at,
+                    like_count=len([r for r in a.reactions if r.type == "like"]),
+                )
+                for a in ans_list
+            ],
+        ))
+    return result
+
 
 @router.get("/weekly", response_model=List[WeeklyQuestionItem], summary="이번 주 질문 목록")
 def get_weekly(db: Session = Depends(get_db)):
