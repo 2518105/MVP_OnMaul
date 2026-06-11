@@ -114,7 +114,7 @@ export default function HomePage() {
             fontSize: "28px",
             whiteSpace: "pre-line",
             overflow: "hidden",
-            maxHeight: "calc(28px * 1.375 * 2)",
+            maxHeight: "calc(28px * 1.375 * 3)",
           }}
         >
           <span style={{ color: "#629c6b" }}>{displayName} 님, </span>
