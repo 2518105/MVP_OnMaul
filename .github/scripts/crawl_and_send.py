@@ -31,16 +31,25 @@ FETCH_HEADERS = {
 }
 
 
-def fetch_page(url: str) -> bytes:
+def fetch_page(url: str, retries: int = 3) -> bytes:
     time.sleep(random.uniform(1, 2))
-    kwargs = dict(headers=FETCH_HEADERS, timeout=30, follow_redirects=True)
-    if USE_TOR:
-        with httpx.Client(proxies={"all://": "socks5://127.0.0.1:9050"}) as client:
-            response = client.get(url, **kwargs)
-    else:
-        response = httpx.get(url, **kwargs)
-    response.raise_for_status()
-    return response.content
+    kwargs = dict(headers=FETCH_HEADERS, timeout=45, follow_redirects=True)
+    last_exc: Exception | None = None
+    for attempt in range(1, retries + 1):
+        try:
+            if USE_TOR:
+                with httpx.Client(proxies={"all://": "socks5://127.0.0.1:9050"}) as client:
+                    response = client.get(url, **kwargs)
+            else:
+                response = httpx.get(url, **kwargs)
+            response.raise_for_status()
+            return response.content
+        except Exception as exc:
+            last_exc = exc
+            print(f"요청 실패 (시도 {attempt}/{retries}): {exc}")
+            if attempt < retries:
+                time.sleep(random.uniform(5, 10))
+    raise RuntimeError(f"최대 재시도 횟수 초과: {last_exc}") from last_exc
 
 
 def parse_notices(html: bytes) -> list[dict]:
