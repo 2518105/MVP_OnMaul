@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { register } from "../../api/auth";
+import { logEvent } from "../../api/client";
 
 const USER_TYPES = [
   { value: "손님", label: "손님", desc: "아직 청산면에 안 사는 사람" },
@@ -21,6 +22,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await register(form.username, form.nickname, form.password, form.userType);
+      logEvent("sign_up", { user_type: form.userType });
       navigate(next || "/board");
     } catch (err) {
       setError(err.response?.data?.detail || "회원가입 실패");

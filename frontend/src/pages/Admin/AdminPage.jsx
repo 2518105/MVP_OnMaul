@@ -163,6 +163,7 @@ export default function AdminPage() {
           department: ev.department ?? null,
         });
         setSavedIds(prev => new Set([...prev, ev.id]));
+        logEvent("save_event", { department: ev.department ?? null });
         showToast("내 일정에 추가했어요 ✓");
       }
     } catch {
