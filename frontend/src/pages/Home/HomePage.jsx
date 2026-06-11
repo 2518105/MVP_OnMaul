@@ -50,17 +50,30 @@ export default function HomePage() {
       })
       .catch(() => {});
 
-    api.get("/admin/calendar")
-      .then(r => {
-        const now = new Date();
-        const in7days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-        const upcoming = (Array.isArray(r.data) ? r.data : [])
-          .filter(e => { const d = new Date(e.event_date); return d >= now && d <= in7days; })
-          .sort((a, b) => new Date(a.event_date) - new Date(b.event_date))
-          .slice(0, 3);
-        setEvents(upcoming);
-      })
-      .catch(() => {});
+    const now = new Date();
+    const in7days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const nowStr = now.toISOString().slice(0, 10);
+    const in7Str = in7days.toISOString().slice(0, 10);
+
+    Promise.all([
+      api.get("/admin/calendar").catch(() => ({ data: [] })),
+      currentUser
+        ? api.get("/users/me/saved-events").catch(() => ({ data: [] }))
+        : Promise.resolve({ data: [] }),
+    ]).then(([calRes, savedRes]) => {
+      const calEvents = (Array.isArray(calRes.data) ? calRes.data : [])
+        .filter(e => { const d = new Date(e.event_date); return d >= now && d <= in7days; })
+        .map(e => ({ id: `cal-${e.id}`, title: e.title, event_date: e.event_date, source: "cal" }));
+
+      const savedEvents = (Array.isArray(savedRes.data) ? savedRes.data : [])
+        .filter(e => e.event_date >= nowStr && e.event_date <= in7Str)
+        .map(e => ({ id: `saved-${e.id}`, title: e.title, event_date: e.event_date + "T00:00:00", department: e.department, source: "saved" }));
+
+      const merged = [...calEvents, ...savedEvents]
+        .sort((a, b) => new Date(a.event_date) - new Date(b.event_date))
+        .slice(0, 5);
+      setEvents(merged);
+    });
 
     Promise.all([
       api.get("/posts", { params: { limit: 2 } }).catch(() => ({ data: [] })),
@@ -190,12 +203,15 @@ export default function HomePage() {
               {recentPosts.map(p => (
                 <li
                   key={p.id}
-                  className="flex items-center justify-between cursor-pointer"
+                  className="flex items-center gap-2 cursor-pointer"
                   onClick={() => navigate(`/board/${p.id}`)}
                 >
                   <span className="text-sm text-ink truncate flex-1">{p.title}</span>
-                  <span className="ml-2 bg-maul text-white text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
-                    <svg style={{display:"inline",verticalAlign:"middle",marginRight:"2px"}} width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>{p.comment_count ?? 0}
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 flex items-center gap-1" style={{ backgroundColor: "#fde8e8", color: "#e53e3e" }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>{p.like_count ?? 0}
+                  </span>
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 flex items-center gap-1" style={{ backgroundColor: "#e8f4e8", color: "#2E7D32" }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>{p.comment_count ?? 0}
                   </span>
                 </li>
               ))}
@@ -215,12 +231,15 @@ export default function HomePage() {
               {popularPosts.map(p => (
                 <li
                   key={p.id}
-                  className="flex items-center justify-between cursor-pointer"
+                  className="flex items-center gap-2 cursor-pointer"
                   onClick={() => navigate(`/board/${p.id}`)}
                 >
                   <span className="text-sm text-ink truncate flex-1">{p.title}</span>
-                  <span className="ml-2 bg-maul text-white text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
-                    <><svg style={{display:"inline",verticalAlign:"middle",marginRight:"2px"}} width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>{p.like_count ?? 0}</>
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 flex items-center gap-1" style={{ backgroundColor: "#fde8e8", color: "#e53e3e" }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>{p.like_count ?? 0}
+                  </span>
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 flex items-center gap-1" style={{ backgroundColor: "#e8f4e8", color: "#2E7D32" }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>{p.comment_count ?? 0}
                   </span>
                 </li>
               ))}
@@ -236,11 +255,16 @@ export default function HomePage() {
           ) : (
             <ul className="flex flex-col gap-2.5">
               {events.map(e => (
-                <li key={e.id} className="flex items-center gap-3">
+                <li key={e.id} className="flex items-center gap-2">
                   <span className="bg-maul text-white text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap flex-shrink-0">
                     {fmtDate(e.event_date)}
                   </span>
-                  <span className="text-sm text-ink truncate">{e.title}</span>
+                  <span className="text-sm text-ink truncate flex-1">{e.title}</span>
+                  {e.source === "saved" && (
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="#4a7e52" stroke="#4a7e52" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                    </svg>
+                  )}
                 </li>
               ))}
             </ul>

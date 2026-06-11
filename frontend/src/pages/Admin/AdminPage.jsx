@@ -113,6 +113,8 @@ export default function AdminPage() {
   const [externalNotices, setExternalNotices] = useState([]);
   const [meetings, setMeetings] = useState([]);
   const [toast, setToast] = useState("");
+  const [savedIds, setSavedIds] = useState(new Set());
+  const [saveDialog, setSaveDialog] = useState(null); // { ev, isSaved }
 
   useEffect(() => {
     logEvent("tab_view", { tab_name: "admin" });
@@ -120,11 +122,44 @@ export default function AdminPage() {
     api.get("/admin/notices").then(r => setNotices(Array.isArray(r.data) ? r.data : [])).catch(() => {});
     api.get("/admin/external-notices?page=1&limit=30").then(r => setExternalNotices(Array.isArray(r.data) ? r.data : [])).catch(() => {});
     api.get("/admin/meetings").then(r => setMeetings(Array.isArray(r.data) ? r.data : [])).catch(() => {});
+    if (currentUser) {
+      api.get("/admin-events/saved-ids").then(r => setSavedIds(new Set(Array.isArray(r.data) ? r.data : []))).catch(() => {});
+    }
   }, []);
 
   function showToast(msg) {
     setToast(msg);
     setTimeout(() => setToast(""), 2500);
+  }
+
+  async function handleSaveToggle(ev) {
+    if (!currentUser) { showToast("로그인 후 이용할 수 있어요"); return; }
+    const isSaved = savedIds.has(ev.id);
+    setSaveDialog({ ev, isSaved });
+  }
+
+  async function confirmSave() {
+    const { ev, isSaved } = saveDialog;
+    setSaveDialog(null);
+    try {
+      if (isSaved) {
+        await api.delete(`/admin-events/${ev.id}/save`);
+        setSavedIds(prev => { const s = new Set(prev); s.delete(ev.id); return s; });
+        showToast("내 일정에서 제거했어요");
+      } else {
+        await api.post(`/admin-events/${ev.id}/save`, {
+          title: ev.title,
+          event_date: ev.event_date,
+          event_time: ev.event_time,
+          place: ev.place ?? null,
+          department: ev.department ?? null,
+        });
+        setSavedIds(prev => new Set([...prev, ev.id]));
+        showToast("내 일정에 추가했어요 ✓");
+      }
+    } catch {
+      showToast("처리 중 오류가 발생했어요");
+    }
   }
 
   async function handleCrawl() {
@@ -146,6 +181,40 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen">
       {toast && <Toast msg={toast} />}
+
+      {/* 내 일정 추가/제거 확인 다이얼로그 */}
+
+      {saveDialog && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center"
+          style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+          onClick={() => setSaveDialog(null)}
+        >
+          <div
+            className="w-full max-w-[390px] bg-white rounded-t-3xl px-6 pt-6 pb-24"
+            onClick={e => e.stopPropagation()}
+          >
+            <p className="text-base font-bold text-ink mb-1">
+              {saveDialog.isSaved ? "내 일정에서 제거할까요?" : "내 일정에 추가할까요?"}
+            </p>
+            <p className="text-sm text-sub mb-6 leading-snug">{saveDialog.ev.title}</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setSaveDialog(null)}
+                className="flex-1 py-3 rounded-2xl bg-gray-100 text-sm font-semibold text-sub"
+              >
+                취소
+              </button>
+              <button
+                onClick={confirmSave}
+                className={`flex-1 py-3 rounded-2xl text-sm font-semibold text-white ${saveDialog.isSaved ? "bg-red-400" : "bg-maul-dark"}`}
+              >
+                {saveDialog.isSaved ? "제거하기" : "추가하기"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="sticky top-0 z-10 bg-white">
         <header className="px-5 pt-14 pb-3 flex items-center justify-between">
@@ -188,24 +257,40 @@ export default function AdminPage() {
               이 날은 등록된 일정이 없어요
             </div>
           ) : (
-            dayEvents.map(ev => (
-              <div
-                key={ev.id}
-                className="w-full text-left bg-white rounded-2xl shadow-sm p-4"
-              >
-                <div className="flex items-center gap-2 mb-1.5">
-                  {ev.department && (
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${HOST_COLOR[ev.department] ?? "bg-gray-100 text-gray-700"}`}>
-                      {ev.department}
-                    </span>
-                  )}
-                  <span className="text-xs text-sub ml-auto">{ev.event_time}</span>
+            dayEvents.map(ev => {
+              const isSaved = savedIds.has(ev.id);
+              return (
+                <div
+                  key={ev.id}
+                  className="w-full text-left bg-white rounded-2xl shadow-sm p-4"
+                >
+                  <div className="flex items-center gap-2 mb-1.5">
+                    {ev.department && (
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${HOST_COLOR[ev.department] ?? "bg-gray-100 text-gray-700"}`}>
+                        {ev.department}
+                      </span>
+                    )}
+                    <span className="text-xs text-sub">{ev.event_time}</span>
+                    <button
+                      onClick={() => handleSaveToggle(ev)}
+                      className="ml-auto flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full transition-colors"
+                      style={isSaved
+                        ? { backgroundColor: "#e8f4e8", color: "#2E7D32" }
+                        : { backgroundColor: "#f3f4f6", color: "#6b7280" }
+                      }
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill={isSaved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                      </svg>
+                      {isSaved ? "저장됨" : "내 일정에 추가"}
+                    </button>
+                  </div>
+                  <p className="text-sm font-bold text-ink">{ev.title}</p>
+                  {ev.place && <p className="text-xs text-sub mt-1">장소: {ev.place}</p>}
+                  {ev.attendees != null && <p className="text-xs text-sub">참석: {ev.attendees}명</p>}
                 </div>
-                <p className="text-sm font-bold text-ink">{ev.title}</p>
-                {ev.place && <p className="text-xs text-sub mt-1">장소: {ev.place}</p>}
-                {ev.attendees != null && <p className="text-xs text-sub">참석: {ev.attendees}명</p>}
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       )}

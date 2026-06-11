@@ -71,6 +71,7 @@ def on_startup():
                 "ALTER TABLE bus_routes ADD COLUMN is_bidirectional BOOLEAN DEFAULT TRUE",
                 "ALTER TABLE bus_routes ADD COLUMN trips_per_day INTEGER",
                 "ALTER TABLE bus_route_stops ADD COLUMN stop_code VARCHAR(20)",
+                "ALTER TABLE users ADD COLUMN photo_url TEXT",
             ]:
                 try:
                     conn.execute(text(stmt))

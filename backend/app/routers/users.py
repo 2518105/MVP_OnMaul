@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
-from app.models.models import User, UserType, Post, PostLike, DailyAnswer, AnswerReaction
+from app.models.models import User, UserType, Post, PostLike, DailyAnswer, AnswerReaction, UserSavedEvent
 from app.auth import require_user, hash_password, verify_password
 
 router = APIRouter(prefix="/users", tags=["사용자"])
@@ -302,6 +302,38 @@ def get_my_answers(
             created_at=a.created_at,
         )
         for a in answers
+    ]
+
+
+class SavedEventOut(BaseModel):
+    id: int
+    admin_event_id: int
+    title: str
+    event_date: str
+    event_time: Optional[str]
+    place: Optional[str]
+    department: Optional[str]
+
+
+@router.get("/me/saved-events", response_model=List[SavedEventOut], summary="내가 저장한 일정")
+def get_saved_events(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_user),
+):
+    rows = db.query(UserSavedEvent).filter(
+        UserSavedEvent.user_id == current_user.id
+    ).order_by(UserSavedEvent.event_date).all()
+    return [
+        SavedEventOut(
+            id=r.id,
+            admin_event_id=r.admin_event_id,
+            title=r.title,
+            event_date=r.event_date,
+            event_time=r.event_time,
+            place=r.place,
+            department=r.department,
+        )
+        for r in rows
     ]
 
 
