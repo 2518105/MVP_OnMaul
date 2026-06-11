@@ -482,12 +482,14 @@ def delete_account(
     db.delete(current_user)
     db.commit()
 
-    # DB 커밋 후 실제 파일 삭제 (/uploads/filename → uploads/filename)
-    for url in file_urls:
+    # DB 커밋 후 Supabase Storage 파일 삭제
+    if file_urls:
         try:
-            rel = url.lstrip("/")  # "/uploads/abc.jpg" → "uploads/abc.jpg"
-            if os.path.isfile(rel):
-                os.remove(rel)
+            from app.supabase_client import get_supabase, STORAGE_BUCKET
+            supabase = get_supabase()
+            # URL에서 파일명만 추출 (https://.../uploads/filename → filename)
+            filenames = [url.rsplit("/", 1)[-1].split("?")[0] for url in file_urls]
+            supabase.storage.from_(STORAGE_BUCKET).remove(filenames)
         except Exception:
             pass
 

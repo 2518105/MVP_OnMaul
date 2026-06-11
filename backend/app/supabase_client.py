@@ -1,7 +1,11 @@
 import os
+import uuid
+from fastapi import UploadFile
 from supabase import create_client, Client
 
 _client: Client | None = None
+
+STORAGE_BUCKET = "uploads"
 
 
 def get_supabase() -> Client:
@@ -15,3 +19,16 @@ def get_supabase() -> Client:
             )
         _client = create_client(url, key)
     return _client
+
+
+async def upload_file(file: UploadFile) -> str:
+    ext = os.path.splitext(file.filename)[1]
+    filename = f"{uuid.uuid4()}{ext}"
+    data = await file.read()
+    supabase = get_supabase()
+    supabase.storage.from_(STORAGE_BUCKET).upload(
+        filename,
+        data,
+        {"content-type": file.content_type or "application/octet-stream"},
+    )
+    return supabase.storage.from_(STORAGE_BUCKET).get_public_url(filename)

@@ -1,21 +1,16 @@
-import os
-import uuid
 from typing import Optional, List
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
-import aiofiles
 
 from app.database import get_db
 from app.models.models import Post, Comment, PostLike, User
 from app.auth import get_current_user, require_user
+from app.supabase_client import upload_file
 
 router = APIRouter(prefix="/posts", tags=["게시판"])
-
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 # ---------- Schemas ----------
@@ -145,12 +140,7 @@ async def create_post(
 ):
     image_url = None
     if image and image.filename:
-        ext = os.path.splitext(image.filename)[1]
-        filename = f"{uuid.uuid4()}{ext}"
-        path = os.path.join(UPLOAD_DIR, filename)
-        async with aiofiles.open(path, "wb") as f:
-            await f.write(await image.read())
-        image_url = f"/uploads/{filename}"
+        image_url = await upload_file(image)
 
     post = Post(
         title=title,

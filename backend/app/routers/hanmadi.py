@@ -1,11 +1,9 @@
 import os
-import uuid
 from datetime import datetime, timezone, timedelta, date
 from typing import Optional, List
 
 KST = timezone(timedelta(hours=9))
 
-import aiofiles
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload, selectinload
@@ -13,11 +11,9 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 from app.auth import get_current_user, require_user
 from app.database import get_db
 from app.models.models import User, DailyAnswer, AnswerReaction, HanMadiQuestion
+from app.supabase_client import upload_file
 
 router = APIRouter(prefix="/hanmadi", tags=["한마디"])
-
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 def get_question_for_date(questions: list, target_date: date) -> HanMadiQuestion:
@@ -249,12 +245,7 @@ async def create_answer(
 ):
     media_url = None
     if media and media.filename:
-        ext = os.path.splitext(media.filename)[1]
-        filename = f"{uuid.uuid4()}{ext}"
-        path = os.path.join(UPLOAD_DIR, filename)
-        async with aiofiles.open(path, "wb") as f:
-            await f.write(await media.read())
-        media_url = f"/uploads/{filename}"
+        media_url = await upload_file(media)
 
     answer = DailyAnswer(
         user_id=current_user.id,
