@@ -162,6 +162,7 @@ export default function AnswerCard({ answer, onLike, onEdit, onDelete, onRequire
           src={answer.media_url}
           alt=""
           className="w-full h-44 object-cover rounded-xl mb-3"
+          onError={e => { e.currentTarget.style.display = "none"; }}
         />
       )}
 

@@ -25,10 +25,13 @@ async def upload_file(file: UploadFile) -> str:
     ext = os.path.splitext(file.filename)[1]
     filename = f"{uuid.uuid4()}{ext}"
     data = await file.read()
+    content_type = file.content_type or "application/octet-stream"
     supabase = get_supabase()
     supabase.storage.from_(STORAGE_BUCKET).upload(
         filename,
         data,
-        {"content-type": file.content_type or "application/octet-stream"},
+        {"content-type": content_type},
     )
-    return supabase.storage.from_(STORAGE_BUCKET).get_public_url(filename)
+    url = supabase.storage.from_(STORAGE_BUCKET).get_public_url(filename)
+    print(f"[Storage] uploaded {filename} ({content_type}) → {url}")
+    return url

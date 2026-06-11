@@ -309,7 +309,12 @@ export default function PostDetailPage() {
         {/* 제목 + 본문 */}
         <h1 className="text-lg font-bold text-ink mb-3 fade-in-1">{apiPost.title}</h1>
         {apiPost.image_url && (
-          <img src={apiPost.image_url} alt="" className="w-full rounded-2xl mb-3 fade-in-1" />
+          <img
+            src={apiPost.image_url}
+            alt=""
+            className="w-full rounded-2xl mb-3 fade-in-1"
+            onError={e => { e.currentTarget.style.display = "none"; }}
+          />
         )}
         <p className="text-sm text-ink leading-relaxed whitespace-pre-wrap mb-4 fade-in-2">
           {apiPost.content}

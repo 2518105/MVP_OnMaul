@@ -82,7 +82,7 @@ export default function MyActivityPage() {
                   {group.answers.map(a => (
                     <div key={a.id} className="px-4 py-3">
                       {a.media_url && (
-                        <img src={a.media_url} alt="" className="w-full max-h-40 object-cover rounded-xl mb-2" />
+                        <img src={a.media_url} alt="" className="w-full max-h-40 object-cover rounded-xl mb-2" onError={e => { e.currentTarget.style.display = "none"; }} />
                       )}
                       {a.content && <p className="text-sm text-ink">{a.content}</p>}
                       <div className="flex gap-3 mt-1.5 text-xs text-sub">
