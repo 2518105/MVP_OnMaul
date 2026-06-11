@@ -2,39 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { logEvent } from "../../api/client";
 
-// 각 메달 외곽선 클립 형태 정의
-const CLIP_STYLE = {
-  "탐구왕":      { borderRadius: "18%", overflow: "hidden" },
-  "이야기보따리": { clipPath: "polygon(25% 3%, 75% 3%, 99% 50%, 75% 97%, 25% 97%, 1% 50%)" },
-  "순간포착장인": { clipPath: "polygon(5% 0%, 95% 0%, 100% 8%, 100% 68%, 75% 87%, 50% 100%, 25% 87%, 0% 68%, 0% 8%)" },
-  "박사":        { clipPath: "ellipse(47% 33% at 50% 50%)" },
-  "사랑꾼":      { clipPath: "polygon(50% 1%, 99% 26%, 99% 74%, 50% 99%, 1% 74%, 1% 26%)" },
-  "말벗":        { clipPath: "url(#clip-quatrefoil)" },
-  "나눔꾼":      { clipPath: "polygon(1% 1%, 99% 1%, 99% 65%, 50% 99%, 1% 65%)" },
-};
-
-// 사엽형(말벗) clipPath 정의 — SVG objectBoundingBox(0~1) 좌표계 사용
-function ClipDefs() {
-  return (
-    <svg width="0" height="0" style={{ position: "absolute", pointerEvents: "none" }}>
-      <defs>
-        <clipPath id="clip-quatrefoil" clipPathUnits="objectBoundingBox">
-          <path d="M0.5,0.10 C0.60,0 0.78,0 0.88,0.12 C1,0.22 1,0.40 0.88,0.50 C1,0.60 1,0.78 0.88,0.88 C0.78,1 0.60,1 0.50,0.90 C0.40,1 0.22,1 0.12,0.88 C0,0.78 0,0.60 0.12,0.50 C0,0.40 0,0.22 0.12,0.12 C0.22,0 0.40,0 0.50,0.10 Z" />
-        </clipPath>
-      </defs>
-    </svg>
-  );
-}
-
-const SPRITE_POS = {
-  "탐구왕":      { x: 0,   y: 0   },
-  "이야기보따리": { x: 50,  y: 0   },
-  "순간포착장인": { x: 100, y: 0   },
-  "박사":        { x: 0,   y: 50  },
-  "사랑꾼":      { x: 50,  y: 50  },
-  "말벗":        { x: 100, y: 50  },
-  "나눔꾼":      { x: 0,   y: 100 },
-  "MVP":         { x: 100, y: 100 },
+const MEDAL_IMAGE = {
+  "탐구왕":      "/assets/KakaoTalk_20260611_230421396.png",
+  "이야기보따리": "/assets/KakaoTalk_20260611_230421396_01.png",
+  "순간포착장인": "/assets/KakaoTalk_20260611_230421396_02.png",
+  "박사":        "/assets/KakaoTalk_20260611_230421396_03.png",
+  "사랑꾼":      "/assets/KakaoTalk_20260611_230421396_04.png",
+  "말벗":        "/assets/KakaoTalk_20260611_230421396_05.png",
+  "나눔꾼":      "/assets/KakaoTalk_20260611_230421396_06.png",
 };
 
 const LEVEL_STYLE = {
@@ -54,23 +29,20 @@ const MEDAL_DESC = {
 };
 
 function MedalSprite({ spriteKey, size = 80, grayscale = false }) {
-  const pos = SPRITE_POS[spriteKey];
-  const clip = CLIP_STYLE[spriteKey] || {};
-  if (!pos) return null;
+  const src = MEDAL_IMAGE[spriteKey];
+  if (!src) return null;
   return (
-    <div style={{ width: size, height: size, flexShrink: 0, ...clip }}>
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          backgroundImage: "url('/assets/medals.png')",
-          backgroundSize: "300% 300%",
-          backgroundPosition: `${pos.x}% ${pos.y}%`,
-          filter: grayscale ? "grayscale(1) opacity(0.35)" : "none",
-          mixBlendMode: "multiply",
-        }}
-      />
-    </div>
+    <img
+      src={src}
+      alt={spriteKey}
+      style={{
+        width: size,
+        height: size,
+        objectFit: "contain",
+        flexShrink: 0,
+        filter: grayscale ? "grayscale(1) opacity(0.35)" : "none",
+      }}
+    />
   );
 }
 
@@ -217,7 +189,6 @@ export default function MedalPage() {
 
   return (
     <div className="min-h-screen bg-[#f1f1f1] pb-24">
-      <ClipDefs />
       <header className="flex items-center gap-3 px-5 pt-12 pb-4">
         <button onClick={() => navigate(-1)} className="text-ink text-xl font-light">←</button>
         <h1 className="text-xl font-bold text-ink">나의 마을 메달</h1>
