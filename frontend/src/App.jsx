@@ -6,7 +6,6 @@ import PostCreatePage from "./pages/Board/PostCreatePage";
 import BusPage from "./pages/Bus/BusPage";
 import BusDetailPage from "./pages/Bus/BusDetailPage";
 import AdminPage from "./pages/Admin/AdminPage";
-import NoticePage from "./pages/Admin/NoticePage";
 import AdminDetailPage from "./pages/Admin/AdminDetailPage";
 import LoginPage from "./pages/Auth/LoginPage";
 import KakaoCallback from "./pages/Auth/KakaoCallback";
@@ -17,6 +16,7 @@ import HanMadiPage from "./pages/Board/HanMadiPage";
 import HanMadiListPage from "./pages/Board/HanMadiListPage";
 import MyPage from "./pages/MyPage/MyPage";
 import MyActivityPage from "./pages/MyPage/MyActivityPage";
+import MedalPage from "./pages/MyPage/MedalPage";
 import RegisterPage from "./pages/Auth/RegisterPage";
 import ExternalNoticesPage from "./pages/Board/ExternalNoticesPage";
 
@@ -24,7 +24,12 @@ const FontSizeCtx = createContext({ large: false, toggle: () => {} });
 
 function ScrollToTop() {
   const { pathname } = useLocation();
-  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "page_view", { page_path: pathname });
+    }
+  }, [pathname]);
   return null;
 }
 
@@ -180,10 +185,10 @@ export default function App() {
             <Route path="/bus" element={<BusPage />} />
             <Route path="/bus/:routeId" element={<BusDetailPage />} />
             <Route path="/admin" element={<AdminPage />} />
-            <Route path="/admin/notices" element={<NoticePage />} />
             <Route path="/admin/detail/:id" element={<AdminDetailPage />} />
             <Route path="/mypage" element={<MyPage />} />
             <Route path="/mypage/activity" element={<MyActivityPage />} />
+            <Route path="/mypage/medals" element={<MedalPage />} />
             <Route path="/board/external-notices" element={<ExternalNoticesPage />} />
             <Route path="/external-notices" element={<ExternalNoticesPage />} />
           </Route>

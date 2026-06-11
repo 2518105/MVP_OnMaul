@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { kakaoLogin } from "../../api/auth";
+import { logEvent } from "../../api/client";
 
 export default function KakaoCallback() {
   const [params] = useSearchParams();
@@ -25,6 +26,7 @@ export default function KakaoCallback() {
     kakaoLogin(code, redirectUri)
       .then((data) => {
         sessionStorage.removeItem(key);
+        logEvent("login", { method: "kakao" });
         if (!data.onboarding_completed) {
           navigate("/onboarding", { replace: true });
         } else {

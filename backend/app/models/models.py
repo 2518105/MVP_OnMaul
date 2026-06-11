@@ -253,6 +253,22 @@ class HanMadiQuestion(Base):
     order_index = Column(Integer, default=0)
 
 
+class UserSavedEvent(Base):
+    __tablename__ = "user_saved_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    admin_event_id = Column(Integer, nullable=False)
+    title = Column(String(200), nullable=False)
+    event_date = Column(String(10), nullable=False)  # YYYY-MM-DD
+    event_time = Column(String(20), nullable=True)
+    place = Column(String(200), nullable=True)
+    department = Column(String(100), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User")
+
+
 class EventLog(Base):
     __tablename__ = "event_logs"
 

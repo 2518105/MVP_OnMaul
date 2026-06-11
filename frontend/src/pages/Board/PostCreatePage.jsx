@@ -5,6 +5,7 @@ import { getUser } from "../../api/auth";
 import LoginPromptSheet from "../../components/LoginPromptSheet";
 
 const CATEGORIES = [
+  {value: "자유", label: "자유"},
   { value: "동네 정보", label: "동네 정보" },
   { value: "구인·구직", label: "구인·구직" },
   { value: "나눔·거래", label: "나눔·거래" },

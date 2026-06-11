@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import UserAvatar from "./UserAvatar";
+import api from "../api/client";
 
 
 function DeleteConfirmModal({ onConfirm, onCancel }) {
@@ -35,10 +36,17 @@ function DeleteConfirmModal({ onConfirm, onCancel }) {
   );
 }
 
-export default function AnswerCard({ answer, onLike, onEdit, onDelete }) {
+export default function AnswerCard({ answer, onLike, onEdit, onDelete, onRequireLogin }) {
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(answer.content || "");
   const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState([]);
+  const [commentsFetched, setCommentsFetched] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [commentCount, setCommentCount] = useState(answer.comment_count ?? 0);
 
   const isMine = answer.is_mine === true;
   const canEdit = isMine && !!answer.content && !!onEdit;
@@ -64,6 +72,32 @@ export default function AnswerCard({ answer, onLike, onEdit, onDelete }) {
   function handleCancelEdit() {
     setEditing(false);
     setEditText(answer.content || "");
+  }
+
+  async function handleToggleComments() {
+    if (!showComments && !commentsFetched) {
+      try {
+        const { data } = await api.get(`/hanmadi/answers/${answer.id}/comments`);
+        setComments(Array.isArray(data) ? data : []);
+        setCommentsFetched(true);
+      } catch {}
+    }
+    setShowComments(prev => !prev);
+  }
+
+  async function handleSubmitComment() {
+    if (!commentText.trim() || submitting) return;
+    if (onRequireLogin && !onRequireLogin()) return;
+    setSubmitting(true);
+    try {
+      const { data } = await api.post(`/hanmadi/answers/${answer.id}/comments`, { content: commentText.trim() });
+      setComments(prev => [...prev, data]);
+      setCommentCount(prev => prev + 1);
+      setCommentText("");
+      if (!showComments) setShowComments(true);
+    } catch {} finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -113,18 +147,8 @@ export default function AnswerCard({ answer, onLike, onEdit, onDelete }) {
             autoFocus
           />
           <div className="flex gap-3 mt-1.5">
-            <button
-              onClick={handleSave}
-              className="text-xs text-maul font-bold"
-            >
-              저장
-            </button>
-            <button
-              onClick={handleCancelEdit}
-              className="text-xs text-sub"
-            >
-              취소
-            </button>
+            <button onClick={handleSave} className="text-xs text-maul font-bold">저장</button>
+            <button onClick={handleCancelEdit} className="text-xs text-sub">취소</button>
           </div>
         </div>
       ) : (
@@ -141,6 +165,7 @@ export default function AnswerCard({ answer, onLike, onEdit, onDelete }) {
         />
       )}
 
+      {/* 액션 바 */}
       <div className="flex items-center gap-4 text-xs text-sub pl-10">
         <button
           onClick={onLike}
@@ -148,10 +173,58 @@ export default function AnswerCard({ answer, onLike, onEdit, onDelete }) {
             answer.is_liked ? "text-red-500 font-semibold" : "hover:text-ink"
           }`}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill={answer.is_liked ? "#EF4444" : "none"} stroke={answer.is_liked ? "#EF4444" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill={answer.is_liked ? "#EF4444" : "none"} stroke={answer.is_liked ? "#EF4444" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
           <span>{answer.like_count}</span>
         </button>
+
+        <button
+          onClick={handleToggleComments}
+          className={`flex items-center gap-1 transition-colors ${showComments ? "text-maul font-semibold" : "hover:text-ink"}`}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span>{commentCount}</span>
+        </button>
       </div>
+
+      {/* 댓글 섹션 */}
+      {showComments && (
+        <div className="mt-3 pl-10 flex flex-col gap-2">
+          {comments.length > 0 && (
+            <div className="flex flex-col gap-2 mb-1">
+              {comments.map(c => (
+                <div key={c.id} className="flex items-start gap-2">
+                  <UserAvatar nickname={c.author_nickname} photoUrl={c.author_photo ?? null} size={22} />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-xs font-semibold text-ink mr-1.5">{c.author_nickname}</span>
+                    <span className="text-xs text-ink">{c.content}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <input
+              className="flex-1 text-xs bg-[#f5f5f5] rounded-full px-3 py-1.5 outline-none border border-transparent focus:border-maul"
+              placeholder="댓글을 입력하세요"
+              value={commentText}
+              onChange={e => setCommentText(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmitComment(); } }}
+              maxLength={150}
+            />
+            <button
+              onClick={handleSubmitComment}
+              disabled={!commentText.trim() || submitting}
+              className="text-xs font-bold text-maul disabled:opacity-40 flex-shrink-0"
+            >
+              등록
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -20,14 +20,17 @@ UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
-def get_today_question(db) -> HanMadiQuestion:
-    questions = db.query(HanMadiQuestion).filter(HanMadiQuestion.is_active == True).order_by(HanMadiQuestion.order_index).all()
+def get_question_for_date(questions: list, target_date: date) -> HanMadiQuestion:
     if not questions:
         return None
-    today_kst = datetime.now(KST).date()
-    days_since_epoch = (today_kst - date(2024, 1, 1)).days
+    days_since_epoch = (target_date - date(2024, 1, 1)).days
     idx = days_since_epoch % len(questions)
     return questions[idx]
+
+
+def get_today_question(db) -> HanMadiQuestion:
+    questions = db.query(HanMadiQuestion).filter(HanMadiQuestion.is_active == True).order_by(HanMadiQuestion.order_index).all()
+    return get_question_for_date(questions, datetime.now(KST).date())
 
 
 # ---------- Schemas ----------
@@ -57,8 +60,42 @@ class TodayOut(BaseModel):
     answers: List[AnswerOut]
 
 
+class MyAnswerItem(BaseModel):
+    id: int
+    content: Optional[str]
+    media_url: Optional[str]
+    created_at: datetime
+    like_count: int
+
+
+class MyAnswerGroup(BaseModel):
+    question_id: int
+    question_text: str
+    answers: List[MyAnswerItem]
+
+
+class WeeklyQuestionItem(BaseModel):
+    date: str
+    weekday: str
+    question_id: int
+    question_text: str
+    answer_count: int
+    is_today: bool
+
+
 class CommentReq(BaseModel):
     content: str
+
+
+class CommentOut(BaseModel):
+    id: int
+    author_nickname: str
+    author_photo: Optional[str] = None
+    content: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
 
 
 class AnswerUpdateReq(BaseModel):
@@ -89,6 +126,72 @@ def _build_answer_out(answer: DailyAnswer, current_user: Optional[User]) -> Answ
 
 
 # ---------- Endpoints ----------
+
+@router.get("/my-answers", response_model=List[MyAnswerGroup], summary="내 답변 목록 (질문별 그룹)")
+def get_my_answers(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_user),
+):
+    from collections import defaultdict
+    answers = (
+        db.query(DailyAnswer)
+        .options(selectinload(DailyAnswer.reactions))
+        .filter(DailyAnswer.user_id == current_user.id)
+        .order_by(DailyAnswer.created_at.desc())
+        .all()
+    )
+
+    groups: dict = defaultdict(list)
+    for a in answers:
+        groups[a.question_index].append(a)
+
+    result = []
+    for question_id, ans_list in groups.items():
+        q = db.query(HanMadiQuestion).filter(HanMadiQuestion.id == question_id).first()
+        if not q:
+            continue
+        result.append(MyAnswerGroup(
+            question_id=question_id,
+            question_text=q.text,
+            answers=[
+                MyAnswerItem(
+                    id=a.id,
+                    content=a.content,
+                    media_url=a.media_url,
+                    created_at=a.created_at,
+                    like_count=len([r for r in a.reactions if r.type == "like"]),
+                )
+                for a in ans_list
+            ],
+        ))
+    return result
+
+
+@router.get("/weekly", response_model=List[WeeklyQuestionItem], summary="이번 주 질문 목록")
+def get_weekly(db: Session = Depends(get_db)):
+    questions = db.query(HanMadiQuestion).filter(HanMadiQuestion.is_active == True).order_by(HanMadiQuestion.order_index).all()
+    if not questions:
+        return []
+
+    today_kst = datetime.now(KST).date()
+    monday = today_kst - timedelta(days=today_kst.weekday())
+    weekday_names = ["월", "화", "수", "목", "금", "토", "일"]
+
+    result = []
+    for i in range(7):
+        d = monday + timedelta(days=i)
+        q = get_question_for_date(questions, d)
+        answer_count = db.query(DailyAnswer).filter(DailyAnswer.question_index == q.id).count()
+        result.append(WeeklyQuestionItem(
+            date=d.isoformat(),
+            weekday=weekday_names[i],
+            question_id=q.id,
+            question_text=q.text,
+            answer_count=answer_count,
+            is_today=(d == today_kst),
+        ))
+    return result
+
 
 @router.get("/today", response_model=TodayOut, summary="오늘의 질문 + 최근 답변 3개")
 def get_today(
@@ -259,7 +362,31 @@ def toggle_like(
     return {"liked": liked, "like_count": like_count}
 
 
-@router.post("/answers/{answer_id}/comments", summary="댓글 달기")
+@router.get("/answers/{answer_id}/comments", response_model=List[CommentOut], summary="댓글 목록")
+def get_comments(
+    answer_id: int,
+    db: Session = Depends(get_db),
+):
+    comments = (
+        db.query(AnswerReaction)
+        .options(joinedload(AnswerReaction.user))
+        .filter(AnswerReaction.answer_id == answer_id, AnswerReaction.type == "comment")
+        .order_by(AnswerReaction.created_at.asc())
+        .all()
+    )
+    return [
+        CommentOut(
+            id=c.id,
+            author_nickname=c.user.nickname,
+            author_photo=c.user.photo_url,
+            content=c.content,
+            created_at=c.created_at,
+        )
+        for c in comments
+    ]
+
+
+@router.post("/answers/{answer_id}/comments", response_model=CommentOut, summary="댓글 달기")
 def add_comment(
     answer_id: int,
     req: CommentReq,
@@ -280,9 +407,10 @@ def add_comment(
     db.commit()
     db.refresh(reaction)
 
-    return {
-        "id": reaction.id,
-        "author_nickname": current_user.nickname,
-        "content": reaction.content,
-        "created_at": reaction.created_at,
-    }
+    return CommentOut(
+        id=reaction.id,
+        author_nickname=current_user.nickname,
+        author_photo=current_user.photo_url,
+        content=reaction.content,
+        created_at=reaction.created_at,
+    )

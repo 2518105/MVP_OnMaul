@@ -17,6 +17,7 @@ DETAIL_URL_PREFIX = "https://www.oc.go.kr/www/selectBbsNttView.do?bbsNo=91&key=7
 
 API_URL = os.environ.get("API_URL", "https://onmaeul.onrender.com")
 CRAWL_SECRET = os.environ.get("CRAWL_SECRET", "")
+USE_TOR = os.environ.get("USE_TOR", "") == "1"
 
 FETCH_HEADERS = {
     "User-Agent": (
@@ -30,11 +31,25 @@ FETCH_HEADERS = {
 }
 
 
-def fetch_page(url: str) -> bytes:
+def fetch_page(url: str, retries: int = 3) -> bytes:
     time.sleep(random.uniform(1, 2))
-    response = httpx.get(url, headers=FETCH_HEADERS, timeout=15, follow_redirects=True)
-    response.raise_for_status()
-    return response.content
+    kwargs = dict(headers=FETCH_HEADERS, timeout=45, follow_redirects=True)
+    last_exc: Exception | None = None
+    for attempt in range(1, retries + 1):
+        try:
+            if USE_TOR:
+                with httpx.Client(proxies={"all://": "socks5://127.0.0.1:9050"}) as client:
+                    response = client.get(url, **kwargs)
+            else:
+                response = httpx.get(url, **kwargs)
+            response.raise_for_status()
+            return response.content
+        except Exception as exc:
+            last_exc = exc
+            print(f"요청 실패 (시도 {attempt}/{retries}): {exc}")
+            if attempt < retries:
+                time.sleep(random.uniform(5, 10))
+    raise RuntimeError(f"최대 재시도 횟수 초과: {last_exc}") from last_exc
 
 
 def parse_notices(html: bytes) -> list[dict]:
@@ -89,13 +104,23 @@ def parse_notices(html: bytes) -> list[dict]:
     return notices
 
 
+def wake_up_server() -> None:
+    print("서버 예열 중...")
+    try:
+        httpx.get(f"{API_URL}/api/health", timeout=90, follow_redirects=True)
+        print("서버 응답 확인")
+    except Exception:
+        pass
+    time.sleep(2)
+
+
 def send_to_backend(notices: list[dict]) -> dict:
     url = f"{API_URL}/api/admin/crawl-ingest"
     headers = {
         "Content-Type": "application/json",
         "X-Crawl-Secret": CRAWL_SECRET,
     }
-    response = httpx.post(url, json=notices, headers=headers, timeout=30)
+    response = httpx.post(url, json=notices, headers=headers, timeout=90)
     response.raise_for_status()
     return response.json()
 
@@ -114,6 +139,7 @@ def main():
         print("수집된 공지가 없습니다")
         sys.exit(0)
 
+    wake_up_server()
     print(f"백엔드 전송 중: {API_URL}")
     result = send_to_backend(notices)
     print(f"전송 완료: {json.dumps(result, ensure_ascii=False)}")

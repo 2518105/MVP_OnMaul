@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../api/client";
+import api, { logEvent } from "../../api/client";
 import { getUser } from "../../api/auth";
 import { getTodayQuestion } from "../../constants/questions";
 import AnswerCard from "../../components/AnswerCard";
@@ -134,6 +134,7 @@ export default function HanMadiPage() {
       setText("");
       setMediaFile(null);
       setMediaPreview(null);
+      logEvent("submit_hanmadi", { has_text: !!text.trim(), has_media: !!mediaFile });
       showToast("답변이 등록됐어요.");
     } catch (err) {
       if (err?.response?.status === 401 || err?.response?.status === 403) {
@@ -324,6 +325,7 @@ export default function HanMadiPage() {
                 onLike={() => handleLike(a.id)}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onRequireLogin={() => { if (!user) { setShowLoginPrompt(true); return false; } return true; }}
               />
               ))}
             </div>
