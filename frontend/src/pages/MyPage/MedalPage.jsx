@@ -38,8 +38,9 @@ function MedalSprite({ spriteKey, size = 80, grayscale = false }) {
       style={{
         width: size,
         height: size,
-        objectFit: "contain",
+        objectFit: "cover",
         flexShrink: 0,
+        borderRadius: "16px",
         filter: grayscale ? "grayscale(1) opacity(0.35)" : "none",
       }}
     />
