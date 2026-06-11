@@ -9,6 +9,7 @@ import {
   addLikedPost, removeLikedPost,
   addMyComment,
 } from "../../utils/activity";
+import { resolveImageUrl } from "../../utils/image";
 
 const CATEGORIES = ["자유게시판", "동네 정보", "구인·구직", "나눔·거래", "질문"];
 
@@ -310,7 +311,7 @@ export default function PostDetailPage() {
         <h1 className="text-lg font-bold text-ink mb-3 fade-in-1">{apiPost.title}</h1>
         {apiPost.image_url && (
           <img
-            src={apiPost.image_url}
+            src={resolveImageUrl(apiPost.image_url)}
             alt=""
             className="w-full rounded-2xl mb-3 fade-in-1"
             onError={e => { e.currentTarget.style.display = "none"; }}

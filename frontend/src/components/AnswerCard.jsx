@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import UserAvatar from "./UserAvatar";
 import api from "../api/client";
+import { resolveImageUrl } from "../utils/image";
 
 
 function DeleteConfirmModal({ onConfirm, onCancel }) {
@@ -159,7 +160,7 @@ export default function AnswerCard({ answer, onLike, onEdit, onDelete, onRequire
 
       {answer.media_url && (
         <img
-          src={answer.media_url}
+          src={resolveImageUrl(answer.media_url)}
           alt=""
           className="w-full h-44 object-cover rounded-xl mb-3"
           onError={e => { e.currentTarget.style.display = "none"; }}

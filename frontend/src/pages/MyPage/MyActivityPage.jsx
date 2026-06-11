@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../api/client";
 import { getUser } from "../../api/auth";
 import { getSavedPosts, getMyComments } from "../../utils/activity";
+import { resolveImageUrl } from "../../utils/image";
 
 const TYPE_LABELS = {
   hanmadi: "내가 쓴 한마디",
@@ -82,7 +83,7 @@ export default function MyActivityPage() {
                   {group.answers.map(a => (
                     <div key={a.id} className="px-4 py-3">
                       {a.media_url && (
-                        <img src={a.media_url} alt="" className="w-full max-h-40 object-cover rounded-xl mb-2" onError={e => { e.currentTarget.style.display = "none"; }} />
+                        <img src={resolveImageUrl(a.media_url)} alt="" className="w-full max-h-40 object-cover rounded-xl mb-2" onError={e => { e.currentTarget.style.display = "none"; }} />
                       )}
                       {a.content && <p className="text-sm text-ink">{a.content}</p>}
                       <div className="flex gap-3 mt-1.5 text-xs text-sub">
