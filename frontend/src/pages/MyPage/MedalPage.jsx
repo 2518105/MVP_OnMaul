@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../api/client";
+import api, { logEvent } from "../../api/client";
 
 // 각 메달 외곽선 클립 형태 정의
 const CLIP_STYLE = {
@@ -200,8 +200,17 @@ export default function MedalPage() {
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
+    logEvent("view_medals");
     api.get("/users/me/medals")
-      .then(r => setData(r.data))
+      .then(r => {
+        setData(r.data);
+        const earned = (r.data?.medals ?? []).filter(m => m.level).map(m => m.key);
+        logEvent("medal_status", {
+          earned_count: earned.length,
+          earned_medals: earned.join(","),
+          is_mvp: r.data?.is_mvp ?? false,
+        });
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
