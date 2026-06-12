@@ -31,45 +31,11 @@ FETCH_HEADERS = {
 }
 
 
-def fetch_page(url: str, retries: int = 3) -> bytes:
+def fetch_page(url: str) -> bytes:
         time.sleep(random.uniform(1, 2))
-        kwargs = dict(headers=FETCH_HEADERS, timeout=45, follow_redirects=True)
-        last_exc: Exception | None = None
-
-    for attempt in range(1, retries + 1):
-                try:
-                                if USE_TOR:
-                                                    # Tor SOCKS5 프록시 사용 (SSL 검증 비활성화로 EOF 오류 우회)
-                                                    transport = httpx.HTTPTransport(proxy="socks5://127.0.0.1:9050")
-                                                    with httpx.Client(mounts={"all://": transport}, verify=False) as client:
-                                                                            response = client.get(url, **kwargs)
-                                else:
-                                                    response = httpx.get(url, **kwargs)
-                                                response.raise_for_status()
-                                return response.content
-except Exception as exc:
-            last_exc = exc
-            print(f"요청 실패 (시도 {attempt}/{retries}): {exc}")
-            if attempt < retries:
-                                time.sleep(random.uniform(5, 10))
-
-    # Tor 사용 중 모든 재시도 실패 시 직접 연결로 폴백
-    if USE_TOR:
-                print("Tor 연결 실패 - 직접 연결로 재시도합니다.")
-                for attempt in range(1, retries + 1):
-                                try:
-                                                    response = httpx.get(url, **kwargs)
-                                                    response.raise_for_status()
-                                                    print("직접 연결 성공")
-                                                    return response.content
-except Exception as exc:
-                last_exc = exc
-                print(f"직접 연결 실패 (시도 {attempt}/{retries}): {exc}")
-                if attempt < retries:
-                                        time.sleep(random.uniform(5, 10))
-
-    raise RuntimeError(f"최대 재시도 횟수 초과: {last_exc}") from last_exc
-
+        response = httpx.get(url, headers=FETCH_HEADERS, timeout=15, follow_redirects=True)
+        response.raise_for_status()
+        return response.content
 
 def parse_notices(html: bytes) -> list[dict]:
         soup = BeautifulSoup(html, "html.parser")
