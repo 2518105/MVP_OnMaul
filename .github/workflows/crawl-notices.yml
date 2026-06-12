@@ -46,5 +46,5 @@ jobs:
         env:
           CRAWL_SECRET: ${{ secrets.CRAWL_SECRET }}
           API_URL: https://onmaeul.onrender.com
-          USE_TOR: "1"
+          USE_TOR: "0"
         run: python .github/scripts/crawl_and_send.py
