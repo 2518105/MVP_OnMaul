@@ -38,7 +38,8 @@ def fetch_page(url: str, retries: int = 3) -> bytes:
     for attempt in range(1, retries + 1):
         try:
             if USE_TOR:
-                with httpx.Client(proxy="socks5://127.0.0.1:9050") as client:
+                transport = httpx.HTTPTransport(proxy="socks5://127.0.0.1:9050")
+                with httpx.Client(mounts={"all://": transport}) as client:
                     response = client.get(url, **kwargs)
             else:
                 response = httpx.get(url, **kwargs)
