@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../api/client";
 import { getUser } from "../../api/auth";
 import { getSavedPosts, getMyComments } from "../../utils/activity";
-import { resolveImageUrl } from "../../utils/image";
 
 const TYPE_LABELS = {
   hanmadi: "내가 쓴 한마디",
@@ -54,9 +53,9 @@ export default function MyActivityPage() {
 
   const emptyMsg = {
     hanmadi: "아직 남긴 한마디가 없어요",
-    posts: "아직 쓴 글이 없어요",
-    saves: "저장한 글이 없어요",
-    likes: "좋아요 한 글이 없어요",
+    posts: "아직 쓴 게시글이 없어요",
+    saves: "저장한 게시글이 없어요",
+    likes: "좋아요 한 게시글이 없어요",
     comments: "아직 댓글을 남기지 않았어요",
   }[type];
 
@@ -83,7 +82,7 @@ export default function MyActivityPage() {
                   {group.answers.map(a => (
                     <div key={a.id} className="px-4 py-3">
                       {a.media_url && (
-                        <img src={resolveImageUrl(a.media_url)} alt="" className="w-full max-h-40 object-cover rounded-xl mb-2" onError={e => { e.currentTarget.style.display = "none"; }} />
+                        <img src={a.media_url} alt="" className="w-full max-h-40 object-cover rounded-xl mb-2" />
                       )}
                       {a.content && <p className="text-sm text-ink">{a.content}</p>}
                       <div className="flex gap-3 mt-1.5 text-xs text-sub">

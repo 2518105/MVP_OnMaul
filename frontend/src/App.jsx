@@ -114,10 +114,12 @@ function BottomNav() {
 
 function FontSizeButton() {
   const { large, toggle } = useContext(FontSizeCtx);
+  const { pathname } = useLocation();
+  const isPostDetail = /^\/board\/\d+$/.test(pathname);
   return (
     <button
       onClick={toggle}
-      className={`fixed bottom-20 right-4 z-50 w-11 h-11 rounded-full shadow-md flex items-center justify-center transition-colors ${
+      className={`fixed ${isPostDetail ? "bottom-32" : "bottom-20"} right-4 z-50 w-11 h-11 rounded-full shadow-md flex items-center justify-center transition-colors ${
         large ? "bg-maul-dark text-white" : "bg-white text-ink border border-gray-200"
       }`}
       aria-label="글자 크기 조절"
