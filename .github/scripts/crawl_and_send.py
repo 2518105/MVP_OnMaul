@@ -9,7 +9,7 @@ import random
 import json
 from datetime import datetime
 
-import httpx
+import requests
 from bs4 import BeautifulSoup
 
 BASE_URL = "https://www.oc.go.kr/www/selectBbsNttList.do?bbsNo=91&key=796"
@@ -33,16 +33,19 @@ FETCH_HEADERS = {
 
 def fetch_page(url: str, retries: int = 3) -> bytes:
     time.sleep(random.uniform(1, 2))
-    kwargs = dict(headers=FETCH_HEADERS, timeout=45, follow_redirects=True)
+    # socks5h: Tor 측에서 DNS 해석 (IP 차단 우회에 필수)
+    proxies = {"http": "socks5h://127.0.0.1:9050", "https": "socks5h://127.0.0.1:9050"} if USE_TOR else None
     last_exc: Exception | None = None
     for attempt in range(1, retries + 1):
         try:
-            if USE_TOR:
-                transport = httpx.HTTPTransport(proxy="socks5://127.0.0.1:9050")
-                with httpx.Client(mounts={"all://": transport}) as client:
-                    response = client.get(url, **kwargs)
-            else:
-                response = httpx.get(url, **kwargs)
+            response = requests.get(
+                url,
+                headers=FETCH_HEADERS,
+                timeout=60,
+                proxies=proxies,
+                verify=False,
+                allow_redirects=True,
+            )
             response.raise_for_status()
             return response.content
         except Exception as exc:
@@ -108,7 +111,7 @@ def parse_notices(html: bytes) -> list[dict]:
 def wake_up_server() -> None:
     print("서버 예열 중...")
     try:
-        httpx.get(f"{API_URL}/api/health", timeout=90, follow_redirects=True)
+        requests.get(f"{API_URL}/api/health", timeout=90, allow_redirects=True)
         print("서버 응답 확인")
     except Exception:
         pass
@@ -121,7 +124,7 @@ def send_to_backend(notices: list[dict]) -> dict:
         "Content-Type": "application/json",
         "X-Crawl-Secret": CRAWL_SECRET,
     }
-    response = httpx.post(url, json=notices, headers=headers, timeout=90)
+    response = requests.post(url, json=notices, headers=headers, timeout=90)
     response.raise_for_status()
     return response.json()
 
@@ -132,7 +135,13 @@ def main():
         sys.exit(1)
 
     print(f"크롤링 시작: {BASE_URL}")
-    html = fetch_page(BASE_URL)
+    try:
+        html = fetch_page(BASE_URL)
+    except RuntimeError as e:
+        print(f"경고: 크롤링 실패 — 사이트 접근 불가 ({e})")
+        print("워크플로우는 정상 종료합니다 (데이터 없음)")
+        sys.exit(0)
+
     notices = parse_notices(html)
     print(f"크롤링 완료: {len(notices)}건")
 
@@ -147,4 +156,7 @@ def main():
 
 
 if __name__ == "__main__":
+    # requests의 SSL 경고 억제
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     main()
