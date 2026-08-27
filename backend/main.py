@@ -9,7 +9,7 @@ import os
 
 from app.database import engine
 from app.models.models import Base
-from app.routers import auth, posts, bus, admin, events, hanmadi, users, admin_events
+from app.routers import auth, posts, bus, admin, events, hanmadi, users, admin_events, notifications
 from app.seed import seed
 from app.database import SessionLocal
 
@@ -48,6 +48,7 @@ app.include_router(events.router, prefix="/api")
 app.include_router(hanmadi.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
 app.include_router(admin_events.router, prefix="/api")
+app.include_router(notifications.router, prefix="/api")
 
 
 @app.on_event("startup")
@@ -92,6 +93,9 @@ def on_startup():
         print(f"[WARNING] Seed 실패: {e}")
 
     # 공지 크롤링은 GitHub Actions에서 수행 (Render IP 차단 방지)
+
+    if not os.environ.get("VAPID_PUBLIC_KEY") or not os.environ.get("VAPID_PRIVATE_KEY"):
+        print("[WARNING] VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY가 설정되지 않아 웹 푸시 발송이 동작하지 않습니다")
 
 
 @app.get("/api/health")

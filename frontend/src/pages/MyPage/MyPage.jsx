@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import api from "../../api/client";
 import { logout, getUser } from "../../api/auth";
+import { getSubscriptionStatus, subscribeToPush, unsubscribeFromPush } from "../../api/notifications";
 import UserAvatar from "../../components/UserAvatar";
 
 const PHOTO_KEY = "profile_photo";
@@ -19,9 +20,9 @@ function Toast({ msg }) {
   );
 }
 
-function BellIcon() {
+function BellIcon({ active }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#639d6b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "#639d6b" : "#b5b5b5"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
       <path d="M13.73 21a2 2 0 0 1-3.46 0" />
     </svg>
@@ -196,6 +197,7 @@ export default function MyPage() {
   const [photo, setPhoto] = useState(localStorage.getItem(PHOTO_KEY) || null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState("");
+  const [pushStatus, setPushStatus] = useState({ supported: false, permission: "default", subscribed: false });
 
   function showToast(msg) {
     setToast(msg);
@@ -205,7 +207,33 @@ export default function MyPage() {
   useEffect(() => {
     if (!localUser) { navigate("/login"); return; }
     fetchAll();
+    getSubscriptionStatus().then(setPushStatus);
   }, []);
+
+  async function handleBellClick() {
+    if (!pushStatus.supported) {
+      showToast("이 브라우저는 알림을 지원하지 않아요");
+      return;
+    }
+    if (pushStatus.permission === "denied") {
+      showToast("브라우저 설정에서 알림 권한을 허용해주세요");
+      return;
+    }
+    try {
+      if (pushStatus.subscribed) {
+        await unsubscribeFromPush();
+        setPushStatus(s => ({ ...s, subscribed: false }));
+        showToast("알림을 껐어요");
+      } else {
+        await subscribeToPush();
+        setPushStatus(s => ({ ...s, subscribed: true, permission: "granted" }));
+        showToast("알림을 켰어요");
+      }
+    } catch (err) {
+      if (err.permission) setPushStatus(s => ({ ...s, permission: err.permission }));
+      showToast(err.message || "알림 설정 중 오류가 발생했어요");
+    }
+  }
 
   async function fetchAll() {
     try {
@@ -337,8 +365,8 @@ export default function MyPage() {
           <h1 className="text-xl font-bold text-ink">마이페이지</h1>
         </div>
         <div className="flex items-center gap-3">
-          <button aria-label="알림" className="flex flex-col items-center gap-0.5">
-            <BellIcon />
+          <button aria-label="알림" className="flex flex-col items-center gap-0.5" onClick={handleBellClick}>
+            <BellIcon active={pushStatus.subscribed} />
           </button>
         </div>
       </header>

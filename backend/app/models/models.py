@@ -8,6 +8,17 @@ import enum
 
 from app.database import Base
 
+class PushSubscription(Base):
+    __tablename__ = "push_subscriptions"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    endpoint = Column(String, nullable=False, unique=True)
+    p256dh = Column(String, nullable=False)
+    auth = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="push_subscriptions")
 
 class UserType(str, enum.Enum):
     immigrant = "손님"
@@ -34,6 +45,7 @@ class User(Base):
     comments = relationship("Comment", back_populates="author")
     bus_votes = relationship("BusVote", back_populates="user")
     daily_answers = relationship("DailyAnswer", back_populates="user")
+    push_subscriptions = relationship("PushSubscription", back_populates="user", cascade="all, delete-orphan")
 
 
 class Post(Base):

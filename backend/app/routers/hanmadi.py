@@ -12,21 +12,9 @@ from app.auth import get_current_user, require_user
 from app.database import get_db
 from app.models.models import User, DailyAnswer, AnswerReaction, HanMadiQuestion
 from app.supabase_client import upload_file
+from app.services.hanmadi import get_question_for_date, get_today_question
 
 router = APIRouter(prefix="/hanmadi", tags=["한마디"])
-
-
-def get_question_for_date(questions: list, target_date: date) -> HanMadiQuestion:
-    if not questions:
-        return None
-    days_since_epoch = (target_date - date(2024, 1, 1)).days
-    idx = days_since_epoch % len(questions)
-    return questions[idx]
-
-
-def get_today_question(db) -> HanMadiQuestion:
-    questions = db.query(HanMadiQuestion).filter(HanMadiQuestion.is_active == True).order_by(HanMadiQuestion.order_index).all()
-    return get_question_for_date(questions, datetime.now(KST).date())
 
 
 # ---------- Schemas ----------
