@@ -21,15 +21,6 @@ function Toast({ msg }) {
   );
 }
 
-function BellIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#639d6b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-    </svg>
-  );
-}
-
 function DeleteAccountModal({ onConfirm, onCancel, loading }) {
   return createPortal(
     <div
@@ -343,14 +334,9 @@ export default function MyPage() {
       {toast && <Toast msg={toast} />}
 
       {/* 헤더 */}
-      <header className="flex items-center justify-between px-5 pt-12 pb-3">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="text-ink text-xl font-light">←</button>
-          <h1 className="text-xl font-bold text-ink">마이페이지</h1>
-        </div>
-        <div className="flex items-center gap-3">
-          <BellIcon />
-        </div>
+      <header className="flex items-center gap-3 px-5 pt-12 pb-3">
+        <button onClick={() => navigate(-1)} className="text-ink text-xl font-light">←</button>
+        <h1 className="text-xl font-bold text-ink">마이페이지</h1>
       </header>
 
       <div className="px-4 flex flex-col gap-4">
