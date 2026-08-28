@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { logEvent } from "../../api/client";
 import { getUser } from "../../api/auth";
+import { usePushNotification } from "../../hooks/usePushNotification";
 import LoginPromptSheet from "../../components/LoginPromptSheet";
 import UserAvatar from "../../components/UserAvatar";
 
@@ -32,7 +33,8 @@ export default function HomePage() {
   const displayName = onboardingDone ? (currentUser?.nickname ?? "이웃") : "이웃";
 
   const [showLoginSheet, setShowLoginSheet] = useState(false);
-  const [bellToast, setBellToast] = useState(false);
+  const [bellToast, setBellToast] = useState("");
+  const { toggle: togglePush } = usePushNotification();
   const [questionText, setQuestionText] = useState("");
   const [questionId, setQuestionId] = useState(null);
   const [answers, setAnswers] = useState([]);
@@ -97,6 +99,21 @@ export default function HomePage() {
     navigate("/hanmadi");
   }
 
+  function showBellToast(msg) {
+    setBellToast(msg);
+    setTimeout(() => setBellToast(""), 2000);
+  }
+
+  async function handleBellClick() {
+    if (!getUser()) { setShowLoginSheet(true); return; }
+    try {
+      const subscribed = await togglePush();
+      showBellToast(subscribed ? "알림을 켰어요" : "알림을 껐어요");
+    } catch (err) {
+      showBellToast(err.message || "알림 설정 중 오류가 발생했어요");
+    }
+  }
+
   function fmtDate(dateStr) {
     const d = new Date(dateStr);
     return `${d.getMonth() + 1}/${d.getDate()}`;
@@ -107,7 +124,7 @@ export default function HomePage() {
       {showLoginSheet && <LoginPromptSheet onClose={() => setShowLoginSheet(false)} />}
       {bellToast && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-ink text-white text-sm px-4 py-2.5 rounded-full shadow-lg z-50 whitespace-nowrap">
-          알림 기능은 곧 추가될 예정이에요 😊
+          {bellToast}
         </div>
       )}
 
@@ -116,7 +133,7 @@ export default function HomePage() {
         <button
           aria-label="알림"
           className="flex flex-col items-center gap-0.5"
-          onClick={() => { setBellToast(true); setTimeout(() => setBellToast(false), 2000); }}
+          onClick={handleBellClick}
         >
           <BellIcon />
           <span className="text-[10px] font-bold" style={{ color: "#639d6b" }}>알림</span>

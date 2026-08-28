@@ -10,6 +10,7 @@ self.addEventListener("push", (event) => {
     self.registration.showNotification(data.title, {
       body: data.body,
       data: { url: data.url },
+      requireInteraction: true, // 클릭하거나 직접 닫기 전까지 사라지지 않게
     })
   );
 });
