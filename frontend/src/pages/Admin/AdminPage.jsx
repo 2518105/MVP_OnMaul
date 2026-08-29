@@ -98,7 +98,7 @@ export default function AdminPage() {
   const [searchParams] = useSearchParams();
   const currentUser = getUser();
   const isAdmin = currentUser?.userType === "관리자";
-  const [tab, setTab] = useState("schedule");
+  const [tab, setTab] = useState(searchParams.get("tab") === "notice" ? "notice" : "schedule");
 
   const _initialDate = (() => {
     const d = searchParams.get("date");
