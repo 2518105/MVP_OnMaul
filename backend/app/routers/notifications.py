@@ -1,6 +1,6 @@
 import os
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -8,9 +8,16 @@ from app.database import get_db
 from app.models.models import PushSubscription, DailyAnswer, User
 from app.auth import require_user
 from app.services.hanmadi import get_today_question
-from app.services.push import NOTIFICATION_TEMPLATES, send_push_to_users
+from app.services.push import NOTIFICATION_TEMPLATES, send_push_to_users, send_push_to_all
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
+
+
+def _check_notify_secret(x_notify_secret: str):
+    """GitHub Actions cron 등 서버-투-서버 호출 인증 (JWT 불필요)."""
+    notify_secret = os.environ.get("NOTIFY_SECRET")
+    if not notify_secret or x_notify_secret != notify_secret:
+        raise HTTPException(status_code=401, detail="인증 실패")
 
 
 # ---------- Schemas ----------
@@ -99,9 +106,7 @@ def remind_daily_answer(
     X-Notify-Secret 헤더로 인증한다 (JWT 불필요, GitHub Actions cron이 호출).
     이미 답변한 사용자는 자동으로 대상에서 빠지므로 하루 여러 번 호출해도 중복 발송되지 않는다.
     """
-    notify_secret = os.environ.get("NOTIFY_SECRET")
-    if not notify_secret or x_notify_secret != notify_secret:
-        raise HTTPException(status_code=401, detail="인증 실패")
+    _check_notify_secret(x_notify_secret)
 
     question = get_today_question(db)
     if not question:
@@ -125,3 +130,23 @@ def remind_daily_answer(
         "target_count": len(target_user_ids),
         "sent_count": sent_count,
     }
+
+
+@router.post("/notify-all", summary="전체 구독자에게 알림 발송 (주간 공지/메달 리마인드 등)")
+def notify_all(
+    template: str = Query(..., description="NOTIFICATION_TEMPLATES에 등록된 키 (예: weekly_notice, weekly_medal)"),
+    x_notify_secret: str = Header(None),
+    db: Session = Depends(get_db),
+):
+    """
+    전체 구독자에게 미리 정의된 문구(NOTIFICATION_TEMPLATES)로 푸시를 보낸다.
+    X-Notify-Secret 헤더로 인증한다 (GitHub Actions cron 전용).
+    """
+    _check_notify_secret(x_notify_secret)
+
+    if template not in NOTIFICATION_TEMPLATES:
+        raise HTTPException(status_code=400, detail=f"알 수 없는 템플릿입니다: {template}")
+
+    sent_count = send_push_to_all(db, **NOTIFICATION_TEMPLATES[template])
+
+    return {"status": "success", "sent_count": sent_count}
