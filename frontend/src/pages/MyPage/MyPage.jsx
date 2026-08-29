@@ -383,7 +383,7 @@ export default function MyPage() {
         <div className="bg-white rounded-2xl p-5 shadow-sm flex items-center justify-between">
           <div className="flex-1 min-w-0 pr-3">
             <h2 className="text-base font-bold text-ink mb-1">푸시 알림</h2>
-            <p className="text-xs text-sub">오늘의 한마디를 안 남기면 알려드려요</p>
+            <p className="text-xs text-sub">오늘의 한마디, 공지, 메달 소식을 알려드려요</p>
           </div>
           <ToggleSwitch
             checked={pushStatus.subscribed}
