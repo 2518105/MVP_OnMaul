@@ -1,0 +1,50 @@
+name: 옥천군 주간행사 크롤링
+
+on:
+  schedule:
+    # 매일 새벽 6시 10분(한국시간) = UTC 21시 10분 실행
+    # (공지사항 크롤링과 겹치지 않도록 10분 오프셋)
+    - cron: '10 21 * * *'
+
+  # 수동 실행 (GitHub Actions 페이지 > Run workflow)
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 의존성 설치
+        run: pip install "requests[socks]" beautifulsoup4
+
+      - name: Tor 설치 및 시작
+        run: |
+          sudo apt-get install -y tor
+          sudo service tor start
+          for i in $(seq 1 12); do
+            STATUS=$(curl -s --max-time 5 --socks5 127.0.0.1:9050 https://check.torproject.org/api/ip 2>/dev/null || true)
+            if echo "$STATUS" | grep -q '"IsTor":true'; then
+              echo "Tor 부트스트랩 완료"
+              break
+            fi
+            echo "Tor 준비 중... ($i/12)"
+            sleep 5
+          done
+
+      - name: 옥천군 주간행사 크롤링 및 Render 전송
+        env:
+          CRAWL_SECRET: ${{ secrets.CRAWL_SECRET }}
+          API_URL: https://onmaeul.onrender.com
+          USE_TOR: "1"
+        run: python .github/scripts/crawl_weekly_events_and_send.py

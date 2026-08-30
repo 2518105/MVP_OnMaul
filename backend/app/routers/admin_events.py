@@ -2,16 +2,18 @@
 #   전체 목록: curl https://onmaeul.onrender.com/api/admin-events
 #   날짜 범위: curl "https://onmaeul.onrender.com/api/admin-events?start=2026-01-01&end=2026-12-31"
 
+import os
 from typing import Optional, List
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.auth import get_current_user, require_user
+from app.auth import get_current_user, require_user, require_admin
 from app.database import get_db
 from app.models.models import User, UserSavedEvent
 from app.supabase_client import get_supabase
+from app.crawlers.weekly_events import WeeklyEventCrawler
 
 router = APIRouter(prefix="/admin-events", tags=["admin_events"])
 
@@ -149,3 +151,49 @@ def get_saved_event_ids(
         UserSavedEvent.user_id == current_user.id
     ).all()
     return [r[0] for r in rows]
+
+
+# ---------- 옥천군 주간행사계획 크롤링 ----------
+
+class CrawlEventItem(BaseModel):
+    event_date: str  # YYYY-MM-DD
+    event_time: str  # HH:MM
+    title: str
+    place: Optional[str] = None
+    attendees: Optional[int] = None
+    department: Optional[str] = None
+
+
+@router.post("/trigger-crawl", summary="옥천군 주간행사 크롤링 트리거 (관리자, 수동 테스트용)")
+def trigger_crawl(current_user: User = Depends(require_admin)):
+    """
+    옥천군 주간행사계획(hwpx 첨부) 게시물을 크롤링해 admin_events에 반영합니다.
+    (관리자만 실행 가능. Render 서버 IP가 차단될 수 있어 GitHub Actions의
+    crawl-ingest 경로가 정식 경로이며, 이 엔드포인트는 로컬/수동 테스트용입니다.)
+    """
+    try:
+        events = WeeklyEventCrawler.fetch_events()
+        result = WeeklyEventCrawler.upsert_to_db(events)
+        return {"status": "success", "count": len(events), **result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"크롤링 실패: {str(e)}")
+
+
+@router.post("/crawl-ingest", summary="GitHub Actions 주간행사 크롤링 데이터 수신")
+def crawl_ingest(
+    items: List[CrawlEventItem],
+    x_crawl_secret: Optional[str] = Header(None),
+):
+    """
+    GitHub Actions에서 크롤링/파싱한 주간행사를 수신해 admin_events에 반영합니다.
+    X-Crawl-Secret 헤더로 인증합니다 (공지사항 크롤링과 동일한 시크릿 재사용).
+    수신한 이벤트들의 날짜 범위(그 주 전체)에 해당하는 기존 행을 지우고 새로
+    넣는 방식이라, 옥천군이 문서를 정정 게시해도 항상 최신 내용으로 맞춰집니다.
+    """
+    crawl_secret = os.environ.get("CRAWL_SECRET")
+    if not crawl_secret or x_crawl_secret != crawl_secret:
+        raise HTTPException(status_code=401, detail="인증 실패")
+
+    events = [item.dict() for item in items]
+    result = WeeklyEventCrawler.upsert_to_db(events)
+    return {"status": "success", "total": len(events), **result}
